@@ -1,0 +1,37 @@
+[package]
+name = "dungeon-crawler"
+authors = ["Lars Jarlvik <lars.jarlvik@gmail.com>"]
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[dependencies]
+winit = "0.25"
+wgpu = "0.9.0"
+env_logger = "0.9"
+pollster = "0.2"
+log = "0.4.14"
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.18.0"
+log = "0.4.14"
+ndk = "0.3"
+ndk-glue = "0.3"
+
+[package.metadata.android]
+resources = "res"
+
+[package.metadata.android.application]
+label = "Dungeon Crawler"
+icon = "@mipmap/ic_launcher"
+theme = "@style/Theme.Default"
+
+[package.metadata.android.application.activity]
+label = "Dungeon Crawler"
+orientation = "landscape"
+
+[package.metadata.android.sdk]
+min_sdk_version = 17
+target_sdk_version = 29
