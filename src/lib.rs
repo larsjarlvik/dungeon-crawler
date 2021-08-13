@@ -4,6 +4,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
+use winit_input_helper::WinitInputHelper;
 
 mod camera;
 mod config;
@@ -27,6 +28,7 @@ fn render(state: &mut state::State, start_time: &Instant, control_flow: &mut Con
 pub fn main() {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().with_title("Dungeon Crawler").build(&event_loop).unwrap();
+    let mut input = WinitInputHelper::new();
     let start_time = Instant::now();
 
     #[allow(unused_assignments)]
@@ -38,38 +40,30 @@ pub fn main() {
     }
 
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+        if input.update(&event) {
+            if input.key_released(VirtualKeyCode::Escape) || input.quit() {
+                *control_flow = ControlFlow::Exit;
+                return;
+            }
 
-        #[cfg(target_os = "android")]
-        {
             if let Some(state) = &mut state {
                 render(state, &start_time, control_flow);
             }
         }
 
         match event {
-            Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
+            Event::WindowEvent { ref event, window_id } if window_id == window.id() =>
+            {
+                #[cfg(not(target_os = "android"))]
                 if let Some(state) = &mut state {
-                    if !state.input(event) {
-                        match event {
-                            WindowEvent::CloseRequested
-                            | WindowEvent::KeyboardInput {
-                                input:
-                                    KeyboardInput {
-                                        state: ElementState::Pressed,
-                                        virtual_keycode: Some(VirtualKeyCode::Escape),
-                                        ..
-                                    },
-                                ..
-                            } => *control_flow = ControlFlow::Exit,
-                            WindowEvent::Resized(physical_size) => {
-                                state.resize(*physical_size);
-                            }
-                            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                                state.resize(**new_inner_size);
-                            }
-                            _ => {}
+                    match event {
+                        WindowEvent::Resized(physical_size) => {
+                            state.resize(*physical_size);
                         }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            state.resize(**new_inner_size);
+                        }
+                        _ => {}
                     }
                 }
             }
@@ -79,18 +73,7 @@ pub fn main() {
             Event::Suspended => {
                 state = None;
             }
-            Event::RedrawRequested(_) =>
-            {
-                #[cfg(not(target_os = "android"))]
-                if let Some(state) = &mut state {
-                    render(state, &start_time, control_flow);
-                }
-            }
-            Event::MainEventsCleared => {
-                #[cfg(not(target_os = "android"))]
-                window.request_redraw();
-            }
             _ => {}
-        }
+        };
     });
 }

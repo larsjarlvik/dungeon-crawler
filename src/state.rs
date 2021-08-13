@@ -77,10 +77,6 @@ impl State {
         }
     }
 
-    pub fn input(&mut self, _event: &WindowEvent) -> bool {
-        false
-    }
-
     pub fn update(&mut self, elapsed: u64) {
         for model_instance in &mut self.model_instances {
             self.model.update(&self.queue, model_instance, &self.camera, elapsed);

@@ -1,4 +1,5 @@
 use crate::{camera, config, model::vertex::Vertex};
+use cgmath::*;
 use std::mem;
 use wgpu::util::DeviceExt;
 
@@ -138,7 +139,9 @@ impl Model {
     pub fn update(&self, queue: &wgpu::Queue, model_instance: &mut ModelInstance, camera: &camera::Camera, elapsed: u64) {
         let uniforms = ModelInstanceUniforms {
             view_proj: camera.build_view_projection_matrix().into(),
-            model: cgmath::Matrix4::from_angle_y(cgmath::Deg(elapsed as f32 * 0.3)).into(),
+            model: (Matrix4::from_translation(vec3(((elapsed as f32) * 0.005).sin(), 0.0, 0.0))
+                * Matrix4::from_angle_y(cgmath::Deg(elapsed as f32 * 0.3)))
+            .into(),
         };
 
         queue.write_buffer(&model_instance.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
