@@ -5,11 +5,11 @@ use winit::{
 };
 
 mod state;
-
-#[cfg_attr(target_os = "android", ndk_glue::main(backtrace = "on"))]
+#[cfg_attr(
+    target_os = "android",
+    ndk_glue::main(backtrace = "on", logger(level = "debug", tag = "dungeon-crawler"))
+)]
 pub fn main() {
-    env_logger::init();
-
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
@@ -49,6 +49,9 @@ pub fn main() {
         }
         Event::Resumed => {
             state = Some(pollster::block_on(state::State::new(&window)));
+        }
+        Event::Suspended => {
+            state = None;
         }
         Event::RedrawRequested(_) => {
             if let Some(state) = &mut state {

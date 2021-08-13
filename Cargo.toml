@@ -18,7 +18,8 @@ log = "0.4.14"
 jni = "0.18.0"
 log = "0.4.14"
 ndk = "0.3"
-ndk-glue = "0.3"
+ndk-glue = { version = "0.3", features = ["logger"] }
+android_logger = "0.10.1"
 
 [package.metadata.android]
 resources = "res"
@@ -27,6 +28,7 @@ resources = "res"
 label = "Dungeon Crawler"
 icon = "@mipmap/ic_launcher"
 theme = "@style/Theme.Default"
+colorMode = "wideColorGamut"
 
 [package.metadata.android.application.activity]
 label = "Dungeon Crawler"
