@@ -1,17 +1,33 @@
+use std::time::Instant;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
 
+mod camera;
+mod config;
+mod model;
 mod state;
+
+fn render(state: &mut state::State, start_time: &Instant, control_flow: &mut ControlFlow) {
+    state.update(start_time.elapsed().as_millis() as u64);
+    match state.render() {
+        Ok(_) => {}
+        Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
+        Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+        Err(e) => eprintln!("{:?}", e),
+    }
+}
+
 #[cfg_attr(
     target_os = "android",
-    ndk_glue::main(backtrace = "on", logger(level = "debug", tag = "dungeon-crawler"))
+    ndk_glue::main(backtrace = "on", logger(level = "info", tag = "dungeon-crawler"))
 )]
 pub fn main() {
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let window = WindowBuilder::new().with_title("Dungeon Crawler").build(&event_loop).unwrap();
+    let start_time = Instant::now();
 
     #[allow(unused_assignments)]
     let mut state: Option<state::State> = None;
@@ -21,52 +37,60 @@ pub fn main() {
         state = Some(pollster::block_on(state::State::new(&window)));
     }
 
-    event_loop.run(move |event, _, control_flow| match event {
-        Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
+    event_loop.run(move |event, _, control_flow| {
+        *control_flow = ControlFlow::Poll;
+
+        #[cfg(target_os = "android")]
+        {
             if let Some(state) = &mut state {
-                if !state.input(event) {
-                    match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                                    ..
-                                },
-                            ..
-                        } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
+                render(state, &start_time, control_flow);
+            }
+        }
+
+        match event {
+            Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
+                if let Some(state) = &mut state {
+                    if !state.input(event) {
+                        match event {
+                            WindowEvent::CloseRequested
+                            | WindowEvent::KeyboardInput {
+                                input:
+                                    KeyboardInput {
+                                        state: ElementState::Pressed,
+                                        virtual_keycode: Some(VirtualKeyCode::Escape),
+                                        ..
+                                    },
+                                ..
+                            } => *control_flow = ControlFlow::Exit,
+                            WindowEvent::Resized(physical_size) => {
+                                state.resize(*physical_size);
+                            }
+                            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                                state.resize(**new_inner_size);
+                            }
+                            _ => {}
                         }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            state.resize(**new_inner_size);
-                        }
-                        _ => {}
                     }
                 }
             }
-        }
-        Event::Resumed => {
-            state = Some(pollster::block_on(state::State::new(&window)));
-        }
-        Event::Suspended => {
-            state = None;
-        }
-        Event::RedrawRequested(_) => {
-            if let Some(state) = &mut state {
-                state.update();
-                match state.render() {
-                    Ok(_) => {}
-                    Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
-                    Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    Err(e) => eprintln!("{:?}", e),
+            Event::Resumed => {
+                state = Some(pollster::block_on(state::State::new(&window)));
+            }
+            Event::Suspended => {
+                state = None;
+            }
+            Event::RedrawRequested(_) =>
+            {
+                #[cfg(not(target_os = "android"))]
+                if let Some(state) = &mut state {
+                    render(state, &start_time, control_flow);
                 }
             }
+            Event::MainEventsCleared => {
+                #[cfg(not(target_os = "android"))]
+                window.request_redraw();
+            }
+            _ => {}
         }
-        Event::MainEventsCleared => {
-            window.request_redraw();
-        }
-        _ => {}
     });
 }
