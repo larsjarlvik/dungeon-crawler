@@ -6,10 +6,9 @@ use winit::{
 };
 use winit_input_helper::WinitInputHelper;
 
-mod camera;
 mod config;
-mod model;
 mod state;
+mod world;
 
 fn render(state: &mut state::State, start_time: &Instant, control_flow: &mut ControlFlow) {
     state.update(start_time.elapsed().as_millis() as u64);

@@ -1,4 +1,7 @@
-use crate::{camera, config, model};
+use crate::{config, world};
+use cgmath::*;
+use rand::Rng;
+use specs::{Builder, WorldExt};
 use winit::window::Window;
 
 pub struct State {
@@ -8,9 +11,7 @@ pub struct State {
     queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
-    camera: camera::Camera,
-    model: model::Model,
-    model_instances: Vec<model::ModelInstance>,
+    world: world::World,
 }
 
 impl State {
@@ -50,9 +51,30 @@ impl State {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        let camera = camera::Camera::new(size.width as u32, size.height as u32);
-        let model = model::Model::new(&device);
-        let model_instances = vec![model.load(&device)];
+        let mut world = world::World::new(&device);
+
+        let mut rng = rand::thread_rng();
+        for _ in 0..1000 {
+            let model = world.load_model(&device);
+
+            world
+                .components
+                .create_entity()
+                .with(world::components::Camera::new(size.width as u32, size.height as u32))
+                .with(world::components::Model::from(model))
+                .with(world::components::Position(vec3(
+                    rng.gen::<f32>() * 4.0 - 2.0,
+                    rng.gen::<f32>() * 4.0 - 2.0,
+                    rng.gen::<f32>() * 4.0 - 2.0,
+                )))
+                .with(world::components::Bouce(vec3(
+                    rng.gen::<f32>() * 0.06 - 0.03,
+                    rng.gen::<f32>() * 0.06 - 0.03,
+                    rng.gen::<f32>() * 0.06 - 0.03,
+                )))
+                .with(world::components::Render::default())
+                .build();
+        }
 
         Self {
             surface,
@@ -61,9 +83,7 @@ impl State {
             sc_desc,
             swap_chain,
             size,
-            camera,
-            model,
-            model_instances,
+            world,
         }
     }
 
@@ -76,23 +96,13 @@ impl State {
         }
     }
 
-    pub fn update(&mut self, elapsed: u64) {
-        for model_instance in &mut self.model_instances {
-            self.model.update(&self.queue, model_instance, &self.camera, elapsed);
-        }
+    pub fn update(&mut self, _elapsed: u64) {
+        self.world.update();
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("state_encoder"),
-        });
-
-        {
-            self.model.render(&mut encoder, &self.model_instances, &frame.view);
-        }
-
-        self.queue.submit(std::iter::once(encoder.finish()));
+        self.world.render(&self.device, &self.queue, &frame.view);
         Ok(())
     }
 }
