@@ -1,6 +1,5 @@
-use winit::{event::WindowEvent, window::Window};
-
 use crate::{camera, config, model};
+use winit::window::Window;
 
 pub struct State {
     pub size: winit::dpi::PhysicalSize<u32>,

@@ -18,9 +18,8 @@ pub struct ModelInstanceUniforms {
 }
 
 pub struct ModelInstance {
-    vertex_buffer: wgpu::Buffer,
     uniform_buffer: wgpu::Buffer,
-    uniform_bind_group: wgpu::BindGroup,
+    render_bundle: wgpu::RenderBundle,
 }
 
 impl Model {
@@ -129,10 +128,23 @@ impl Model {
             label: Some("uniform_bind_group"),
         });
 
+        let mut encoder = device.create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {
+            label: Some("model_bundle"),
+            color_formats: &[config::COLOR_TEXTURE_FORMAT],
+            depth_stencil_format: None,
+            sample_count: 1,
+        });
+        encoder.set_pipeline(&self.render_pipeline);
+        encoder.set_bind_group(0, &uniform_bind_group, &[]);
+        encoder.set_vertex_buffer(0, vertex_buffer.slice(..));
+        encoder.draw(0..3, 0..1);
+        let render_bundle = encoder.finish(&wgpu::RenderBundleDescriptor {
+            label: Some("model_render_bundle"),
+        });
+
         ModelInstance {
-            vertex_buffer,
             uniform_buffer,
-            uniform_bind_group,
+            render_bundle,
         }
     }
 
@@ -148,29 +160,21 @@ impl Model {
     }
 
     pub fn render(&self, encoder: &mut wgpu::CommandEncoder, model_instances: &Vec<ModelInstance>, view: &wgpu::TextureView) {
-        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("model_render_pass"),
-            color_attachments: &[wgpu::RenderPassColorAttachment {
-                view,
-                resolve_target: None,
-                ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color {
-                        r: 0.192,
-                        g: 0.204,
-                        b: 0.220,
-                        a: 1.0,
-                    }),
-                    store: true,
-                },
-            }],
-            depth_stencil_attachment: None,
-        });
+        let bundles: Vec<&wgpu::RenderBundle> = model_instances.iter().map(|mi| &mi.render_bundle).collect();
 
-        for model_instance in model_instances.into_iter() {
-            render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_vertex_buffer(0, model_instance.vertex_buffer.slice(..));
-            render_pass.set_bind_group(0, &model_instance.uniform_bind_group, &[]);
-            render_pass.draw(0..3, 0..1);
-        }
+        encoder
+            .begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("model_render_pass"),
+                color_attachments: &[wgpu::RenderPassColorAttachment {
+                    view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(config::CLEAR_COLOR),
+                        store: true,
+                    },
+                }],
+                depth_stencil_attachment: None,
+            })
+            .execute_bundles(bundles.into_iter());
     }
 }

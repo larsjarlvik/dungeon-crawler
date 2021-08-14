@@ -52,9 +52,8 @@ pub fn main() {
         }
 
         match event {
-            Event::WindowEvent { ref event, window_id } if window_id == window.id() =>
-            {
-                #[cfg(not(target_os = "android"))]
+            #[cfg(not(target_os = "android"))]
+            Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 if let Some(state) = &mut state {
                     match event {
                         WindowEvent::Resized(physical_size) => {
