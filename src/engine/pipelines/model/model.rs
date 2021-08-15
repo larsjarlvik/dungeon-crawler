@@ -2,13 +2,13 @@ use super::*;
 use std::mem;
 use wgpu::util::DeviceExt;
 
-pub struct GltfModel {
+pub struct Model {
     pub uniform_buffer: wgpu::Buffer,
     pub render_bundle: wgpu::RenderBundle,
 }
 
-impl GltfModel {
-    pub fn new(device: &wgpu::Device, pipeline: &Model) -> GltfModel {
+impl Model {
+    pub fn new(ctx: &engine::Context, pipeline: &engine::pipelines::model::ModelPipeline) -> Model {
         const VERTICES: &[Vertex] = &[
             Vertex {
                 position: [0.0, 0.5, 0.0],
@@ -24,20 +24,20 @@ impl GltfModel {
             },
         ];
 
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        let vertex_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("model_vertex_buffer"),
             contents: bytemuck::cast_slice(VERTICES),
             usage: wgpu::BufferUsage::VERTEX,
         });
 
-        let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+        let uniform_buffer = ctx.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("uniform_buffer"),
             size: mem::size_of::<Uniforms>() as u64,
             mapped_at_creation: false,
             usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         });
 
-        let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        let uniform_bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &pipeline.uniform_bind_group_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
@@ -46,10 +46,10 @@ impl GltfModel {
             label: Some("uniform_bind_group"),
         });
 
-        let mut encoder = device.create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {
+        let mut encoder = ctx.device.create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {
             label: Some("model_bundle"),
             color_formats: &[config::COLOR_TEXTURE_FORMAT],
-            depth_stencil_format: None,
+            depth_stencil_format: if_some!(ctx.depth_texture, Some(config::DEPTH_FORMAT)),
             sample_count: 1,
         });
         encoder.set_pipeline(&pipeline.render_pipeline);

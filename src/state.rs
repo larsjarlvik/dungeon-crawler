@@ -1,56 +1,22 @@
-use crate::{config, viewport, world};
+use crate::{engine, world};
 use cgmath::*;
 use rand::Rng;
 use specs::{Builder, WorldExt};
 use winit::window::Window;
 
 pub struct State {
-    pub viewport: viewport::Viewport,
-    surface: wgpu::Surface,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    sc_desc: wgpu::SwapChainDescriptor,
-    swap_chain: wgpu::SwapChain,
+    engine: engine::Engine,
     world: world::World,
 }
 
 impl State {
     pub async fn new(window: &Window) -> Self {
-        let instance = wgpu::Instance::new(wgpu::BackendBit::VULKAN);
-        let size = window.inner_size();
-        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor());
+        let mut engine = engine::Engine::new(window).await;
+        engine.set_depth_texture();
+        engine.set_glyph_pipeline();
+        engine.set_model_pipeline();
 
-        let surface = unsafe { instance.create_surface(window) };
-        let adapter = instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::HighPerformance,
-                compatible_surface: Some(&surface),
-            })
-            .await
-            .expect("No suitable GPU adapters found on the system!");
-
-        let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    features: wgpu::Features::empty(),
-                    limits: wgpu::Limits::default(),
-                    label: None,
-                },
-                None,
-            )
-            .await
-            .unwrap();
-
-        let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
-            format: config::COLOR_TEXTURE_FORMAT,
-            width: size.width,
-            height: size.height,
-            present_mode: wgpu::PresentMode::Immediate,
-        };
-        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
-        let mut world = world::World::new(&device);
-
+        let mut world = world::World::new();
         world
             .components
             .create_entity()
@@ -60,12 +26,15 @@ impl State {
 
         let mut rng = rand::thread_rng();
         for _ in 0..500 {
-            let model = world.load_model(&device);
+            let model = engine.load_model();
 
             world
                 .components
                 .create_entity()
-                .with(world::components::Camera::new(size.width as u32, size.height as u32))
+                .with(world::components::Camera::new(
+                    engine.ctx.viewport.width as u32,
+                    engine.ctx.viewport.height as u32,
+                ))
                 .with(world::components::Model::from(model))
                 .with(world::components::Position(vec3(
                     rng.gen::<f32>() * 4.0 - 2.0,
@@ -80,24 +49,13 @@ impl State {
                 .with(world::components::Render::default())
                 .build();
         }
-
-        Self {
-            surface,
-            device,
-            queue,
-            sc_desc,
-            swap_chain,
-            viewport,
-            world,
-        }
+        Self { engine, world }
     }
 
-    pub fn resize(&mut self, viewport: viewport::Viewport) {
-        if viewport.width > 0 && viewport.height > 0 {
-            self.viewport = viewport;
-            self.sc_desc.width = self.viewport.width;
-            self.sc_desc.height = self.viewport.height;
-            self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+    pub fn resize(&mut self, width: u32, height: u32, scale_factor: f64) {
+        if width > 0 && height > 0 {
+            self.engine.set_viewport(width, height, scale_factor);
+            self.engine.set_depth_texture();
         }
     }
 
@@ -106,8 +64,15 @@ impl State {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
-        let frame = self.swap_chain.get_current_frame()?.output;
-        self.world.render(&self.device, &self.queue, &self.viewport, &frame.view);
+        let frame = self.engine.get_output_frame();
+
+        if let Some(model_pipeline) = &self.engine.model_pipeline {
+            model_pipeline.render(&self.engine.ctx, &self.world.components, &frame.view);
+        }
+        if let Some(glyph_pipeline) = &mut self.engine.glyph_pipeline {
+            glyph_pipeline.render(&self.engine.ctx, &self.world.components, &frame.view);
+        }
+
         Ok(())
     }
 }

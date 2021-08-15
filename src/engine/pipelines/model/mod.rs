@@ -1,27 +1,31 @@
-use crate::{config, world::*};
-mod gltf;
+use crate::{
+    config,
+    engine::{self, pipelines},
+    world::*,
+};
+mod model;
 mod uniforms;
 mod vertex;
 
-pub use gltf::GltfModel;
-use specs::WorldExt;
+pub use model::Model;
+use specs::{Join, WorldExt};
 pub use uniforms::Uniforms;
 pub use vertex::Vertex;
 
-pub struct Model {
+pub struct ModelPipeline {
     pub render_pipeline: wgpu::RenderPipeline,
     pub uniform_bind_group_layout: wgpu::BindGroupLayout,
 }
 
-impl Model {
-    pub fn new(device: &wgpu::Device) -> Self {
-        let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+impl ModelPipeline {
+    pub fn new(ctx: &engine::Context) -> Self {
+        let shader = ctx.device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("model_shader"),
             flags: wgpu::ShaderFlags::all(),
             source: wgpu::ShaderSource::Wgsl(include_str!("model.wgsl").into()),
         });
 
-        let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        let uniform_bind_group_layout = ctx.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("model_uniform_bind_group_layout"),
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -35,13 +39,13 @@ impl Model {
             }],
         });
 
-        let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        let render_pipeline_layout = ctx.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("model_render_pipeline_layout"),
             bind_group_layouts: &[&uniform_bind_group_layout],
             push_constant_ranges: &[],
         });
 
-        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        let render_pipeline = ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("model_render_pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
@@ -67,7 +71,16 @@ impl Model {
                 clamp_depth: false,
                 conservative: false,
             },
-            depth_stencil: None,
+            depth_stencil: if_some!(
+                ctx.depth_texture,
+                Some(wgpu::DepthStencilState {
+                    format: config::DEPTH_FORMAT,
+                    depth_write_enabled: true,
+                    depth_compare: wgpu::CompareFunction::Less,
+                    stencil: wgpu::StencilState::default(),
+                    bias: wgpu::DepthBiasState::default(),
+                })
+            ),
             multisample: wgpu::MultisampleState {
                 count: 1,
                 mask: !0,
@@ -81,7 +94,7 @@ impl Model {
         }
     }
 
-    pub fn render(&self, device: &wgpu::Device, queue: &wgpu::Queue, components: &specs::World, view: &wgpu::TextureView) {
+    pub fn render(&self, ctx: &engine::Context, components: &specs::World, view: &wgpu::TextureView) {
         let models = components.read_storage::<components::Model>();
         let render = components.read_storage::<components::Render>();
         let mut bundles = vec![];
@@ -92,13 +105,29 @@ impl Model {
                 model: render.model_matrix.into(),
             };
 
-            queue.write_buffer(&model.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
+            ctx.queue.write_buffer(&model.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
             bundles.push(&model.render_bundle);
         }
 
-        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        let mut encoder = ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("model_encoder"),
         });
+
+        let depth_stencil_attachment = if let Some(depth_texture) = &ctx.depth_texture {
+            if_some!(
+                ctx.depth_texture,
+                Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &depth_texture.view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: true,
+                    }),
+                    stencil_ops: None,
+                })
+            )
+        } else {
+            None
+        };
 
         encoder
             .begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -111,10 +140,10 @@ impl Model {
                         store: true,
                     },
                 }],
-                depth_stencil_attachment: None,
+                depth_stencil_attachment,
             })
             .execute_bundles(bundles.into_iter());
 
-        queue.submit(std::iter::once(encoder.finish()));
+        ctx.queue.submit(std::iter::once(encoder.finish()));
     }
 }

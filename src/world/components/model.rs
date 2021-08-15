@@ -1,4 +1,4 @@
-use super::super::pipelines;
+use crate::engine;
 use specs::{Component, VecStorage};
 
 pub struct Model {
@@ -7,7 +7,7 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn from(model: pipelines::model::GltfModel) -> Self {
+    pub fn from(model: engine::pipelines::Model) -> Self {
         Self {
             uniform_buffer: model.uniform_buffer,
             render_bundle: model.render_bundle,
