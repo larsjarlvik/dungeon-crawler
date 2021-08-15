@@ -1,11 +1,11 @@
-use crate::{config, world};
+use crate::{config, viewport, world};
 use cgmath::*;
 use rand::Rng;
 use specs::{Builder, WorldExt};
 use winit::window::Window;
 
 pub struct State {
-    pub size: winit::dpi::PhysicalSize<u32>,
+    pub viewport: viewport::Viewport,
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -17,11 +17,10 @@ pub struct State {
 impl State {
     pub async fn new(window: &Window) -> Self {
         let instance = wgpu::Instance::new(wgpu::BackendBit::VULKAN);
-        let (size, surface) = unsafe {
-            let size = window.inner_size();
-            let surface = instance.create_surface(window);
-            (size, surface)
-        };
+        let size = window.inner_size();
+        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor());
+
+        let surface = unsafe { instance.create_surface(window) };
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::HighPerformance,
@@ -47,11 +46,17 @@ impl State {
             format: config::COLOR_TEXTURE_FORMAT,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Fifo,
+            present_mode: wgpu::PresentMode::Immediate,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
-
         let mut world = world::World::new(&device);
+
+        world
+            .components
+            .create_entity()
+            .with(world::components::Fps::new())
+            .with(world::components::Text::new("", vec2(20.0, 20.0)))
+            .build();
 
         let mut rng = rand::thread_rng();
         for _ in 0..1000 {
@@ -82,16 +87,16 @@ impl State {
             queue,
             sc_desc,
             swap_chain,
-            size,
+            viewport,
             world,
         }
     }
 
-    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.size = new_size;
-            self.sc_desc.width = new_size.width;
-            self.sc_desc.height = new_size.height;
+    pub fn resize(&mut self, viewport: viewport::Viewport) {
+        if viewport.width > 0 && viewport.height > 0 {
+            self.viewport = viewport;
+            self.sc_desc.width = self.viewport.width;
+            self.sc_desc.height = self.viewport.height;
             self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
         }
     }
@@ -102,7 +107,7 @@ impl State {
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
-        self.world.render(&self.device, &self.queue, &frame.view);
+        self.world.render(&self.device, &self.queue, &self.viewport, &frame.view);
         Ok(())
     }
 }

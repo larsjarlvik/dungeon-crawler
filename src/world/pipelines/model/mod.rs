@@ -97,7 +97,7 @@ impl Model {
         }
 
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("state_encoder"),
+            label: Some("model_encoder"),
         });
 
         encoder

@@ -8,13 +8,14 @@ use winit_input_helper::WinitInputHelper;
 
 mod config;
 mod state;
+mod viewport;
 mod world;
 
 fn render(state: &mut state::State, start_time: &Instant, control_flow: &mut ControlFlow) {
     state.update(start_time.elapsed().as_millis() as u64);
     match state.render() {
         Ok(_) => {}
-        Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
+        Err(wgpu::SwapChainError::Lost) => state.resize(state.viewport.clone()),
         Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
         Err(e) => eprintln!("{:?}", e),
     }
@@ -56,10 +57,21 @@ pub fn main() {
                 if let Some(state) = &mut state {
                     match event {
                         WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
+                            state.resize(viewport::Viewport::new(
+                                physical_size.width,
+                                physical_size.height,
+                                window.scale_factor(),
+                            ));
                         }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            state.resize(**new_inner_size);
+                        WindowEvent::ScaleFactorChanged {
+                            new_inner_size,
+                            scale_factor,
+                        } => {
+                            state.resize(viewport::Viewport::new(
+                                new_inner_size.width,
+                                new_inner_size.height,
+                                *scale_factor,
+                            ));
                         }
                         _ => {}
                     }

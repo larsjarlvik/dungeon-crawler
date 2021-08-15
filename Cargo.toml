@@ -11,6 +11,7 @@ crate-type = ["lib", "cdylib"]
 winit = "0.25"
 winit_input_helper = "0.10.0"
 wgpu = "0.9.0"
+wgpu_glyph = "0.13"
 env_logger = "0.9"
 pollster = "0.2"
 log = "0.4.14"
