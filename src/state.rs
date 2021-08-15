@@ -59,7 +59,7 @@ impl State {
             .build();
 
         let mut rng = rand::thread_rng();
-        for _ in 0..1000 {
+        for _ in 0..500 {
             let model = world.load_model(&device);
 
             world

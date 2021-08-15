@@ -8,6 +8,7 @@ use winit_input_helper::WinitInputHelper;
 
 mod config;
 mod state;
+mod utils;
 mod viewport;
 mod world;
 
@@ -38,6 +39,9 @@ pub fn main() {
     {
         state = Some(pollster::block_on(state::State::new(&window)));
     }
+
+    #[cfg(target_os = "android")]
+    utils::aquire_wakelock();
 
     event_loop.run(move |event, _, control_flow| {
         if input.update(&event) {
@@ -78,10 +82,9 @@ pub fn main() {
                 }
             }
             Event::Resumed => {
-                state = Some(pollster::block_on(state::State::new(&window)));
-            }
-            Event::Suspended => {
-                state = None;
+                if state.is_none() {
+                    state = Some(pollster::block_on(state::State::new(&window)));
+                }
             }
             _ => {}
         };

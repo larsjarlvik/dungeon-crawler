@@ -35,8 +35,6 @@ label = "Dungeon Crawler"
 icon = "@mipmap/ic_launcher"
 theme = "@style/Theme.Default"
 colorMode = "wideColorGamut"
-largeHeap = "true"
-keepScreenOn = "true"
 
 [package.metadata.android.application.activity]
 label = "Dungeon Crawler"
