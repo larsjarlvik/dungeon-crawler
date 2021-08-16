@@ -6,16 +6,6 @@ use winit::{
 };
 use winit_input_helper::WinitInputHelper;
 
-macro_rules! if_some {
-    ($c:expr, $v:expr) => {
-        if $c.is_some() {
-            $v
-        } else {
-            None
-        }
-    };
-}
-
 mod config;
 mod engine;
 mod state;
@@ -37,6 +27,9 @@ fn render(state: &mut state::State, start_time: &Instant, control_flow: &mut Con
     ndk_glue::main(backtrace = "on", logger(level = "info", tag = "dungeon-crawler"))
 )]
 pub fn main() {
+    #[cfg(not(target_os = "android"))]
+    env_logger::init();
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().with_title("Dungeon Crawler").build(&event_loop).unwrap();
     let mut input = WinitInputHelper::new();

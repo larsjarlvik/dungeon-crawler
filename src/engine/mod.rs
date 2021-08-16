@@ -1,5 +1,6 @@
 use crate::config;
 
+pub mod model;
 pub mod pipelines;
 mod texture;
 mod viewport;
@@ -10,19 +11,19 @@ pub struct Context {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub swap_chain: wgpu::SwapChain,
-    pub depth_texture: Option<texture::Texture>,
+    pub depth_texture: texture::Texture,
 }
 
 pub struct Engine {
     pub ctx: Context,
-    pub model_pipeline: Option<pipelines::ModelPipeline>,
-    pub glyph_pipeline: Option<pipelines::GlyphPipeline>,
+    pub model_pipeline: pipelines::ModelPipeline,
+    pub glyph_pipeline: pipelines::GlyphPipeline,
 }
 
 impl Engine {
     pub async fn new(window: &winit::window::Window) -> Self {
         let size = window.inner_size();
-        let instance = wgpu::Instance::new(wgpu::BackendBit::VULKAN);
+        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
         let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor());
 
@@ -54,18 +55,24 @@ impl Engine {
             present_mode: wgpu::PresentMode::Immediate,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+        let depth_texture = texture::Texture::create_depth_texture(&device, viewport.width, viewport.height, "engine_depth_texture");
+
+        let ctx = Context {
+            viewport,
+            device,
+            surface,
+            queue,
+            swap_chain,
+            depth_texture,
+        };
+
+        let model_pipeline = pipelines::ModelPipeline::new(&ctx);
+        let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
 
         Self {
-            ctx: Context {
-                viewport,
-                device,
-                surface,
-                queue,
-                swap_chain,
-                depth_texture: None,
-            },
-            model_pipeline: None,
-            glyph_pipeline: None,
+            ctx,
+            model_pipeline,
+            glyph_pipeline,
         }
     }
 
@@ -84,27 +91,19 @@ impl Engine {
     }
 
     pub fn set_depth_texture(&mut self) {
-        self.ctx.depth_texture = Some(texture::Texture::create_depth_texture(
+        self.ctx.depth_texture = texture::Texture::create_depth_texture(
             &self.ctx.device,
             self.ctx.viewport.width,
             self.ctx.viewport.height,
             "engine_depth_texture",
-        ));
-    }
-
-    pub fn set_model_pipeline(&mut self) {
-        self.model_pipeline = Some(pipelines::ModelPipeline::new(&self.ctx));
-    }
-
-    pub fn set_glyph_pipeline(&mut self) {
-        self.glyph_pipeline = Some(pipelines::GlyphPipeline::new(&self.ctx))
+        );
     }
 
     pub fn get_output_frame(&self) -> wgpu::SwapChainTexture {
         self.ctx.swap_chain.get_current_frame().unwrap().output
     }
 
-    pub fn load_model(&self) -> pipelines::Model {
-        pipelines::Model::new(&self.ctx, self.model_pipeline.as_ref().unwrap())
+    pub fn load_model(&self, bytes: &'static [u8]) -> model::GltfModel {
+        model::GltfModel::new(&self.ctx, bytes)
     }
 }

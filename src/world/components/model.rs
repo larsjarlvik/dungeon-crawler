@@ -7,7 +7,7 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn from(model: engine::pipelines::Model) -> Self {
+    pub fn new(model: engine::pipelines::Model) -> Self {
         Self {
             uniform_buffer: model.uniform_buffer,
             render_bundle: model.render_bundle,

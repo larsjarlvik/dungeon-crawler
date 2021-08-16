@@ -1,96 +1,91 @@
+mod uniforms;
+
 use crate::{
     config,
-    engine::{self, pipelines},
+    engine::{
+        self,
+        pipelines::{self, pipeline_builder::PipelineBuilder},
+    },
     world::*,
 };
-mod model;
-mod uniforms;
-mod vertex;
-
-pub use model::Model;
 use specs::{Join, WorldExt};
+use std::mem;
 pub use uniforms::Uniforms;
-pub use vertex::Vertex;
+
+use super::render_bundle_builder::RenderBundleBuilder;
+
+pub struct Model {
+    pub uniform_buffer: wgpu::Buffer,
+    pub render_bundle: wgpu::RenderBundle,
+}
 
 pub struct ModelPipeline {
     pub render_pipeline: wgpu::RenderPipeline,
     pub uniform_bind_group_layout: wgpu::BindGroupLayout,
+    pub texture_bind_group_layout: wgpu::BindGroupLayout,
+    pub sampler: wgpu::Sampler,
 }
 
 impl ModelPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
-        let shader = ctx.device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-            label: Some("model_shader"),
-            flags: wgpu::ShaderFlags::all(),
-            source: wgpu::ShaderSource::Wgsl(include_str!("model.wgsl").into()),
-        });
+        let builder = PipelineBuilder::new(&ctx);
 
-        let uniform_bind_group_layout = ctx.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("model_uniform_bind_group_layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
+        let uniform_bind_group_layout = builder.create_bindgroup_layout(
+            "model_uniform_bind_group_layout",
+            &[builder.create_uniform_entry(0, wgpu::ShaderStage::VERTEX)],
+        );
 
-        let render_pipeline_layout = ctx.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("model_render_pipeline_layout"),
-            bind_group_layouts: &[&uniform_bind_group_layout],
-            push_constant_ranges: &[],
-        });
+        let texture_bind_group_layout = builder.create_bindgroup_layout(
+            "texture_bind_group_layout",
+            &[
+                builder.create_texture_entry(0, wgpu::ShaderStage::FRAGMENT),
+                builder.create_texture_entry(1, wgpu::ShaderStage::FRAGMENT),
+                builder.create_texture_entry(2, wgpu::ShaderStage::FRAGMENT),
+                builder.create_sampler_entry(3, wgpu::ShaderStage::FRAGMENT),
+            ],
+        );
 
-        let render_pipeline = ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("model_render_pipeline"),
-            layout: Some(&render_pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: "main",
-                buffers: &[Vertex::desc()],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
-                    format: config::COLOR_TEXTURE_FORMAT,
-                    blend: Some(wgpu::BlendState::REPLACE),
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
-            }),
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
-                polygon_mode: wgpu::PolygonMode::Fill,
-                clamp_depth: false,
-                conservative: false,
-            },
-            depth_stencil: if_some!(
-                ctx.depth_texture,
-                Some(wgpu::DepthStencilState {
-                    format: config::DEPTH_FORMAT,
-                    depth_write_enabled: true,
-                    depth_compare: wgpu::CompareFunction::Less,
-                    stencil: wgpu::StencilState::default(),
-                    bias: wgpu::DepthBiasState::default(),
-                })
-            ),
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-        });
+        let sampler = builder.create_sampler();
+        let render_pipeline = builder
+            .with_shader(wgpu::ShaderSource::Wgsl(include_str!("model.wgsl").into()))
+            .with_bind_group_layout(&uniform_bind_group_layout)
+            .with_bind_group_layout(&texture_bind_group_layout)
+            .build();
 
         Self {
             render_pipeline,
             uniform_bind_group_layout,
+            texture_bind_group_layout,
+            sampler,
+        }
+    }
+
+    pub fn gltf(&self, ctx: &engine::Context, model: &engine::model::GltfModel, mesh: &str) -> Model {
+        let mesh = model.get_mesh_by_name(mesh);
+        let primitive = mesh.primitives.first().unwrap();
+        let material = model.get_material(primitive.material);
+
+        let builder = RenderBundleBuilder::new(ctx);
+        let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<Uniforms>() as u64);
+        let texture_entries = &[
+            RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&material.base_color_texture.view)),
+            RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&material.normal_texture.view)),
+            RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&material.orm_texture.view)),
+            RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&self.sampler)),
+        ];
+
+        let render_bundle = builder
+            .with_pipeline(&self.render_pipeline)
+            .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer)
+            .with_texture_bind_group(&self.texture_bind_group_layout, texture_entries)
+            .with_vertices(bytemuck::cast_slice(primitive.vertices.as_slice()))
+            .with_indices(bytemuck::cast_slice(&primitive.indices.as_slice()))
+            .with_length(primitive.length)
+            .build();
+
+        Model {
+            uniform_buffer,
+            render_bundle,
         }
     }
 
@@ -113,22 +108,6 @@ impl ModelPipeline {
             label: Some("model_encoder"),
         });
 
-        let depth_stencil_attachment = if let Some(depth_texture) = &ctx.depth_texture {
-            if_some!(
-                ctx.depth_texture,
-                Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_texture.view,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: true,
-                    }),
-                    stencil_ops: None,
-                })
-            )
-        } else {
-            None
-        };
-
         encoder
             .begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("model_render_pass"),
@@ -140,7 +119,14 @@ impl ModelPipeline {
                         store: true,
                     },
                 }],
-                depth_stencil_attachment,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &ctx.depth_texture.view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: true,
+                    }),
+                    stencil_ops: None,
+                }),
             })
             .execute_bundles(bundles.into_iter());
 

@@ -11,11 +11,7 @@ pub struct State {
 
 impl State {
     pub async fn new(window: &Window) -> Self {
-        let mut engine = engine::Engine::new(window).await;
-        engine.set_depth_texture();
-        engine.set_glyph_pipeline();
-        engine.set_model_pipeline();
-
+        let engine = engine::Engine::new(window).await;
         let mut world = world::World::new();
         world
             .components
@@ -25,9 +21,9 @@ impl State {
             .build();
 
         let mut rng = rand::thread_rng();
-        for _ in 0..500 {
-            let model = engine.load_model();
+        let model = engine.load_model(include_bytes!("../models/ship.glb"));
 
+        for _ in 0..500 {
             world
                 .components
                 .create_entity()
@@ -35,16 +31,20 @@ impl State {
                     engine.ctx.viewport.width as u32,
                     engine.ctx.viewport.height as u32,
                 ))
-                .with(world::components::Model::from(model))
+                .with(world::components::Model::new(engine.model_pipeline.gltf(
+                    &engine.ctx,
+                    &model,
+                    "ship",
+                )))
                 .with(world::components::Position(vec3(
-                    rng.gen::<f32>() * 4.0 - 2.0,
-                    rng.gen::<f32>() * 4.0 - 2.0,
-                    rng.gen::<f32>() * 4.0 - 2.0,
+                    rng.gen::<f32>() * 40.0 - 20.0,
+                    rng.gen::<f32>() * 40.0 - 20.0,
+                    rng.gen::<f32>() * 40.0 - 20.0,
                 )))
                 .with(world::components::Bouce(vec3(
-                    rng.gen::<f32>() * 0.06 - 0.03,
-                    rng.gen::<f32>() * 0.06 - 0.03,
-                    rng.gen::<f32>() * 0.06 - 0.03,
+                    rng.gen::<f32>() * 0.6 - 0.3,
+                    rng.gen::<f32>() * 0.6 - 0.3,
+                    rng.gen::<f32>() * 0.6 - 0.3,
                 )))
                 .with(world::components::Render::default())
                 .build();
@@ -66,12 +66,12 @@ impl State {
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let frame = self.engine.get_output_frame();
 
-        if let Some(model_pipeline) = &self.engine.model_pipeline {
-            model_pipeline.render(&self.engine.ctx, &self.world.components, &frame.view);
-        }
-        if let Some(glyph_pipeline) = &mut self.engine.glyph_pipeline {
-            glyph_pipeline.render(&self.engine.ctx, &self.world.components, &frame.view);
-        }
+        self.engine
+            .model_pipeline
+            .render(&self.engine.ctx, &self.world.components, &frame.view);
+        self.engine
+            .glyph_pipeline
+            .render(&self.engine.ctx, &self.world.components, &frame.view);
 
         Ok(())
     }
