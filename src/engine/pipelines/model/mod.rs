@@ -1,18 +1,16 @@
 mod uniforms;
-
 use crate::{
     config,
     engine::{
         self,
-        pipelines::{self, pipeline_builder::PipelineBuilder},
+        pipelines::{self, builders},
+        texture,
     },
     world::*,
 };
 use specs::{Join, WorldExt};
 use std::mem;
 pub use uniforms::Uniforms;
-
-use super::render_bundle_builder::RenderBundleBuilder;
 
 pub struct Model {
     pub uniform_buffer: wgpu::Buffer,
@@ -21,21 +19,24 @@ pub struct Model {
 
 pub struct ModelPipeline {
     pub render_pipeline: wgpu::RenderPipeline,
-    pub uniform_bind_group_layout: wgpu::BindGroupLayout,
-    pub texture_bind_group_layout: wgpu::BindGroupLayout,
+    pub uniform_bind_group_layout: builders::MappedBindGroupLayout,
+    pub texture_bind_group_layout: builders::MappedBindGroupLayout,
     pub sampler: wgpu::Sampler,
 }
 
 impl ModelPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
-        let builder = PipelineBuilder::new(&ctx);
+        let builder = builders::PipelineBuilder::new(&ctx, "model");
+        let sampler = texture::Texture::create_sampler(ctx);
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
+            0,
             "model_uniform_bind_group_layout",
             &[builder.create_uniform_entry(0, wgpu::ShaderStage::VERTEX)],
         );
 
         let texture_bind_group_layout = builder.create_bindgroup_layout(
+            1,
             "texture_bind_group_layout",
             &[
                 builder.create_texture_entry(0, wgpu::ShaderStage::FRAGMENT),
@@ -45,7 +46,6 @@ impl ModelPipeline {
             ],
         );
 
-        let sampler = builder.create_sampler();
         let render_pipeline = builder
             .with_shader(wgpu::ShaderSource::Wgsl(include_str!("model.wgsl").into()))
             .with_bind_group_layout(&uniform_bind_group_layout)
@@ -60,29 +60,34 @@ impl ModelPipeline {
         }
     }
 
-    pub fn gltf(&self, ctx: &engine::Context, model: &engine::model::GltfModel, mesh: &str) -> Model {
-        let mesh = model.get_mesh_by_name(mesh);
-        let primitive = mesh.primitives.first().unwrap();
-        let material = model.get_material(primitive.material);
+    pub fn gltf(&self, ctx: &engine::Context, model: &engine::model::GltfModel, mesh_name: &str) -> Model {
+        let mesh = model.get_mesh_by_name(mesh_name);
 
-        let builder = RenderBundleBuilder::new(ctx);
+        let builder = builders::RenderBundleBuilder::new(ctx, mesh_name);
         let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<Uniforms>() as u64);
-        let texture_entries = &[
-            RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&material.base_color_texture.view)),
-            RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&material.normal_texture.view)),
-            RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&material.orm_texture.view)),
-            RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&self.sampler)),
-        ];
-
-        let render_bundle = builder
+        let mut builder = builder
             .with_pipeline(&self.render_pipeline)
-            .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer)
-            .with_texture_bind_group(&self.texture_bind_group_layout, texture_entries)
-            .with_vertices(bytemuck::cast_slice(primitive.vertices.as_slice()))
-            .with_indices(bytemuck::cast_slice(&primitive.indices.as_slice()))
-            .with_length(primitive.length)
-            .build();
+            .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer);
 
+        for primitive in &mesh.primitives {
+            let material = model.get_material(primitive.material);
+            let texture_entries = &[
+                builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&material.base_color_texture.view)),
+                builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&material.normal_texture.view)),
+                builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&material.orm_texture.view)),
+                builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&self.sampler)),
+            ];
+
+            builder = builder.with_primitive(
+                builders::PrimitiveBuilder::new(ctx, mesh_name)
+                    .with_texture_bind_group(&self.texture_bind_group_layout, texture_entries)
+                    .with_vertices(bytemuck::cast_slice(primitive.vertices.as_slice()))
+                    .with_indices(bytemuck::cast_slice(&primitive.indices.as_slice()))
+                    .with_length(primitive.length),
+            );
+        }
+
+        let render_bundle = builder.build();
         Model {
             uniform_buffer,
             render_bundle,

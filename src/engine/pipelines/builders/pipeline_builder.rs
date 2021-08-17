@@ -1,39 +1,48 @@
 use crate::{config, engine};
 
+pub struct MappedBindGroupLayout {
+    pub layout: wgpu::BindGroupLayout,
+    pub index: u32,
+}
+
 pub struct PipelineBuilder<'a> {
     ctx: &'a engine::Context,
     shader: Option<wgpu::ShaderModule>,
     bind_group_layouts: Vec<&'a wgpu::BindGroupLayout>,
+    label: &'a str,
 }
 
 impl<'a> PipelineBuilder<'a> {
-    pub fn new(ctx: &'a engine::Context) -> Self {
+    pub fn new(ctx: &'a engine::Context, label: &'a str) -> Self {
         Self {
             ctx,
             shader: None,
             bind_group_layouts: vec![],
+            label,
         }
     }
 
     pub fn with_shader(mut self, source: wgpu::ShaderSource) -> Self {
         self.shader = Some(self.ctx.device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-            label: Some("model_shader"),
+            label: Some(format!("{}_shader", self.label).as_str()),
             flags: wgpu::ShaderFlags::all(),
             source,
         }));
         self
     }
 
-    pub fn with_bind_group_layout(mut self, bind_group_layout: &'a wgpu::BindGroupLayout) -> Self {
-        self.bind_group_layouts.push(bind_group_layout);
+    pub fn with_bind_group_layout(mut self, bind_group_layout: &'a MappedBindGroupLayout) -> Self {
+        self.bind_group_layouts.push(&bind_group_layout.layout);
         self
     }
 
-    pub fn create_bindgroup_layout(&self, label: &str, entries: &[wgpu::BindGroupLayoutEntry]) -> wgpu::BindGroupLayout {
-        self.ctx.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+    pub fn create_bindgroup_layout(&self, index: u32, label: &str, entries: &[wgpu::BindGroupLayoutEntry]) -> MappedBindGroupLayout {
+        let layout = self.ctx.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some(label),
             entries,
-        })
+        });
+
+        MappedBindGroupLayout { index, layout }
     }
 
     pub fn create_uniform_entry(&self, binding: u32, visibility: wgpu::ShaderStage) -> wgpu::BindGroupLayoutEntry {
@@ -62,18 +71,6 @@ impl<'a> PipelineBuilder<'a> {
         }
     }
 
-    pub fn create_sampler(&self) -> wgpu::Sampler {
-        self.ctx.device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            ..Default::default()
-        })
-    }
-
     pub fn create_sampler_entry(&self, binding: u32, visibility: wgpu::ShaderStage) -> wgpu::BindGroupLayoutEntry {
         wgpu::BindGroupLayoutEntry {
             binding,
@@ -90,13 +87,13 @@ impl<'a> PipelineBuilder<'a> {
         let shader = self.shader.unwrap();
 
         let render_pipeline_layout = self.ctx.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("model_render_pipeline_layout"),
+            label: Some(format!("{}_render_pipeline_layout", self.label).as_str()),
             bind_group_layouts: self.bind_group_layouts.as_slice(),
             push_constant_ranges: &[],
         });
 
         self.ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("model_render_pipeline"),
+            label: Some(format!("{}_render_pipeline", self.label).as_str()),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
