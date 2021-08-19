@@ -103,6 +103,10 @@ impl ModelPipeline {
             let uniforms = pipelines::model::Uniforms {
                 view_proj: render.view_proj.into(),
                 model: render.model_matrix.into(),
+                light_pos: [10.0, 10.0, 10.0, 0.0],
+                light_dir: [1.0, -1.0, 1.0, 0.0],
+                light_color: [1.0, 1.0, 1.0, 0.0],
+                light_ambient: [0.1, 0.1, 0.1, 0.0],
             };
 
             ctx.queue.write_buffer(&model.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
