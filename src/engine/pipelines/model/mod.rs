@@ -113,32 +113,9 @@ impl ModelPipeline {
             bundles.push(&model.render_bundle);
         }
 
-        let mut encoder = ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("model_encoder"),
-        });
-
-        encoder
-            .begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("model_render_pass"),
-                color_attachments: &[wgpu::RenderPassColorAttachment {
-                    view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(config::CLEAR_COLOR),
-                        store: true,
-                    },
-                }],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &ctx.depth_texture.view,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: true,
-                    }),
-                    stencil_ops: None,
-                }),
-            })
-            .execute_bundles(bundles.into_iter());
-
-        ctx.queue.submit(std::iter::once(encoder.finish()));
+        builders::RenderTargetBuilder::new(ctx, "model")
+            .with_color_attachment(view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
+            .with_depth_attachment(&ctx.depth_texture.view, wgpu::LoadOp::Clear(1.0))
+            .execute_bundles(bundles);
     }
 }
