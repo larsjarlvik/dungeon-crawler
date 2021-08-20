@@ -9,7 +9,16 @@ pub struct PipelineBuilder<'a> {
     ctx: &'a engine::Context,
     shader: Option<wgpu::ShaderModule>,
     bind_group_layouts: Vec<&'a wgpu::BindGroupLayout>,
+    color_targets: Vec<wgpu::TextureFormat>,
+    depth_target: Option<wgpu::TextureFormat>,
+    buffer_layouts: Vec<wgpu::VertexBufferLayout<'a>>,
     label: &'a str,
+}
+
+pub struct Pipeline {
+    pub render_pipeline: wgpu::RenderPipeline,
+    pub color_targets: Vec<wgpu::TextureFormat>,
+    pub depth_target: Option<wgpu::TextureFormat>,
 }
 
 impl<'a> PipelineBuilder<'a> {
@@ -18,6 +27,9 @@ impl<'a> PipelineBuilder<'a> {
             ctx,
             shader: None,
             bind_group_layouts: vec![],
+            color_targets: vec![],
+            depth_target: None,
+            buffer_layouts: vec![],
             label,
         }
     }
@@ -83,7 +95,22 @@ impl<'a> PipelineBuilder<'a> {
         }
     }
 
-    pub fn build(self) -> wgpu::RenderPipeline {
+    pub fn with_color_targets(mut self, formats: Vec<wgpu::TextureFormat>) -> Self {
+        self.color_targets = formats;
+        self
+    }
+
+    pub fn with_depth_target(mut self, depth_target: wgpu::TextureFormat) -> Self {
+        self.depth_target = Some(depth_target);
+        self
+    }
+
+    pub fn with_buffer_layouts(mut self, buffer_layouts: Vec<wgpu::VertexBufferLayout<'a>>) -> Self {
+        self.buffer_layouts = buffer_layouts;
+        self
+    }
+
+    pub fn build(self) -> Pipeline {
         let shader = self.shader.unwrap();
 
         let render_pipeline_layout = self.ctx.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -92,22 +119,40 @@ impl<'a> PipelineBuilder<'a> {
             push_constant_ranges: &[],
         });
 
-        self.ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        let color_targets: Vec<wgpu::ColorTargetState> = self
+            .color_targets
+            .iter()
+            .map(|format| wgpu::ColorTargetState {
+                format: *format,
+                blend: Some(wgpu::BlendState::REPLACE),
+                write_mask: wgpu::ColorWrite::ALL,
+            })
+            .collect();
+
+        let depth_stencil = if self.depth_target.is_some() {
+            Some(wgpu::DepthStencilState {
+                format: config::DEPTH_FORMAT,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
+            })
+        } else {
+            None
+        };
+
+        let render_pipeline = self.ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some(format!("{}_render_pipeline", self.label).as_str()),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "main",
-                buffers: &[engine::model::Vertex::desc()],
+                buffers: &self.buffer_layouts,
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
                 entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
-                    format: config::COLOR_TEXTURE_FORMAT,
-                    blend: Some(wgpu::BlendState::REPLACE),
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
+                targets: color_targets.as_slice(),
             }),
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -118,18 +163,18 @@ impl<'a> PipelineBuilder<'a> {
                 clamp_depth: false,
                 conservative: false,
             },
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: config::DEPTH_FORMAT,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
-                stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
-            }),
+            depth_stencil,
             multisample: wgpu::MultisampleState {
                 count: 1,
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
-        })
+        });
+
+        Pipeline {
+            render_pipeline,
+            color_targets: self.color_targets,
+            depth_target: self.depth_target,
+        }
     }
 }

@@ -1,5 +1,5 @@
-use super::{pipeline_builder, primitive_builder};
-use crate::{config, engine};
+use super::{pipeline_builder, primitive_builder, Pipeline};
+use crate::engine;
 
 pub struct MappedBindGroup {
     pub bind_group: wgpu::BindGroup,
@@ -11,7 +11,9 @@ pub struct RenderBundleBuilder<'a> {
     pipeline: Option<&'a wgpu::RenderPipeline>,
     bind_groups: Vec<(u32, wgpu::BindGroup)>,
     primitives: Vec<primitive_builder::PrimitiveBuilder<'a>>,
-    pub buffers: Vec<&'a wgpu::Buffer>,
+    color_targets: Option<&'a Vec<wgpu::TextureFormat>>,
+    depth_target: &'a Option<wgpu::TextureFormat>,
+    buffers: Vec<&'a wgpu::Buffer>,
     label: &'a str,
 }
 
@@ -23,12 +25,16 @@ impl<'a> RenderBundleBuilder<'a> {
             bind_groups: vec![],
             primitives: vec![],
             buffers: vec![],
+            color_targets: None,
+            depth_target: &None,
             label,
         }
     }
 
-    pub fn with_pipeline(mut self, pipeline: &'a wgpu::RenderPipeline) -> Self {
-        self.pipeline = Some(&pipeline);
+    pub fn with_pipeline(mut self, pipeline: &'a Pipeline) -> Self {
+        self.pipeline = Some(&pipeline.render_pipeline);
+        self.color_targets = Some(&pipeline.color_targets);
+        self.depth_target = &pipeline.depth_target;
         self
     }
 
@@ -69,12 +75,12 @@ impl<'a> RenderBundleBuilder<'a> {
     pub fn build(self) -> wgpu::RenderBundle {
         let mut encoder = self.ctx.device.create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {
             label: Some(format!("{}_encoder", self.label).as_str()),
-            color_formats: &[config::COLOR_TEXTURE_FORMAT],
-            depth_stencil_format: Some(config::DEPTH_FORMAT),
+            color_formats: self.color_targets.expect("Missing color target!").as_slice(),
+            depth_stencil_format: *self.depth_target,
             sample_count: 1,
         });
 
-        encoder.set_pipeline(&self.pipeline.unwrap());
+        encoder.set_pipeline(&self.pipeline.expect("No pipeline set!"));
 
         for (index, bind_group) in self.bind_groups.iter() {
             encoder.set_bind_group(*index, &bind_group, &[]);
@@ -92,7 +98,11 @@ impl<'a> RenderBundleBuilder<'a> {
                 encoder.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
             }
 
-            encoder.draw_indexed(0..primitive.length, 0, 0..1);
+            if primitive.index_buffer.is_some() {
+                encoder.draw_indexed(0..primitive.length, 0, 0..1);
+            } else {
+                encoder.draw(0..primitive.length, 0..1);
+            }
         }
 
         encoder.finish(&wgpu::RenderBundleDescriptor {

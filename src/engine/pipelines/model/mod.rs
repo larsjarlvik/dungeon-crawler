@@ -18,10 +18,10 @@ pub struct Model {
 }
 
 pub struct ModelPipeline {
-    pub render_pipeline: wgpu::RenderPipeline,
-    pub uniform_bind_group_layout: builders::MappedBindGroupLayout,
-    pub texture_bind_group_layout: builders::MappedBindGroupLayout,
-    pub sampler: wgpu::Sampler,
+    render_pipeline: builders::Pipeline,
+    uniform_bind_group_layout: builders::MappedBindGroupLayout,
+    texture_bind_group_layout: builders::MappedBindGroupLayout,
+    sampler: wgpu::Sampler,
 }
 
 impl ModelPipeline {
@@ -48,6 +48,13 @@ impl ModelPipeline {
 
         let render_pipeline = builder
             .with_shader(wgpu::ShaderSource::Wgsl(include_str!("model.wgsl").into()))
+            .with_color_targets(vec![
+                config::COLOR_TEXTURE_FORMAT,
+                config::COLOR_TEXTURE_FORMAT,
+                config::COLOR_TEXTURE_FORMAT,
+            ])
+            .with_depth_target(config::DEPTH_FORMAT)
+            .with_buffer_layouts(vec![engine::model::Vertex::desc()])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
@@ -65,6 +72,7 @@ impl ModelPipeline {
 
         let builder = builders::RenderBundleBuilder::new(ctx, mesh_name);
         let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<Uniforms>() as u64);
+
         let mut builder = builder
             .with_pipeline(&self.render_pipeline)
             .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer);
@@ -94,7 +102,7 @@ impl ModelPipeline {
         }
     }
 
-    pub fn render(&self, ctx: &engine::Context, components: &specs::World, view: &wgpu::TextureView) {
+    pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &pipelines::DeferredPipeline) {
         let models = components.read_storage::<components::Model>();
         let render = components.read_storage::<components::Render>();
         let mut bundles = vec![];
@@ -103,10 +111,6 @@ impl ModelPipeline {
             let uniforms = pipelines::model::Uniforms {
                 view_proj: render.view_proj.into(),
                 model: render.model_matrix.into(),
-                light_pos: [10.0, 10.0, 10.0, 0.0],
-                light_dir: [1.0, -1.0, 1.0, 0.0],
-                light_color: [1.0, 1.0, 1.0, 0.0],
-                light_ambient: [0.1, 0.1, 0.1, 0.0],
             };
 
             ctx.queue.write_buffer(&model.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
@@ -114,8 +118,10 @@ impl ModelPipeline {
         }
 
         builders::RenderTargetBuilder::new(ctx, "model")
-            .with_color_attachment(view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-            .with_depth_attachment(&ctx.depth_texture.view, wgpu::LoadOp::Clear(1.0))
+            .with_color_attachment(&target.position_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
+            .with_color_attachment(&target.normal_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
+            .with_color_attachment(&target.color_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
+            .with_depth_attachment(&target.depth_texture.view, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
     }
 }

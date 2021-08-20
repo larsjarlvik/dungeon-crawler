@@ -6,10 +6,10 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn create_depth_texture(device: &wgpu::Device, width: u32, height: u32, label: &str) -> Self {
+    pub fn create_depth_texture(ctx: &super::Context, label: &str) -> Self {
         let size = wgpu::Extent3d {
-            width,
-            height,
+            width: ctx.viewport.width,
+            height: ctx.viewport.height,
             depth_or_array_layers: 1,
         };
         let desc = wgpu::TextureDescriptor {
@@ -22,7 +22,27 @@ impl Texture {
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT // 3.
                 | wgpu::TextureUsage::SAMPLED,
         };
-        let texture = device.create_texture(&desc);
+        let texture = ctx.device.create_texture(&desc);
+
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        Self { texture, view }
+    }
+
+    pub fn create_texture(ctx: &super::Context, format: wgpu::TextureFormat, label: &str) -> Self {
+        let size = wgpu::Extent3d {
+            width: ctx.viewport.width,
+            height: ctx.viewport.height,
+            depth_or_array_layers: 1,
+        };
+        let texture = ctx.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some(label),
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::RENDER_ATTACHMENT,
+        });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
         Self { texture, view }

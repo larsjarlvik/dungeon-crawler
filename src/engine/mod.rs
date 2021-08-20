@@ -11,13 +11,13 @@ pub struct Context {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub swap_chain: wgpu::SwapChain,
-    pub depth_texture: texture::Texture,
 }
 
 pub struct Engine {
     pub ctx: Context,
     pub model_pipeline: pipelines::ModelPipeline,
     pub glyph_pipeline: pipelines::GlyphPipeline,
+    pub deferred_pipeline: pipelines::DeferredPipeline,
 }
 
 impl Engine {
@@ -55,24 +55,23 @@ impl Engine {
             present_mode: wgpu::PresentMode::Immediate,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
-        let depth_texture = texture::Texture::create_depth_texture(&device, viewport.width, viewport.height, "engine_depth_texture");
-
         let ctx = Context {
             viewport,
             device,
             surface,
             queue,
             swap_chain,
-            depth_texture,
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
         let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
+        let deferred_pipeline = pipelines::DeferredPipeline::new(&ctx);
 
         Self {
             ctx,
             model_pipeline,
             glyph_pipeline,
+            deferred_pipeline,
         }
     }
 
@@ -87,15 +86,6 @@ impl Engine {
                 height: self.ctx.viewport.height,
                 present_mode: wgpu::PresentMode::Immediate,
             },
-        );
-    }
-
-    pub fn set_depth_texture(&mut self) {
-        self.ctx.depth_texture = texture::Texture::create_depth_texture(
-            &self.ctx.device,
-            self.ctx.viewport.width,
-            self.ctx.viewport.height,
-            "engine_depth_texture",
         );
     }
 

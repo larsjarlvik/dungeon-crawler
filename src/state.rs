@@ -55,12 +55,13 @@ impl State {
     pub fn resize(&mut self, width: u32, height: u32, scale_factor: f64) {
         if width > 0 && height > 0 {
             self.engine.set_viewport(width, height, scale_factor);
-            self.engine.set_depth_texture();
+            self.engine.deferred_pipeline.resize(&self.engine.ctx);
         }
     }
 
     pub fn update(&mut self, _elapsed: u64) {
         self.world.update();
+        self.engine.deferred_pipeline.update(&self.engine.ctx);
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
@@ -68,7 +69,10 @@ impl State {
 
         self.engine
             .model_pipeline
-            .render(&self.engine.ctx, &self.world.components, &frame.view);
+            .render(&self.engine.ctx, &self.world.components, &self.engine.deferred_pipeline);
+
+        self.engine.deferred_pipeline.render(&self.engine.ctx, &frame.view);
+
         self.engine
             .glyph_pipeline
             .render(&self.engine.ctx, &self.world.components, &frame.view);
