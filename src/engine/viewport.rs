@@ -11,4 +11,8 @@ impl Viewport {
         let dpi = if cfg!(target_os = "android") { 2.0 } else { dpi };
         Self { width, height, dpi }
     }
+
+    pub fn get_aspect(&self) -> f32 {
+        self.width as f32 / self.height as f32
+    }
 }

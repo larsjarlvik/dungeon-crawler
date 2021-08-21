@@ -1,5 +1,6 @@
 use specs::*;
 pub mod components;
+pub mod resources;
 pub mod systems;
 
 pub struct World {
@@ -10,13 +11,13 @@ pub struct World {
 impl<'a> World {
     pub fn new() -> Self {
         let mut components = specs::World::new();
-        components.register::<components::Camera>();
         components.register::<components::Render>();
         components.register::<components::Model>();
         components.register::<components::Position>();
         components.register::<components::Bouce>();
         components.register::<components::Text>();
         components.register::<components::Fps>();
+        components.register::<components::Light>();
 
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Bounce, "bounce", &[])

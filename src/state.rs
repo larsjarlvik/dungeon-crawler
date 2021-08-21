@@ -15,9 +15,46 @@ impl State {
         let mut world = world::World::new();
         world
             .components
+            .insert(world::resources::Camera::new(engine.ctx.viewport.get_aspect()));
+
+        world
+            .components
             .create_entity()
             .with(world::components::Fps::new())
             .with(world::components::Text::new("", vec2(20.0, 20.0)))
+            .build();
+
+        world
+            .components
+            .create_entity()
+            .with(world::components::Light {
+                color: vec3(1.0, 1.0, 0.0),
+                direction: vec3(1.0, -1.0, 1.0),
+                position: vec3(10.0, 10.0, 10.0),
+                attenuation: 10.0,
+            })
+            .build();
+
+        world
+            .components
+            .create_entity()
+            .with(world::components::Light {
+                color: vec3(1.0, 1.0, 1.0),
+                direction: vec3(-1.0, 1.0, 1.0),
+                position: vec3(10.0, 10.0, 10.0),
+                attenuation: 10.0,
+            })
+            .build();
+
+        world
+            .components
+            .create_entity()
+            .with(world::components::Light {
+                color: vec3(0.0, 1.0, 1.0),
+                direction: vec3(0.0, -1.0, 0.0),
+                position: vec3(10.0, 10.0, 10.0),
+                attenuation: 10.0,
+            })
             .build();
 
         let mut rng = rand::thread_rng();
@@ -27,10 +64,6 @@ impl State {
             world
                 .components
                 .create_entity()
-                .with(world::components::Camera::new(
-                    engine.ctx.viewport.width as u32,
-                    engine.ctx.viewport.height as u32,
-                ))
                 .with(world::components::Model::new(engine.model_pipeline.gltf(
                     &engine.ctx,
                     &model,
@@ -56,12 +89,15 @@ impl State {
         if width > 0 && height > 0 {
             self.engine.set_viewport(width, height, scale_factor);
             self.engine.deferred_pipeline.resize(&self.engine.ctx);
+
+            let mut camera = self.world.components.write_resource::<world::resources::Camera>();
+            *camera = world::resources::Camera::new(self.engine.ctx.viewport.get_aspect());
         }
     }
 
     pub fn update(&mut self, _elapsed: u64) {
         self.world.update();
-        self.engine.deferred_pipeline.update(&self.engine.ctx);
+        self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {

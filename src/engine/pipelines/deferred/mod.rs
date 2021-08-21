@@ -1,8 +1,11 @@
 use crate::{
     config,
     engine::{self, pipelines::builders, texture},
+    world::{components, resources},
 };
+use specs::{Join, WorldExt};
 use std::mem;
+
 mod uniforms;
 
 pub struct DeferredPipeline {
@@ -11,8 +14,8 @@ pub struct DeferredPipeline {
     uniform_bind_group_layout: builders::MappedBindGroupLayout,
     texture_bind_group_layout: builders::MappedBindGroupLayout,
     render_bundle: Option<wgpu::RenderBundle>,
+    uniform_buffer: wgpu::Buffer,
     pub depth_texture: texture::Texture,
-    pub position_texture: texture::Texture,
     pub normal_texture: texture::Texture,
     pub color_texture: texture::Texture,
 }
@@ -23,7 +26,6 @@ impl DeferredPipeline {
 
         let sampler = texture::Texture::create_sampler(ctx);
         let depth_texture = texture::Texture::create_depth_texture(&ctx, "deferred_depth_texture");
-        let position_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_position_texture");
         let normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
         let color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
 
@@ -40,8 +42,7 @@ impl DeferredPipeline {
                 pipeline_builder.create_texture_entry(0, wgpu::ShaderStage::FRAGMENT),
                 pipeline_builder.create_texture_entry(1, wgpu::ShaderStage::FRAGMENT),
                 pipeline_builder.create_texture_entry(2, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_texture_entry(3, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_sampler_entry(4, wgpu::ShaderStage::FRAGMENT),
+                pipeline_builder.create_sampler_entry(3, wgpu::ShaderStage::FRAGMENT),
             ],
         );
 
@@ -52,51 +53,60 @@ impl DeferredPipeline {
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
 
+        let builder = builders::RenderBundleBuilder::new(ctx, "deferred");
+        let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<uniforms::Uniforms>() as u64);
+
         Self {
             render_pipeline,
             sampler,
             depth_texture,
-            position_texture,
             normal_texture,
             color_texture,
             uniform_bind_group_layout,
             texture_bind_group_layout,
+            uniform_buffer,
             render_bundle: None,
         }
     }
 
     pub fn resize(&mut self, ctx: &engine::Context) {
         self.depth_texture = texture::Texture::create_depth_texture(&ctx, "deferred_depth_texture");
-        self.position_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_position_texture");
         self.normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
         self.color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
     }
 
-    pub fn update(&mut self, ctx: &engine::Context) {
+    pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
+        let light_sources = components.read_storage::<components::Light>();
+        let mut lights: [uniforms::LightUniforms; 10] = Default::default();
+
+        for (i, light) in (&light_sources).join().enumerate() {
+            lights[i] = uniforms::LightUniforms {
+                position: light.position.extend(0.0).into(),
+                direction: light.direction.extend(0.0).into(),
+                color: light.color.extend(0.0).into(),
+            };
+        }
+
+        let camera = components.read_resource::<resources::Camera>();
         let uniforms = uniforms::Uniforms {
-            light_pos: [10.0, 10.0, 10.0, 0.0],
-            light_dir: [1.0, -1.0, 1.0, 0.0],
-            light_color: [1.0, 1.0, 1.0, 0.0],
-            light_ambient: [0.1, 0.1, 0.1, 0.0],
+            view_proj: camera.view_proj.into(),
+            lights,
+            lights_count: lights.len() as i32,
         };
 
-        let builder = builders::RenderBundleBuilder::new(ctx, "deferred");
-        let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<uniforms::Uniforms>() as u64);
-
-        ctx.queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
+        ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
 
         let texture_entries = &[
             builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&self.depth_texture.view)),
-            builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&self.position_texture.view)),
-            builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&self.normal_texture.view)),
-            builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::TextureView(&self.color_texture.view)),
-            builders::RenderBundleBuilder::create_entry(4, wgpu::BindingResource::Sampler(&self.sampler)),
+            builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&self.normal_texture.view)),
+            builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&self.color_texture.view)),
+            builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&self.sampler)),
         ];
 
         self.render_bundle = Some(
-            builder
+            builders::RenderBundleBuilder::new(ctx, "deferred")
                 .with_pipeline(&self.render_pipeline)
-                .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer)
+                .with_uniform_bind_group(&self.uniform_bind_group_layout, &self.uniform_buffer)
                 .with_primitive(
                     builders::PrimitiveBuilder::new(ctx, "deferred")
                         .with_texture_bind_group(&self.texture_bind_group_layout, texture_entries)

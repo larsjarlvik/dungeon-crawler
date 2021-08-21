@@ -16,7 +16,6 @@ struct VertexInput {
 
 struct VertexOutput {
     [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] position: vec4<f32>;
     [[location(1)]] normal: vec3<f32>;
     [[location(2)]] tex_coord: vec2<f32>;
 };
@@ -28,7 +27,6 @@ fn main(
     var out: VertexOutput;
     let pos = uniforms.model * vec4<f32>(model.position, 1.0);
 
-    out.position = pos;
     out.tex_coord = model.tex_coord;
     out.normal = model.normal;
     out.clip_position = uniforms.view_proj * pos;
@@ -37,9 +35,8 @@ fn main(
 
 // Fragment shader
 struct GBufferOutput {
-  [[location(0)]] position : vec4<f32>;
-  [[location(1)]] normal : vec4<f32>;
-  [[location(2)]] color : vec4<f32>;
+  [[location(0)]] normal : vec4<f32>;
+  [[location(1)]] color : vec4<f32>;
 };
 
 [[group(1), binding(0)]] var t_base_color: texture_2d<f32>;
@@ -52,7 +49,6 @@ fn main(in: VertexOutput) -> GBufferOutput {
     var output : GBufferOutput;
 
     var base_color: vec4<f32> = textureSample(t_base_color, t_sampler, in.tex_coord);
-    output.position = in.position;
     output.normal = vec4<f32>(in.normal, 1.0);
     output.color = base_color;
     return output;
