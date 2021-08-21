@@ -124,7 +124,7 @@ impl<'a> PipelineBuilder<'a> {
             .iter()
             .map(|format| wgpu::ColorTargetState {
                 format: *format,
-                blend: Some(wgpu::BlendState::REPLACE),
+                blend: None,
                 write_mask: wgpu::ColorWrite::ALL,
             })
             .collect();

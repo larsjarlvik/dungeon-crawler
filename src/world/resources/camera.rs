@@ -28,12 +28,14 @@ impl Default for Camera {
 
 impl Camera {
     pub fn new(aspect: f32) -> Self {
-        let view = Matrix4::look_at_rh(Point3::new(0.0, 0.0, 40.0), Point3::new(0.0, 0.0, 0.0), Vector3::unit_y());
+        let eye = Point3::new(0.0, 0.0, 0.4);
+        let target = Point3::new(0.0, 0.0, 0.0);
+        let view = Matrix4::look_at_rh(eye, target, Vector3::unit_y());
         let proj = perspective(Deg(45.0), aspect, 0.1, 100.0);
 
         Self {
-            eye: (0.0, 0.0, 40.0).into(),
-            target: (0.0, 0.0, 0.0).into(),
+            eye: eye.into(),
+            target: target.into(),
             up: Vector3::unit_y(),
             aspect,
             fovy: 45.0,

@@ -16,8 +16,10 @@ struct VertexInput {
 
 struct VertexOutput {
     [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(1)]] normal: vec3<f32>;
-    [[location(2)]] tex_coord: vec2<f32>;
+    [[location(0)]] tex_coord: vec2<f32>;
+    [[location(1)]] normal_w: vec3<f32>;
+    [[location(2)]] tangent_w: vec3<f32>;
+    [[location(3)]] bitangent_w: vec3<f32>;
 };
 
 [[stage(vertex)]]
@@ -27,9 +29,13 @@ fn main(
     var out: VertexOutput;
     let pos = uniforms.model * vec4<f32>(model.position, 1.0);
 
-    out.tex_coord = model.tex_coord;
-    out.normal = model.normal;
+    var t: vec4<f32> = normalize(model.tangent);
+    out.normal_w = normalize((uniforms.model * vec4<f32>(model.normal, 0.0)).xyz);
+    out.tangent_w = normalize((uniforms.model * model.tangent).xyz);
+    out.bitangent_w = cross(out.normal_w, out.tangent_w) * t.w;
+
     out.clip_position = uniforms.view_proj * pos;
+    out.tex_coord = model.tex_coord;
     return out;
 }
 
@@ -48,8 +54,10 @@ struct GBufferOutput {
 fn main(in: VertexOutput) -> GBufferOutput {
     var output : GBufferOutput;
 
-    var base_color: vec4<f32> = textureSample(t_base_color, t_sampler, in.tex_coord);
-    output.normal = vec4<f32>(in.normal, 1.0);
-    output.color = base_color;
+    output.color = textureSample(t_base_color, t_sampler, in.tex_coord);
+
+    var tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
+    var normal: vec3<f32> = textureSample(t_normal, t_sampler, in.tex_coord).xyz;
+    output.normal = vec4<f32>(normalize(tangent * (2.0 * normal - 1.0)), 1.0);
     return output;
 }

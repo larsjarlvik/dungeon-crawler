@@ -3,6 +3,7 @@ use crate::{
     engine::{self, pipelines::builders, texture},
     world::{components, resources},
 };
+use cgmath::*;
 use specs::{Join, WorldExt};
 use std::mem;
 
@@ -10,7 +11,6 @@ mod uniforms;
 
 pub struct DeferredPipeline {
     render_pipeline: builders::Pipeline,
-    sampler: wgpu::Sampler,
     uniform_bind_group_layout: builders::MappedBindGroupLayout,
     texture_bind_group_layout: builders::MappedBindGroupLayout,
     render_bundle: Option<wgpu::RenderBundle>,
@@ -24,7 +24,6 @@ impl DeferredPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
         let pipeline_builder = builders::PipelineBuilder::new(ctx, "deferred");
 
-        let sampler = texture::Texture::create_sampler(ctx);
         let depth_texture = texture::Texture::create_depth_texture(&ctx, "deferred_depth_texture");
         let normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
         let color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
@@ -42,7 +41,6 @@ impl DeferredPipeline {
                 pipeline_builder.create_texture_entry(0, wgpu::ShaderStage::FRAGMENT),
                 pipeline_builder.create_texture_entry(1, wgpu::ShaderStage::FRAGMENT),
                 pipeline_builder.create_texture_entry(2, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_sampler_entry(3, wgpu::ShaderStage::FRAGMENT),
             ],
         );
 
@@ -58,7 +56,6 @@ impl DeferredPipeline {
 
         Self {
             render_pipeline,
-            sampler,
             depth_texture,
             normal_texture,
             color_texture,
@@ -77,19 +74,36 @@ impl DeferredPipeline {
 
     pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
         let light_sources = components.read_storage::<components::Light>();
+        let positions = components.read_storage::<components::Position>();
         let mut lights: [uniforms::LightUniforms; 10] = Default::default();
 
-        for (i, light) in (&light_sources).join().enumerate() {
+        for (i, (light, position)) in (&light_sources, &positions).join().enumerate() {
+            let (direction, directional) = if let Some(direction) = light.direction {
+                (direction.into(), 1)
+            } else {
+                ([0.0, 0.0, 0.0], 0)
+            };
+
+            let attenuation = if let Some(attenuation) = light.attenuation {
+                attenuation
+            } else {
+                0.0
+            };
+
             lights[i] = uniforms::LightUniforms {
-                position: light.position.extend(0.0).into(),
-                direction: light.direction.extend(0.0).into(),
+                position: position.0.into(),
+                attenuation,
+                direction,
+                directional,
                 color: light.color.extend(0.0).into(),
             };
         }
 
         let camera = components.read_resource::<resources::Camera>();
         let uniforms = uniforms::Uniforms {
-            view_proj: camera.view_proj.into(),
+            inv_view_proj: camera.view_proj.invert().unwrap().into(),
+            eye_pos: camera.eye.to_vec().extend(0.0).into(),
+            viewport_size: [ctx.viewport.width as f32, ctx.viewport.height as f32, 0.0, 0.0],
             lights,
             lights_count: lights.len() as i32,
         };
@@ -100,7 +114,6 @@ impl DeferredPipeline {
             builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&self.depth_texture.view)),
             builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&self.normal_texture.view)),
             builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&self.color_texture.view)),
-            builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&self.sampler)),
         ];
 
         self.render_bundle = Some(

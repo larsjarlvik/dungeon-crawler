@@ -12,7 +12,10 @@ pub struct State {
 impl State {
     pub async fn new(window: &Window) -> Self {
         let engine = engine::Engine::new(window).await;
+        let mut rng = rand::thread_rng();
         let mut world = world::World::new();
+        let model = engine.load_model(include_bytes!("../models/bottle.glb"));
+
         world
             .components
             .insert(world::resources::Camera::new(engine.ctx.viewport.get_aspect()));
@@ -29,60 +32,62 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Light {
-                color: vec3(1.0, 1.0, 0.0),
-                direction: vec3(1.0, -1.0, 1.0),
-                position: vec3(10.0, 10.0, 10.0),
-                attenuation: 10.0,
+                color: vec3(0.0, 0.0, 1.0),
+                direction: Some(vec3(1.0, -1.0, -1.0)),
+                attenuation: Some(10.0),
             })
+            .with(world::components::Position(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Bouce(vec3(
+                rng.gen::<f32>() * 2.0 - 1.0,
+                rng.gen::<f32>() * 2.0 - 1.0,
+                rng.gen::<f32>() * 2.0 - 1.0,
+            )))
             .build();
 
         world
             .components
             .create_entity()
             .with(world::components::Light {
-                color: vec3(1.0, 1.0, 1.0),
-                direction: vec3(-1.0, 1.0, 1.0),
-                position: vec3(10.0, 10.0, 10.0),
-                attenuation: 10.0,
+                color: vec3(0.0, 1.0, 0.0),
+                direction: Some(vec3(-1.0, -1.0, 1.0)),
+                attenuation: Some(10.0),
             })
+            .with(world::components::Position(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Bouce(vec3(
+                rng.gen::<f32>() * 2.0 - 1.0,
+                rng.gen::<f32>() * 2.0 - 1.0,
+                rng.gen::<f32>() * 2.0 - 1.0,
+            )))
             .build();
 
         world
             .components
             .create_entity()
             .with(world::components::Light {
-                color: vec3(0.0, 1.0, 1.0),
-                direction: vec3(0.0, -1.0, 0.0),
-                position: vec3(10.0, 10.0, 10.0),
-                attenuation: 10.0,
+                color: vec3(1.0, 0.0, 0.0),
+                direction: Some(vec3(0.0, -1.0, -1.0)),
+                attenuation: Some(10.0),
             })
+            .with(world::components::Position(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Bouce(vec3(
+                rng.gen::<f32>() * 2.0 - 1.0,
+                rng.gen::<f32>() * 2.0 - 1.0,
+                rng.gen::<f32>() * 2.0 - 1.0,
+            )))
             .build();
 
-        let mut rng = rand::thread_rng();
-        let model = engine.load_model(include_bytes!("../models/ship.glb"));
+        world
+            .components
+            .create_entity()
+            .with(world::components::Model::new(engine.model_pipeline.gltf(
+                &engine.ctx,
+                &model,
+                "WaterBottle",
+            )))
+            .with(world::components::Position(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Render::default())
+            .build();
 
-        for _ in 0..500 {
-            world
-                .components
-                .create_entity()
-                .with(world::components::Model::new(engine.model_pipeline.gltf(
-                    &engine.ctx,
-                    &model,
-                    "ship",
-                )))
-                .with(world::components::Position(vec3(
-                    rng.gen::<f32>() * 40.0 - 20.0,
-                    rng.gen::<f32>() * 40.0 - 20.0,
-                    rng.gen::<f32>() * 40.0 - 20.0,
-                )))
-                .with(world::components::Bouce(vec3(
-                    rng.gen::<f32>() * 20.0 - 10.0,
-                    rng.gen::<f32>() * 20.0 - 10.0,
-                    rng.gen::<f32>() * 20.0 - 10.0,
-                )))
-                .with(world::components::Render::default())
-                .build();
-        }
         Self { engine, world }
     }
 
