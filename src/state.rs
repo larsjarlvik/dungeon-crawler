@@ -16,6 +16,7 @@ impl State {
         world
             .components
             .insert(world::resources::Camera::new(engine.ctx.viewport.get_aspect()));
+        world.components.insert(world::resources::Time::default());
 
         world
             .components
@@ -75,9 +76,9 @@ impl State {
                     rng.gen::<f32>() * 40.0 - 20.0,
                 )))
                 .with(world::components::Bouce(vec3(
-                    rng.gen::<f32>() * 0.6 - 0.3,
-                    rng.gen::<f32>() * 0.6 - 0.3,
-                    rng.gen::<f32>() * 0.6 - 0.3,
+                    rng.gen::<f32>() * 20.0 - 10.0,
+                    rng.gen::<f32>() * 20.0 - 10.0,
+                    rng.gen::<f32>() * 20.0 - 10.0,
                 )))
                 .with(world::components::Render::default())
                 .build();

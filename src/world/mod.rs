@@ -29,6 +29,11 @@ impl<'a> World {
     }
 
     pub fn update(&mut self) {
+        {
+            let mut time = self.components.write_resource::<resources::Time>();
+            time.set();
+        }
+
         self.dispatcher.setup(&mut self.components);
         self.dispatcher.dispatch(&mut self.components);
         self.components.maintain();
