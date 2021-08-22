@@ -1,6 +1,5 @@
 use crate::{engine, world};
 use cgmath::*;
-use rand::Rng;
 use specs::{Builder, WorldExt};
 use winit::window::Window;
 
@@ -12,9 +11,8 @@ pub struct State {
 impl State {
     pub async fn new(window: &Window) -> Self {
         let engine = engine::Engine::new(window).await;
-        let mut rng = rand::thread_rng();
         let mut world = world::World::new();
-        let model = engine.load_model(include_bytes!("../models/bottle.glb"));
+        let model = engine.load_model(include_bytes!("../models/room.glb"));
 
         world
             .components
@@ -32,61 +30,57 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Light {
-                color: vec3(1.0, 0.0, 0.0),
-                intensity: 4.0,
-                radius: Some(5.0),
+                color: vec3(1.0, 1.0, 0.75),
+                intensity: 0.4,
+                radius: Some(7.1),
             })
-            .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
-            .with(world::components::Bouce(vec3(
-                rng.gen::<f32>() * 2.0 - 1.0,
-                0.0,
-                rng.gen::<f32>() * 2.0 - 1.0,
-            )))
+            .with(world::components::Position(vec3(-2.4, 2.0, -2.4)))
             .build();
 
         world
             .components
             .create_entity()
             .with(world::components::Light {
-                color: vec3(0.0, 1.0, 0.0),
-                intensity: 4.0,
-                radius: Some(5.0),
+                color: vec3(1.0, 1.0, 0.7),
+                intensity: 0.4,
+                radius: Some(7.0),
             })
-            .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
-            .with(world::components::Bouce(vec3(
-                rng.gen::<f32>() * 2.0 - 1.0,
-                0.0,
-                rng.gen::<f32>() * 2.0 - 1.0,
-            )))
+            .with(world::components::Position(vec3(2.4, 2.0, -2.4)))
             .build();
 
         world
             .components
             .create_entity()
             .with(world::components::Light {
-                color: vec3(0.0, 0.0, 1.0),
-                intensity: 4.0,
-                radius: Some(5.0),
+                color: vec3(1.0, 1.0, 0.63),
+                intensity: 0.4,
+                radius: Some(6.8),
             })
-            .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
-            .with(world::components::Bouce(vec3(
-                rng.gen::<f32>() * 2.0 - 1.0,
-                0.0,
-                rng.gen::<f32>() * 2.0 - 1.0,
-            )))
+            .with(world::components::Position(vec3(-2.4, 2.0, 2.4)))
             .build();
 
-        for z in -15..15 {
-            for x in -15..15 {
+        world
+            .components
+            .create_entity()
+            .with(world::components::Light {
+                color: vec3(1.0, 1.0, 0.72),
+                intensity: 0.4,
+                radius: Some(7.3),
+            })
+            .with(world::components::Position(vec3(2.4, 2.0, 2.4)))
+            .build();
+
+        for z in -3..3 {
+            for x in -3..3 {
                 world
                     .components
                     .create_entity()
                     .with(world::components::Model::new(engine.model_pipeline.gltf(
                         &engine.ctx,
                         &model,
-                        "WaterBottle",
+                        "room",
                     )))
-                    .with(world::components::Position(vec3(x as f32 * 0.4, 0.0, z as f32 * 0.4)))
+                    .with(world::components::Position(vec3(x as f32 * 10.0, 0.0, z as f32 * 10.0)))
                     .with(world::components::Render::default())
                     .build();
             }

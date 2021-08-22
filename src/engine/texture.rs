@@ -1,7 +1,6 @@
-use wgpu::util::DeviceExt;
-use wgpu_mipmap::{MipmapGenerator, RecommendedMipmapGenerator};
-
 use crate::config;
+use wgpu::util::DeviceExt;
+use wgpu_mipmap::*;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -51,6 +50,8 @@ impl Texture {
     }
 
     pub fn create_mipmapped_view(ctx: &super::Context, pixels: &[u8], width: u32, height: u32) -> Self {
+        let mip_level_count = (1f32 + ((width as f32).max(height as f32)).log2().floor()) as u32;
+
         let size = wgpu::Extent3d {
             width,
             height,
@@ -60,7 +61,7 @@ impl Texture {
         let generator = RecommendedMipmapGenerator::new_with_format_hints(&ctx.device, &[wgpu::TextureFormat::Rgba8Unorm]);
         let texture_descriptor = wgpu::TextureDescriptor {
             size,
-            mip_level_count: 9,
+            mip_level_count,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8Unorm,

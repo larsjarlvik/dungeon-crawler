@@ -67,17 +67,16 @@ fn specularReflection(pbr: PBRInfo) -> vec3<f32> {
 
 fn geometricOcclusion(pbr: PBRInfo) -> f32 {
     let r = pbr.roughness_sq;
-    let attenuationL = 2.0 * pbr.n_dot_l / (pbr.n_dot_l + sqrt(r * r + (1.0 - r * r) * (pbr.n_dot_l * pbr.n_dot_l)));
-    let attenuationV = 2.0 * pbr.n_dot_v / (pbr.n_dot_v + sqrt(r * r + (1.0 - r * r) * (pbr.n_dot_v * pbr.n_dot_v)));
-    return attenuationL * attenuationV;
+    let attenuation_l = 2.0 * pbr.n_dot_l / (pbr.n_dot_l + sqrt(r * r + (1.0 - r * r) * (pbr.n_dot_l * pbr.n_dot_l)));
+    let attenuation_v = 2.0 * pbr.n_dot_v / (pbr.n_dot_v + sqrt(r * r + (1.0 - r * r) * (pbr.n_dot_v * pbr.n_dot_v)));
+    return attenuation_l * attenuation_v;
 }
 
 fn microfacetDistribution(pbr: PBRInfo) -> f32 {
-    let roughnessSq = pbr.roughness_sq * pbr.roughness_sq;
-    let f = (pbr.n_dot_h * roughnessSq - pbr.n_dot_h) * pbr.n_dot_h + 1.0;
-    return roughnessSq / (M_PI * f * f);
+    let roughness_sq2 = pbr.roughness_sq * pbr.roughness_sq;
+    let f = (pbr.n_dot_h * roughness_sq2 - pbr.n_dot_h) * pbr.n_dot_h + 1.0;
+    return roughness_sq2 / (M_PI * f * f);
 }
-
 
 [[stage(fragment)]]
 fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
@@ -134,7 +133,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
                 let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
                 let attenuation = clamp(1.0 - light_dist * light_dist / (light.radius * light.radius), 0.0, 1.0);
-                let total_attenuation = attenuation * attenuation;
+                let total_attenuation = clamp(attenuation * attenuation, 0.0, 1.0);
 
                 var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
                 light_contrib = light_contrib + (normal.y * 0.5 + 0.5);
@@ -144,5 +143,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
         }
     }
 
-    return vec4<f32>(total_light * color.rgb * orm.r, color.a);
+    let light_with_fade = clamp(total_light, vec3<f32>(0.0), vec3<f32>(1.0)) * clamp(2.5 - position.y, 0.0, 1.0);
+
+    return vec4<f32>(light_with_fade * color.rgb * orm.r, color.a);
 }
