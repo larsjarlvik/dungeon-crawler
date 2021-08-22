@@ -117,7 +117,7 @@ impl DeferredPipeline {
                 .with_primitive(
                     builders::PrimitiveBuilder::new(ctx, "deferred")
                         .with_texture_bind_group(&self.texture_bind_group_layout, texture_entries)
-                        .with_length(6),
+                        .with_length(4),
                 )
                 .build(),
         );

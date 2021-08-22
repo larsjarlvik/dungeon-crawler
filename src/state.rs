@@ -76,8 +76,8 @@ impl State {
             )))
             .build();
 
-        for z in -10..10 {
-            for x in -10..10 {
+        for z in -15..15 {
+            for x in -15..15 {
                 world
                     .components
                     .create_entity()

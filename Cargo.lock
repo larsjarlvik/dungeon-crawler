@@ -618,6 +618,7 @@ dependencies = [
  "rand",
  "specs",
  "wgpu",
+ "wgpu-mipmap",
  "wgpu_glyph",
  "winit",
  "winit_input_helper",
@@ -2307,6 +2308,16 @@ dependencies = [
  "smallvec",
  "thiserror",
  "wgpu-types",
+]
+
+[[package]]
+name = "wgpu-mipmap"
+version = "0.2.0"
+source = "git+https://github.com/larsjarlvik/wgpu-mipmap.git?branch=main#49dbf5348fa294fd9fc58a18c738b77006080b22"
+dependencies = [
+ "log",
+ "thiserror",
+ "wgpu",
 ]
 
 [[package]]
