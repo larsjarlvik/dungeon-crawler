@@ -33,6 +33,7 @@ impl State {
             .create_entity()
             .with(world::components::Light {
                 color: vec3(1.0, 0.0, 0.0),
+                intensity: 4.0,
                 radius: Some(5.0),
             })
             .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
@@ -48,6 +49,7 @@ impl State {
             .create_entity()
             .with(world::components::Light {
                 color: vec3(0.0, 1.0, 0.0),
+                intensity: 4.0,
                 radius: Some(5.0),
             })
             .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
@@ -63,6 +65,7 @@ impl State {
             .create_entity()
             .with(world::components::Light {
                 color: vec3(0.0, 0.0, 1.0),
+                intensity: 4.0,
                 radius: Some(5.0),
             })
             .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
@@ -73,8 +76,8 @@ impl State {
             )))
             .build();
 
-        for z in -15..15 {
-            for x in -15..15 {
+        for z in -10..10 {
+            for x in -10..10 {
                 world
                     .components
                     .create_entity()

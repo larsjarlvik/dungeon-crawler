@@ -53,6 +53,11 @@ impl Texture {
             height,
             depth_or_array_layers: 1,
         };
+
+        Texture::write_texture(ctx, pixels, size, label)
+    }
+
+    fn write_texture(ctx: &super::Context, pixels: &[u8], size: wgpu::Extent3d, label: &str) -> Self {
         let texture = ctx.device.create_texture(&wgpu::TextureDescriptor {
             label: Some(label),
             size,
@@ -72,8 +77,8 @@ impl Texture {
             pixels,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: std::num::NonZeroU32::new(4 * width),
-                rows_per_image: std::num::NonZeroU32::new(height),
+                bytes_per_row: std::num::NonZeroU32::new(4 * size.width),
+                rows_per_image: std::num::NonZeroU32::new(size.height),
             },
             size,
         );

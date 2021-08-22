@@ -43,6 +43,7 @@ fn main(
 struct GBufferOutput {
   [[location(0)]] normal : vec4<f32>;
   [[location(1)]] color : vec4<f32>;
+  [[location(2)]] orm : vec4<f32>;
 };
 
 [[group(1), binding(0)]] var t_base_color: texture_2d<f32>;
@@ -55,6 +56,7 @@ fn main(in: VertexOutput) -> GBufferOutput {
     var output : GBufferOutput;
 
     output.color = textureSample(t_base_color, t_sampler, in.tex_coord);
+    output.orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord);
 
     var tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
     var normal: vec3<f32> = textureSample(t_normal, t_sampler, in.tex_coord).xyz;

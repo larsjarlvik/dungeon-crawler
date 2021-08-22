@@ -18,6 +18,7 @@ pub struct DeferredPipeline {
     pub depth_texture: texture::Texture,
     pub normal_texture: texture::Texture,
     pub color_texture: texture::Texture,
+    pub orm_texture: texture::Texture,
 }
 
 impl DeferredPipeline {
@@ -27,6 +28,7 @@ impl DeferredPipeline {
         let depth_texture = texture::Texture::create_depth_texture(&ctx, "deferred_depth_texture");
         let normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
         let color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
+        let orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "orm_texture");
 
         let uniform_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             0,
@@ -41,6 +43,7 @@ impl DeferredPipeline {
                 pipeline_builder.create_texture_entry(0, wgpu::ShaderStage::FRAGMENT),
                 pipeline_builder.create_texture_entry(1, wgpu::ShaderStage::FRAGMENT),
                 pipeline_builder.create_texture_entry(2, wgpu::ShaderStage::FRAGMENT),
+                pipeline_builder.create_texture_entry(3, wgpu::ShaderStage::FRAGMENT),
             ],
         );
 
@@ -59,6 +62,7 @@ impl DeferredPipeline {
             depth_texture,
             normal_texture,
             color_texture,
+            orm_texture,
             uniform_bind_group_layout,
             texture_bind_group_layout,
             uniform_buffer,
@@ -70,6 +74,7 @@ impl DeferredPipeline {
         self.depth_texture = texture::Texture::create_depth_texture(&ctx, "deferred_depth_texture");
         self.normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
         self.color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
+        self.orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "orm_texture");
     }
 
     pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
@@ -83,7 +88,7 @@ impl DeferredPipeline {
             lights[i] = uniforms::LightUniforms {
                 position: position.0.into(),
                 radius,
-                color: light.color.extend(0.0).into(),
+                color: (light.color * light.intensity).extend(0.0).into(),
             };
         }
 
@@ -102,6 +107,7 @@ impl DeferredPipeline {
             builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&self.depth_texture.view)),
             builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&self.normal_texture.view)),
             builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&self.color_texture.view)),
+            builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::TextureView(&self.orm_texture.view)),
         ];
 
         self.render_bundle = Some(

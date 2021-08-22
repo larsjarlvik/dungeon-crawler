@@ -4,6 +4,9 @@ authors = ["Lars Jarlvik <lars.jarlvik@gmail.com>"]
 version = "0.1.0"
 edition = "2018"
 
+[profile.release]
+incremental = true
+
 [lib]
 crate-type = ["lib", "cdylib"]
 
