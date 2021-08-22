@@ -78,23 +78,11 @@ impl DeferredPipeline {
         let mut lights: [uniforms::LightUniforms; 10] = Default::default();
 
         for (i, (light, position)) in (&light_sources, &positions).join().enumerate() {
-            let (direction, directional) = if let Some(direction) = light.direction {
-                (direction.into(), 1)
-            } else {
-                ([0.0, 0.0, 0.0], 0)
-            };
-
-            let attenuation = if let Some(attenuation) = light.attenuation {
-                attenuation
-            } else {
-                0.0
-            };
+            let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
 
             lights[i] = uniforms::LightUniforms {
                 position: position.0.into(),
-                attenuation,
-                direction,
-                directional,
+                radius,
                 color: light.color.extend(0.0).into(),
             };
         }

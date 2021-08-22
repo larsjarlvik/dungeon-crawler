@@ -32,14 +32,13 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Light {
-                color: vec3(0.0, 0.0, 1.0),
-                direction: Some(vec3(1.0, -1.0, -1.0)),
-                attenuation: Some(10.0),
+                color: vec3(1.0, 0.0, 0.0),
+                radius: Some(5.0),
             })
-            .with(world::components::Position(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
             .with(world::components::Bouce(vec3(
                 rng.gen::<f32>() * 2.0 - 1.0,
-                rng.gen::<f32>() * 2.0 - 1.0,
+                0.0,
                 rng.gen::<f32>() * 2.0 - 1.0,
             )))
             .build();
@@ -49,13 +48,12 @@ impl State {
             .create_entity()
             .with(world::components::Light {
                 color: vec3(0.0, 1.0, 0.0),
-                direction: Some(vec3(-1.0, -1.0, 1.0)),
-                attenuation: Some(10.0),
+                radius: Some(5.0),
             })
-            .with(world::components::Position(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
             .with(world::components::Bouce(vec3(
                 rng.gen::<f32>() * 2.0 - 1.0,
-                rng.gen::<f32>() * 2.0 - 1.0,
+                0.0,
                 rng.gen::<f32>() * 2.0 - 1.0,
             )))
             .build();
@@ -64,29 +62,32 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Light {
-                color: vec3(1.0, 0.0, 0.0),
-                direction: Some(vec3(0.0, -1.0, -1.0)),
-                attenuation: Some(10.0),
+                color: vec3(0.0, 0.0, 1.0),
+                radius: Some(5.0),
             })
-            .with(world::components::Position(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Position(vec3(0.0, 2.0, 0.0)))
             .with(world::components::Bouce(vec3(
                 rng.gen::<f32>() * 2.0 - 1.0,
-                rng.gen::<f32>() * 2.0 - 1.0,
+                0.0,
                 rng.gen::<f32>() * 2.0 - 1.0,
             )))
             .build();
 
-        world
-            .components
-            .create_entity()
-            .with(world::components::Model::new(engine.model_pipeline.gltf(
-                &engine.ctx,
-                &model,
-                "WaterBottle",
-            )))
-            .with(world::components::Position(vec3(0.0, 0.0, 0.0)))
-            .with(world::components::Render::default())
-            .build();
+        for z in -15..15 {
+            for x in -15..15 {
+                world
+                    .components
+                    .create_entity()
+                    .with(world::components::Model::new(engine.model_pipeline.gltf(
+                        &engine.ctx,
+                        &model,
+                        "WaterBottle",
+                    )))
+                    .with(world::components::Position(vec3(x as f32 * 0.4, 0.0, z as f32 * 0.4)))
+                    .with(world::components::Render::default())
+                    .build();
+            }
+        }
 
         Self { engine, world }
     }

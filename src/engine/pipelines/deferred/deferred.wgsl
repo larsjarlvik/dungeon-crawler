@@ -1,9 +1,7 @@
 // Vertex shader
 struct Light {
     position: vec3<f32>;
-    attenuation: f32;
-    direction: vec3<f32>;
-    directional: bool;
+    radius: f32;
     color: vec3<f32>;
 };
 
@@ -47,25 +45,30 @@ fn world_pos_from_depth(tex_coord: vec2<f32>, depth: f32, inv_matrix: mat4x4<f32
 fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     var c: vec2<i32> = vec2<i32>(coord.xy);
     var depth: f32 = textureLoad(t_depth, c, 0).r;
-    var color: vec4<f32> = textureLoad(t_color, c, 0);
-    var normal: vec3<f32> = textureLoad(t_normal, c, 0).xyz;
 
     if (depth >= 1.0) {
         return vec4<f32>(0.0, 0.0, 0.0, 1.0);
     }
 
+    var color: vec4<f32> = textureLoad(t_color, c, 0);
+    var normal: vec3<f32> = textureLoad(t_normal, c, 0).xyz;
+
     var position: vec3<f32> = world_pos_from_depth(coord.xy / uniforms.viewport_size.xy, depth, uniforms.inv_view_proj);
     var view_dir: vec3<f32> = normalize(uniforms.eye_pos - position);
-    var light: vec3<f32> = vec3<f32>(0.2);
+    var light: vec3<f32> = vec3<f32>(0.03);
 
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
-        var direction: vec3<f32> = normalize(uniforms.light[i].position - position);
-        var half_dir: vec3<f32> = normalize(view_dir - direction);
+        var dist: f32 = distance(uniforms.light[i].position, position);
+        var light_dir: vec3<f32> = normalize(uniforms.light[i].position - position);
+        var half_dir: vec3<f32> = normalize(view_dir + light_dir);
 
-        let diffuse = max(dot(normal, -direction), 0.0);
-        let specular = pow(max(dot(normal, half_dir), 0.0), 10.0) * 4.0;
+        let diffuse = max(dot(normal, light_dir), 0.0);
+        let specular = pow(max(dot(normal, half_dir), 0.0), 32.0);
 
-        light = light + uniforms.light[i].color * (diffuse + specular);
+        let attenuation = clamp(1.0 - dist * dist / (uniforms.light[i].radius * uniforms.light[i].radius), 0.0, 1.0);
+        let total_attenuation = attenuation * attenuation;
+
+        light = light + uniforms.light[i].color * total_attenuation * (diffuse + specular);
     }
 
     return vec4<f32>(light * color.rgb, color.a);
