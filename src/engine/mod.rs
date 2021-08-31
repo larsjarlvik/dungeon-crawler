@@ -1,4 +1,4 @@
-use crate::config;
+use crate::{config, utils};
 
 pub mod model;
 pub mod pipelines;
@@ -75,6 +75,12 @@ impl Engine {
         }
     }
 
+    pub fn init(&mut self) {
+        self.model_pipeline = pipelines::ModelPipeline::new(&self.ctx);
+        self.glyph_pipeline = pipelines::GlyphPipeline::new(&self.ctx);
+        self.deferred_pipeline = pipelines::DeferredPipeline::new(&self.ctx);
+    }
+
     pub fn set_viewport(&mut self, width: u32, height: u32, scale_factor: f64) {
         self.ctx.viewport = viewport::Viewport::new(width, height, scale_factor);
         self.ctx.swap_chain = self.ctx.device.create_swap_chain(
@@ -93,7 +99,8 @@ impl Engine {
         self.ctx.swap_chain.get_current_frame().unwrap().output
     }
 
-    pub fn load_model(&self, bytes: &'static [u8]) -> model::GltfModel {
-        model::GltfModel::new(&self.ctx, bytes)
+    pub fn load_model(&self, path: &str) -> model::GltfModel {
+        let bytes = utils::read_bytes(path);
+        model::GltfModel::new(&self.ctx, bytes.as_slice())
     }
 }

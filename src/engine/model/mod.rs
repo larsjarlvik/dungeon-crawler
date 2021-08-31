@@ -13,7 +13,7 @@ pub struct GltfModel {
 }
 
 impl GltfModel {
-    pub fn new(ctx: &super::Context, bytes: &'static [u8]) -> Self {
+    pub fn new(ctx: &super::Context, bytes: &[u8]) -> Self {
         let (gltf, buffers, images) = gltf::import_slice(bytes).expect("Failed to import GLTF!");
         let meshes = gltf.meshes().map(|gltf_mesh| mesh::Mesh::new(gltf_mesh, &buffers)).collect();
 

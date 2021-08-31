@@ -1,4 +1,6 @@
-use crate::{config, engine};
+use std::borrow::Cow;
+
+use crate::{config, engine, utils};
 
 pub struct MappedBindGroupLayout {
     pub layout: wgpu::BindGroupLayout,
@@ -34,11 +36,11 @@ impl<'a> PipelineBuilder<'a> {
         }
     }
 
-    pub fn with_shader(mut self, source: wgpu::ShaderSource) -> Self {
+    pub fn with_shader(mut self, path: &str) -> Self {
         self.shader = Some(self.ctx.device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some(format!("{}_shader", self.label).as_str()),
             flags: wgpu::ShaderFlags::all(),
-            source,
+            source: wgpu::ShaderSource::Wgsl(Cow::from(utils::read_string(path).as_str())),
         }));
         self
     }

@@ -52,6 +52,11 @@ pub fn main() {
                 *control_flow = ControlFlow::Exit;
                 return;
             }
+            if input.key_released(VirtualKeyCode::R) {
+                if let Some(state) = &mut state {
+                    state.init();
+                }
+            }
 
             if let Some(state) = &mut state {
                 render(state, &start_time, control_flow);

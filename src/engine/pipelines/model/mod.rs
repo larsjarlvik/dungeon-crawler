@@ -47,7 +47,7 @@ impl ModelPipeline {
         );
 
         let render_pipeline = builder
-            .with_shader(wgpu::ShaderSource::Wgsl(include_str!("model.wgsl").into()))
+            .with_shader("shaders/model.wgsl")
             .with_color_targets(vec![
                 config::COLOR_TEXTURE_FORMAT,
                 config::COLOR_TEXTURE_FORMAT,

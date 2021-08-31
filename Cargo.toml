@@ -33,6 +33,7 @@ android_logger = "0.10.1"
 
 [package.metadata.android]
 resources = "res"
+assets = "assets"
 
 [package.metadata.android.application]
 label = "Dungeon Crawler"

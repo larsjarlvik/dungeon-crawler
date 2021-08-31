@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use crate::{engine, world};
 use cgmath::*;
 use specs::{Builder, WorldExt};
@@ -11,22 +13,34 @@ pub struct State {
 impl State {
     pub async fn new(window: &Window) -> Self {
         let engine = engine::Engine::new(window).await;
-        let mut world = world::World::new();
-        let model = engine.load_model(include_bytes!("../models/room.glb"));
+        let world = world::World::new();
 
-        world
+        let mut state = Self { engine, world };
+        state.init();
+        state
+    }
+
+    pub fn init(&mut self) {
+        let start = Instant::now();
+        let room = self.engine.load_model("models/room.glb");
+        let character = self.engine.load_model("models/character.glb");
+
+        self.engine.init();
+        self.world = world::World::new();
+
+        self.world
             .components
-            .insert(world::resources::Camera::new(engine.ctx.viewport.get_aspect()));
-        world.components.insert(world::resources::Time::default());
+            .insert(world::resources::Camera::new(self.engine.ctx.viewport.get_aspect()));
+        self.world.components.insert(world::resources::Time::default());
 
-        world
+        self.world
             .components
             .create_entity()
             .with(world::components::Fps::new())
             .with(world::components::Text::new("", vec2(20.0, 20.0)))
             .build();
 
-        world
+        self.world
             .components
             .create_entity()
             .with(world::components::Light {
@@ -37,7 +51,7 @@ impl State {
             .with(world::components::Position(vec3(-2.4, 2.0, -2.4)))
             .build();
 
-        world
+        self.world
             .components
             .create_entity()
             .with(world::components::Light {
@@ -48,7 +62,7 @@ impl State {
             .with(world::components::Position(vec3(2.4, 2.0, -2.4)))
             .build();
 
-        world
+        self.world
             .components
             .create_entity()
             .with(world::components::Light {
@@ -59,7 +73,7 @@ impl State {
             .with(world::components::Position(vec3(-2.4, 2.0, 2.4)))
             .build();
 
-        world
+        self.world
             .components
             .create_entity()
             .with(world::components::Light {
@@ -72,12 +86,12 @@ impl State {
 
         for z in -3..3 {
             for x in -3..3 {
-                world
+                self.world
                     .components
                     .create_entity()
-                    .with(world::components::Model::new(engine.model_pipeline.gltf(
-                        &engine.ctx,
-                        &model,
+                    .with(world::components::Model::new(self.engine.model_pipeline.gltf(
+                        &self.engine.ctx,
+                        &room,
                         "room",
                     )))
                     .with(world::components::Position(vec3(x as f32 * 10.0, 0.0, z as f32 * 10.0)))
@@ -86,7 +100,19 @@ impl State {
             }
         }
 
-        Self { engine, world }
+        self.world
+            .components
+            .create_entity()
+            .with(world::components::Model::new(self.engine.model_pipeline.gltf(
+                &self.engine.ctx,
+                &character,
+                "Head_LowRes",
+            )))
+            .with(world::components::Position(vec3(0.0, 1.0, 0.0)))
+            .with(world::components::Render::default())
+            .build();
+
+        println!("Initialized world in: {} ms", start.elapsed().as_millis());
     }
 
     pub fn resize(&mut self, width: u32, height: u32, scale_factor: f64) {

@@ -48,7 +48,7 @@ impl DeferredPipeline {
         );
 
         let render_pipeline = pipeline_builder
-            .with_shader(wgpu::ShaderSource::Wgsl(include_str!("deferred.wgsl").into()))
+            .with_shader("shaders/deferred.wgsl")
             .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)

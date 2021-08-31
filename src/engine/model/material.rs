@@ -43,7 +43,6 @@ fn load_image(ctx: &engine::Context, texture: gltf::Texture, images: &Vec<gltf::
 
     let mut pixels = vec![];
     if image.format == gltf::image::Format::R8G8B8 {
-        println!("FORMAT");
         for chunk in image.pixels.chunks(3) {
             pixels.append(&mut chunk.to_vec());
             pixels.push(255);
@@ -52,7 +51,5 @@ fn load_image(ctx: &engine::Context, texture: gltf::Texture, images: &Vec<gltf::
         pixels = image.pixels.clone();
     }
 
-    println!("{} {} {} {} {}", pixels.len(), pixels[0], pixels[1], pixels[2], pixels[3]);
-    println!("{} {} {} {} {}", pixels.len(), pixels[4], pixels[5], pixels[6], pixels[7]);
     texture::Texture::create_mipmapped_view(&ctx, pixels.as_slice(), image.width, image.height)
 }
