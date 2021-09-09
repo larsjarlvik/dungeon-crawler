@@ -1,13 +1,8 @@
+use crate::engine::{self, pipelines::builders};
 use std::num::NonZeroU32;
-use crate::{engine::{self, pipelines::builders}};
 
-pub fn generate_mipmaps(
-    ctx: &engine::Context,
-    encoder: &mut wgpu::CommandEncoder,
-    texture: &wgpu::Texture,
-    mip_count: u32,
-) {
-    let builder = builders::PipelineBuilder::new(&ctx, "model");
+pub fn generate_mipmaps(ctx: &engine::Context, encoder: &mut wgpu::CommandEncoder, texture: &wgpu::Texture, mip_count: u32) {
+    let builder = builders::PipelineBuilder::new(&ctx, "mipmap");
 
     let texture_bind_group_layout = builder.create_bindgroup_layout(
         0,
@@ -26,7 +21,7 @@ pub fn generate_mipmaps(
         .build();
 
     let sampler = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
-        label: Some("mip"),
+        label: Some("mipmap_sampler"),
         address_mode_u: wgpu::AddressMode::ClampToEdge,
         address_mode_v: wgpu::AddressMode::ClampToEdge,
         address_mode_w: wgpu::AddressMode::ClampToEdge,
@@ -39,18 +34,13 @@ pub fn generate_mipmaps(
     let views = (0..mip_count)
         .map(|mip| {
             texture.create_view(&wgpu::TextureViewDescriptor {
-                label: Some("mip"),
-                format: None,
-                dimension: None,
-                aspect: wgpu::TextureAspect::All,
+                label: Some("mipmap_view"),
                 base_mip_level: mip,
                 mip_level_count: NonZeroU32::new(1),
-                base_array_layer: 0,
-                array_layer_count: None,
+                ..Default::default()
             })
         })
         .collect::<Vec<_>>();
-
 
     for target_mip in 1..mip_count as usize {
         let bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {

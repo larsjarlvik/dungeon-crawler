@@ -1,8 +1,8 @@
 mod builders;
 mod deferred;
 mod glyph;
-mod model;
 pub mod mipmap;
+mod model;
 
 pub use deferred::DeferredPipeline;
 pub use glyph::GlyphPipeline;

@@ -47,13 +47,16 @@ impl Engine {
             .await
             .unwrap();
 
-        surface.configure(&device, &wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: config::COLOR_TEXTURE_FORMAT,
-            width: size.width,
-            height: size.height,
-            present_mode: wgpu::PresentMode::Immediate,
-        });
+        surface.configure(
+            &device,
+            &wgpu::SurfaceConfiguration {
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                format: config::COLOR_TEXTURE_FORMAT,
+                width: size.width,
+                height: size.height,
+                present_mode: wgpu::PresentMode::Immediate,
+            },
+        );
 
         let ctx = Context {
             viewport,
@@ -83,13 +86,16 @@ impl Engine {
     pub fn set_viewport(&mut self, width: u32, height: u32, scale_factor: f64) {
         self.ctx.viewport = viewport::Viewport::new(width, height, scale_factor);
 
-        self.ctx.surface.configure(&self.ctx.device, &wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: config::COLOR_TEXTURE_FORMAT,
-            width: self.ctx.viewport.width,
-            height: self.ctx.viewport.height,
-            present_mode: wgpu::PresentMode::Immediate,
-        });
+        self.ctx.surface.configure(
+            &self.ctx.device,
+            &wgpu::SurfaceConfiguration {
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                format: config::COLOR_TEXTURE_FORMAT,
+                width: self.ctx.viewport.width,
+                height: self.ctx.viewport.height,
+                present_mode: wgpu::PresentMode::Immediate,
+            },
+        );
     }
 
     pub fn get_output_frame(&self) -> wgpu::SurfaceTexture {
