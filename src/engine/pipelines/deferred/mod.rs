@@ -33,17 +33,17 @@ impl DeferredPipeline {
         let uniform_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             0,
             "model_uniform_bind_group_layout",
-            &[pipeline_builder.create_uniform_entry(0, wgpu::ShaderStage::FRAGMENT)],
+            &[pipeline_builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT)],
         );
 
         let texture_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             1,
             "texture_bind_group_layout",
             &[
-                pipeline_builder.create_texture_entry(0, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_texture_entry(1, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_texture_entry(2, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_texture_entry(3, wgpu::ShaderStage::FRAGMENT),
+                pipeline_builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_texture_entry(2, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_texture_entry(3, wgpu::ShaderStages::FRAGMENT),
             ],
         );
 

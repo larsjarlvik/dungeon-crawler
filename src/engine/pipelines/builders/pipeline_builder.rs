@@ -12,15 +12,16 @@ pub struct PipelineBuilder<'a> {
     shader: Option<wgpu::ShaderModule>,
     bind_group_layouts: Vec<&'a wgpu::BindGroupLayout>,
     color_targets: Vec<wgpu::TextureFormat>,
-    depth_target: Option<wgpu::TextureFormat>,
+    depth_target: Option<wgpu::RenderBundleDepthStencil>,
     buffer_layouts: Vec<wgpu::VertexBufferLayout<'a>>,
+    primitve_topology: wgpu::PrimitiveTopology,
     label: &'a str,
 }
 
 pub struct Pipeline {
     pub render_pipeline: wgpu::RenderPipeline,
     pub color_targets: Vec<wgpu::TextureFormat>,
-    pub depth_target: Option<wgpu::TextureFormat>,
+    pub depth_target: Option<wgpu::RenderBundleDepthStencil>,
 }
 
 impl<'a> PipelineBuilder<'a> {
@@ -32,6 +33,7 @@ impl<'a> PipelineBuilder<'a> {
             color_targets: vec![],
             depth_target: None,
             buffer_layouts: vec![],
+            primitve_topology: wgpu::PrimitiveTopology::TriangleList,
             label,
         }
     }
@@ -39,7 +41,6 @@ impl<'a> PipelineBuilder<'a> {
     pub fn with_shader(mut self, path: &str) -> Self {
         self.shader = Some(self.ctx.device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some(format!("{}_shader", self.label).as_str()),
-            flags: wgpu::ShaderFlags::all(),
             source: wgpu::ShaderSource::Wgsl(Cow::from(utils::read_string(path).as_str())),
         }));
         self
@@ -59,7 +60,7 @@ impl<'a> PipelineBuilder<'a> {
         MappedBindGroupLayout { index, layout }
     }
 
-    pub fn create_uniform_entry(&self, binding: u32, visibility: wgpu::ShaderStage) -> wgpu::BindGroupLayoutEntry {
+    pub fn create_uniform_entry(&self, binding: u32, visibility: wgpu::ShaderStages) -> wgpu::BindGroupLayoutEntry {
         wgpu::BindGroupLayoutEntry {
             binding,
             visibility,
@@ -72,7 +73,7 @@ impl<'a> PipelineBuilder<'a> {
         }
     }
 
-    pub fn create_texture_entry(&self, binding: u32, visibility: wgpu::ShaderStage) -> wgpu::BindGroupLayoutEntry {
+    pub fn create_texture_entry(&self, binding: u32, visibility: wgpu::ShaderStages) -> wgpu::BindGroupLayoutEntry {
         wgpu::BindGroupLayoutEntry {
             binding,
             visibility,
@@ -85,7 +86,7 @@ impl<'a> PipelineBuilder<'a> {
         }
     }
 
-    pub fn create_sampler_entry(&self, binding: u32, visibility: wgpu::ShaderStage) -> wgpu::BindGroupLayoutEntry {
+    pub fn create_sampler_entry(&self, binding: u32, visibility: wgpu::ShaderStages) -> wgpu::BindGroupLayoutEntry {
         wgpu::BindGroupLayoutEntry {
             binding,
             visibility,
@@ -102,8 +103,17 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
-    pub fn with_depth_target(mut self, depth_target: wgpu::TextureFormat) -> Self {
-        self.depth_target = Some(depth_target);
+    pub fn with_primitve_topology(mut self, primitve_topology: wgpu::PrimitiveTopology) -> Self {
+        self.primitve_topology = primitve_topology;
+        self
+    }
+
+    pub fn with_depth_target(mut self, format: wgpu::TextureFormat) -> Self {
+        self.depth_target = Some(wgpu::RenderBundleDepthStencil {
+            format,
+            depth_read_only: false,
+            stencil_read_only: false,
+        });
         self
     }
 
@@ -127,7 +137,7 @@ impl<'a> PipelineBuilder<'a> {
             .map(|format| wgpu::ColorTargetState {
                 format: *format,
                 blend: None,
-                write_mask: wgpu::ColorWrite::ALL,
+                write_mask: wgpu::ColorWrites::ALL,
             })
             .collect();
 
@@ -157,7 +167,7 @@ impl<'a> PipelineBuilder<'a> {
                 targets: color_targets.as_slice(),
             }),
             primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
+                topology: self.primitve_topology,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: None,

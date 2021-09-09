@@ -12,7 +12,7 @@ pub struct RenderBundleBuilder<'a> {
     bind_groups: Vec<(u32, wgpu::BindGroup)>,
     primitives: Vec<primitive_builder::PrimitiveBuilder<'a>>,
     color_targets: Option<&'a Vec<wgpu::TextureFormat>>,
-    depth_target: &'a Option<wgpu::TextureFormat>,
+    depth_target: &'a Option<wgpu::RenderBundleDepthStencil>,
     buffers: Vec<&'a wgpu::Buffer>,
     label: &'a str,
 }
@@ -43,7 +43,7 @@ impl<'a> RenderBundleBuilder<'a> {
             label: Some(format!("{}_uniform_buffer", self.label).as_str()),
             size,
             mapped_at_creation: false,
-            usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         })
     }
 
@@ -76,7 +76,7 @@ impl<'a> RenderBundleBuilder<'a> {
         let mut encoder = self.ctx.device.create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {
             label: Some(format!("{}_encoder", self.label).as_str()),
             color_formats: self.color_targets.expect("Missing color target!").as_slice(),
-            depth_stencil_format: *self.depth_target,
+            depth_stencil: *self.depth_target,
             sample_count: 1,
         });
 

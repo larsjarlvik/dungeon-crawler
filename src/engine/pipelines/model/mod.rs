@@ -32,17 +32,17 @@ impl ModelPipeline {
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,
             "model_uniform_bind_group_layout",
-            &[builder.create_uniform_entry(0, wgpu::ShaderStage::VERTEX)],
+            &[builder.create_uniform_entry(0, wgpu::ShaderStages::VERTEX)],
         );
 
         let texture_bind_group_layout = builder.create_bindgroup_layout(
             1,
             "texture_bind_group_layout",
             &[
-                builder.create_texture_entry(0, wgpu::ShaderStage::FRAGMENT),
-                builder.create_texture_entry(1, wgpu::ShaderStage::FRAGMENT),
-                builder.create_texture_entry(2, wgpu::ShaderStage::FRAGMENT),
-                builder.create_sampler_entry(3, wgpu::ShaderStage::FRAGMENT),
+                builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
+                builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT),
+                builder.create_texture_entry(2, wgpu::ShaderStages::FRAGMENT),
+                builder.create_sampler_entry(3, wgpu::ShaderStages::FRAGMENT),
             ],
         );
 
