@@ -14,6 +14,7 @@ impl<'a> World {
         components.register::<components::Render>();
         components.register::<components::Model>();
         components.register::<components::Position>();
+        components.register::<components::Rotation>();
         components.register::<components::Bouce>();
         components.register::<components::Text>();
         components.register::<components::Fps>();
@@ -21,6 +22,7 @@ impl<'a> World {
 
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Bounce, "bounce", &[])
+            .with(systems::Rotate, "rotate", &[])
             .with(systems::Render, "render", &[])
             .with(systems::Fps, "FPS", &[])
             .build();

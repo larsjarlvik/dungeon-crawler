@@ -95,6 +95,7 @@ impl State {
                         "room",
                     )))
                     .with(world::components::Position(vec3(x as f32 * 10.0, 0.0, z as f32 * 10.0)))
+                    .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
                     .with(world::components::Render::default())
                     .build();
             }
@@ -106,9 +107,10 @@ impl State {
             .with(world::components::Model::new(self.engine.model_pipeline.gltf(
                 &self.engine.ctx,
                 &character,
-                "Head_LowRes",
+                "character",
             )))
             .with(world::components::Position(vec3(0.0, 1.0, 0.0)))
+            .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
             .with(world::components::Render::default())
             .build();
 

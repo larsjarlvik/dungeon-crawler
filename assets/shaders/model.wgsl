@@ -46,20 +46,27 @@ struct GBufferOutput {
   [[location(2)]] orm : vec4<f32>;
 };
 
-[[group(1), binding(0)]] var t_base_color: texture_2d<f32>;
-[[group(1), binding(1)]] var t_normal: texture_2d<f32>;
-[[group(1), binding(2)]] var t_occlusion_roughness_metallic: texture_2d<f32>;
-[[group(1), binding(3)]] var t_sampler: sampler;
+[[block]]
+struct Uniforms {
+    orm_factor: vec4<f32>;
+};
+
+[[group(1), binding(0)]] var<uniform> primitive_uniforms: Uniforms;
+
+[[group(2), binding(0)]] var t_base_color: texture_2d<f32>;
+[[group(2), binding(1)]] var t_normal: texture_2d<f32>;
+[[group(2), binding(2)]] var t_occlusion_roughness_metallic: texture_2d<f32>;
+[[group(2), binding(3)]] var t_sampler: sampler;
 
 [[stage(fragment)]]
 fn main(in: VertexOutput) -> GBufferOutput {
     var output : GBufferOutput;
 
     output.color = textureSample(t_base_color, t_sampler, in.tex_coord);
-    output.orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord);
+    output.orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord) * primitive_uniforms.orm_factor;
 
     var tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
     var normal: vec3<f32> = textureSample(t_normal, t_sampler, in.tex_coord).xyz;
-    output.normal = vec4<f32>(normalize(tangent * (2.0 * normal - 1.0)), 1.0);
+    output.normal = vec4<f32>(tangent * normalize(2.0 * normal - 1.0), 1.0);
     return output;
 }

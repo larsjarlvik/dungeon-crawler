@@ -5,7 +5,7 @@ pub struct Material {
     pub normal_texture: texture::Texture,
     pub orm_texture: texture::Texture,
     pub roughness_factor: f32,
-    pub metllic_factor: f32,
+    pub metallic_factor: f32,
 }
 
 impl Material {
@@ -33,7 +33,7 @@ impl Material {
             normal_texture,
             orm_texture: occlusion_roughness_metallic_texture,
             roughness_factor: pbr.roughness_factor(),
-            metllic_factor: pbr.metallic_factor(),
+            metallic_factor: pbr.metallic_factor(),
         }
     }
 }

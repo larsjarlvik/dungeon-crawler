@@ -12,14 +12,18 @@ use specs::{Join, WorldExt};
 use std::mem;
 pub use uniforms::Uniforms;
 
+use self::uniforms::PrimitiveUniforms;
+
 pub struct Model {
     pub uniform_buffer: wgpu::Buffer,
+    pub primitive_buffers: Vec<wgpu::Buffer>,
     pub render_bundle: wgpu::RenderBundle,
 }
 
 pub struct ModelPipeline {
     render_pipeline: builders::Pipeline,
     uniform_bind_group_layout: builders::MappedBindGroupLayout,
+    primitive_uniform_bind_group_layout: builders::MappedBindGroupLayout,
     texture_bind_group_layout: builders::MappedBindGroupLayout,
     sampler: wgpu::Sampler,
 }
@@ -35,8 +39,14 @@ impl ModelPipeline {
             &[builder.create_uniform_entry(0, wgpu::ShaderStages::VERTEX)],
         );
 
-        let texture_bind_group_layout = builder.create_bindgroup_layout(
+        let primitive_uniform_bind_group_layout = builder.create_bindgroup_layout(
             1,
+            "model_uniform_bind_group_layout",
+            &[builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT)],
+        );
+
+        let texture_bind_group_layout = builder.create_bindgroup_layout(
+            2,
             "texture_bind_group_layout",
             &[
                 builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
@@ -56,12 +66,14 @@ impl ModelPipeline {
             .with_depth_target(config::DEPTH_FORMAT)
             .with_buffer_layouts(vec![engine::model::Vertex::desc()])
             .with_bind_group_layout(&uniform_bind_group_layout)
+            .with_bind_group_layout(&primitive_uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
 
         Self {
             render_pipeline,
             uniform_bind_group_layout,
+            primitive_uniform_bind_group_layout,
             texture_bind_group_layout,
             sampler,
         }
@@ -77,7 +89,17 @@ impl ModelPipeline {
             .with_pipeline(&self.render_pipeline)
             .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer);
 
-        for primitive in &mesh.primitives {
+        let mut primitive_buffers = vec![];
+        for primitive in mesh.primitives.iter() {
+            let material = model.get_material(primitive.material);
+            let uniform_buffer = builder.create_uniform_buffer_init(bytemuck::cast_slice(&[PrimitiveUniforms {
+                orm_factor: [1.0, material.roughness_factor, material.metallic_factor, 0.0],
+            }]));
+
+            primitive_buffers.push(uniform_buffer);
+        }
+
+        for (i, primitive) in mesh.primitives.iter().enumerate() {
             let material = model.get_material(primitive.material);
             let texture_entries = &[
                 builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&material.base_color_texture.view)),
@@ -88,6 +110,7 @@ impl ModelPipeline {
 
             builder = builder.with_primitive(
                 builders::PrimitiveBuilder::new(ctx, mesh_name)
+                    .with_uniform_bind_group(&self.primitive_uniform_bind_group_layout, &primitive_buffers[i])
                     .with_texture_bind_group(&self.texture_bind_group_layout, texture_entries)
                     .with_vertices(bytemuck::cast_slice(primitive.vertices.as_slice()))
                     .with_indices(bytemuck::cast_slice(&primitive.indices.as_slice()))
@@ -98,6 +121,7 @@ impl ModelPipeline {
         let render_bundle = builder.build();
         Model {
             uniform_buffer,
+            primitive_buffers,
             render_bundle,
         }
     }
@@ -108,12 +132,15 @@ impl ModelPipeline {
         let mut bundles = vec![];
 
         for (model, render) in (&models, &render).join() {
-            let uniforms = pipelines::model::Uniforms {
-                view_proj: render.view_proj.into(),
-                model: render.model_matrix.into(),
-            };
+            ctx.queue.write_buffer(
+                &model.uniform_buffer,
+                self.uniform_bind_group_layout.index as u64,
+                bytemuck::cast_slice(&[Uniforms {
+                    view_proj: render.view_proj.into(),
+                    model: render.model_matrix.into(),
+                }]),
+            );
 
-            ctx.queue.write_buffer(&model.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
             bundles.push(&model.render_bundle);
         }
 

@@ -1,16 +1,16 @@
-use wgpu::util::DeviceExt;
 use super::{pipeline_builder, primitive_builder, Pipeline};
 use crate::engine;
+use wgpu::util::DeviceExt;
 
 pub struct MappedBindGroup {
     pub bind_group: wgpu::BindGroup,
-    pub index: u32,
+    pub index: u64,
 }
 
 pub struct RenderBundleBuilder<'a> {
     ctx: &'a engine::Context,
     pipeline: Option<&'a wgpu::RenderPipeline>,
-    bind_groups: Vec<(u32, wgpu::BindGroup)>,
+    bind_groups: Vec<(u64, wgpu::BindGroup)>,
     primitives: Vec<primitive_builder::PrimitiveBuilder<'a>>,
     color_targets: Option<&'a Vec<wgpu::TextureFormat>>,
     depth_target: &'a Option<wgpu::RenderBundleDepthStencil>,
@@ -56,11 +56,15 @@ impl<'a> RenderBundleBuilder<'a> {
         })
     }
 
-    pub fn with_uniform_bind_group(mut self, layout: &pipeline_builder::MappedBindGroupLayout, uniform_buffer: &'a wgpu::Buffer) -> Self {
+    pub fn with_uniform_bind_group(
+        mut self,
+        bind_group_layout: &pipeline_builder::MappedBindGroupLayout,
+        uniform_buffer: &'a wgpu::Buffer,
+    ) -> Self {
         self.buffers.push(uniform_buffer);
 
         let uniform_bind_group = self.ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &layout.layout,
+            layout: &bind_group_layout.layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
                 resource: uniform_buffer.as_entire_binding(),
@@ -68,7 +72,7 @@ impl<'a> RenderBundleBuilder<'a> {
             label: Some(format!("{}_uniform_bind_group", self.label).as_str()),
         });
 
-        self.bind_groups.push((layout.index, uniform_bind_group));
+        self.bind_groups.push((bind_group_layout.index, uniform_bind_group));
         self
     }
 
@@ -92,12 +96,12 @@ impl<'a> RenderBundleBuilder<'a> {
         encoder.set_pipeline(&self.pipeline.expect("No pipeline set!"));
 
         for (index, bind_group) in self.bind_groups.iter() {
-            encoder.set_bind_group(*index, &bind_group, &[]);
+            encoder.set_bind_group(*index as u32, &bind_group, &[]);
         }
 
         for primitive in &self.primitives {
             for bind_group in primitive.bind_groups.iter() {
-                encoder.set_bind_group(bind_group.index, &bind_group.bind_group, &[]);
+                encoder.set_bind_group(bind_group.index as u32, &bind_group.bind_group, &[]);
             }
 
             if let Some(vertex_buffer) = &primitive.vertex_buffer {
