@@ -11,8 +11,8 @@ pub struct Texture {
 impl Texture {
     pub fn create_depth_texture(ctx: &super::Context, label: &str) -> Self {
         let size = wgpu::Extent3d {
-            width: ctx.viewport.width,
-            height: ctx.viewport.height,
+            width: (ctx.viewport.width as f32 * ctx.viewport.render_scale) as u32,
+            height: (ctx.viewport.height as f32 * ctx.viewport.render_scale) as u32,
             depth_or_array_layers: 1,
         };
         let desc = wgpu::TextureDescriptor {
@@ -32,8 +32,8 @@ impl Texture {
 
     pub fn create_texture(ctx: &super::Context, format: wgpu::TextureFormat, label: &str) -> Self {
         let size = wgpu::Extent3d {
-            width: ctx.viewport.width,
-            height: ctx.viewport.height,
+            width: (ctx.viewport.width as f32 * ctx.viewport.render_scale) as u32,
+            height: (ctx.viewport.height as f32 * ctx.viewport.render_scale) as u32,
             depth_or_array_layers: 1,
         };
         let texture = ctx.device.create_texture(&wgpu::TextureDescriptor {

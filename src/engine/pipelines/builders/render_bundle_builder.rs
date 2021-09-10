@@ -1,3 +1,4 @@
+use wgpu::util::DeviceExt;
 use super::{pipeline_builder, primitive_builder, Pipeline};
 use crate::engine;
 
@@ -43,6 +44,14 @@ impl<'a> RenderBundleBuilder<'a> {
             label: Some(format!("{}_uniform_buffer", self.label).as_str()),
             size,
             mapped_at_creation: false,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        })
+    }
+
+    pub fn create_uniform_buffer_init(&self, contents: &[u8]) -> wgpu::Buffer {
+        self.ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some(format!("{}_uniform_buffer", self.label).as_str()),
+            contents,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         })
     }

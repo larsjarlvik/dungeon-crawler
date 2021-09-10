@@ -133,18 +133,18 @@ impl State {
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let frame = self.engine.get_output_frame();
         {
-            let view = frame.texture
-                .create_view(&wgpu::TextureViewDescriptor::default());
+            let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
             self.engine
                 .model_pipeline
                 .render(&self.engine.ctx, &self.world.components, &self.engine.deferred_pipeline);
 
-            self.engine.deferred_pipeline.render(&self.engine.ctx, &view);
-
             self.engine
-                .glyph_pipeline
-                .render(&self.engine.ctx, &self.world.components, &view);
+                .deferred_pipeline
+                .render(&self.engine.ctx, &self.engine.scaling_pipeline.texture.view);
+            self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
+
+            self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
         }
 
         Ok(())

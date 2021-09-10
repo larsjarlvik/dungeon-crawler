@@ -17,6 +17,7 @@ pub struct Engine {
     pub model_pipeline: pipelines::ModelPipeline,
     pub glyph_pipeline: pipelines::GlyphPipeline,
     pub deferred_pipeline: pipelines::DeferredPipeline,
+    pub scaling_pipeline: pipelines::ScalingPipeline,
 }
 
 impl Engine {
@@ -68,12 +69,14 @@ impl Engine {
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
         let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
         let deferred_pipeline = pipelines::DeferredPipeline::new(&ctx);
+        let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
 
         Self {
             ctx,
             model_pipeline,
             glyph_pipeline,
             deferred_pipeline,
+            scaling_pipeline,
         }
     }
 
@@ -85,6 +88,7 @@ impl Engine {
 
     pub fn set_viewport(&mut self, width: u32, height: u32, scale_factor: f64) {
         self.ctx.viewport = viewport::Viewport::new(width, height, scale_factor);
+        self.scaling_pipeline.resize(&mut self.ctx);
 
         self.ctx.surface.configure(
             &self.ctx.device,
