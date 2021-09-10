@@ -105,9 +105,9 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     pbr.diffuse = pbr.diffuse * (1.0 - pbr.metalness);
     pbr.specular = mix(f0, color.rgb, vec3<f32>(pbr.metalness));
     pbr.reflectance0 = pbr.specular.rgb;
-    pbr.reflectance90 = vec3<f32>(1.0, 1.0, 1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 25.0, 0.0, 1.0);
+    pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 25.0, 0.0, 1.0);
 
-    var total_light: vec3<f32> = vec3<f32>(0.0);
+    var total_light: vec3<f32> = vec3<f32>(0.1);
 
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];
@@ -136,7 +136,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
                 let total_attenuation = clamp(attenuation * attenuation, 0.0, 1.0);
 
                 var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
-                light_contrib = light_contrib + (normal.y * 0.5 + 0.5);
+                light_contrib = light_contrib + normal.y;
 
                 total_light = total_light + total_attenuation * light.color * light_contrib;
             }
@@ -144,5 +144,5 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     }
 
     let light_with_fade = clamp(total_light, vec3<f32>(0.0), vec3<f32>(1.0)) * clamp(2.5 - position.y, 0.0, 1.0);
-    return vec4<f32>(light_with_fade * color.rgb * orm.r, color.a);
+    return vec4<f32>(total_light * color.rgb * orm.r, color.a);
 }

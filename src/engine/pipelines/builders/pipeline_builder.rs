@@ -4,7 +4,7 @@ use crate::{config, engine, utils};
 
 pub struct MappedBindGroupLayout {
     pub layout: wgpu::BindGroupLayout,
-    pub index: u32,
+    pub index: u64,
 }
 
 pub struct PipelineBuilder<'a> {
@@ -50,7 +50,7 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
-    pub fn create_bindgroup_layout(&self, index: u32, label: &str, entries: &[wgpu::BindGroupLayoutEntry]) -> MappedBindGroupLayout {
+    pub fn create_bindgroup_layout(&self, index: u64, label: &str, entries: &[wgpu::BindGroupLayoutEntry]) -> MappedBindGroupLayout {
         let layout = self.ctx.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some(label),
             entries,
