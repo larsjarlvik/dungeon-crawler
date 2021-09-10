@@ -26,7 +26,7 @@ impl Engine {
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
 
-        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor());
+        let viewport = viewport::Viewport::new(size.width, size.height, utils::get_scale_factor(&window));
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -86,7 +86,7 @@ impl Engine {
         self.deferred_pipeline = pipelines::DeferredPipeline::new(&self.ctx);
     }
 
-    pub fn set_viewport(&mut self, width: u32, height: u32, scale_factor: f64) {
+    pub fn set_viewport(&mut self, width: u32, height: u32, scale_factor: f32) {
         self.ctx.viewport = viewport::Viewport::new(width, height, scale_factor);
         self.scaling_pipeline.resize(&mut self.ctx);
 

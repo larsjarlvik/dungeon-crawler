@@ -117,7 +117,7 @@ impl State {
         println!("Initialized world in: {} ms", start.elapsed().as_millis());
     }
 
-    pub fn resize(&mut self, width: u32, height: u32, scale_factor: f64) {
+    pub fn resize(&mut self, width: u32, height: u32, scale_factor: f32) {
         if width > 0 && height > 0 {
             self.engine.set_viewport(width, height, scale_factor);
             self.engine.deferred_pipeline.resize(&self.engine.ctx);

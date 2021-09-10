@@ -69,13 +69,10 @@ pub fn main() {
                 if let Some(state) = &mut state {
                     match event {
                         WindowEvent::Resized(physical_size) => {
-                            state.resize(physical_size.width, physical_size.height, window.scale_factor());
+                            state.resize(physical_size.width, physical_size.height, utils::get_scale_factor(&window));
                         }
-                        WindowEvent::ScaleFactorChanged {
-                            new_inner_size,
-                            scale_factor,
-                        } => {
-                            state.resize(new_inner_size.width, new_inner_size.height, *scale_factor);
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            state.resize(new_inner_size.width, new_inner_size.height, utils::get_scale_factor(&window));
                         }
                         _ => {}
                     }

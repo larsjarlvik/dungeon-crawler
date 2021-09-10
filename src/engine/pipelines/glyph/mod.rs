@@ -24,14 +24,11 @@ impl GlyphPipeline {
         let texts = components.read_storage::<components::Text>();
         for text in texts.join() {
             self.brush.queue(Section {
-                screen_position: (
-                    text.position.x * ctx.viewport.dpi as f32,
-                    text.position.y * ctx.viewport.dpi as f32,
-                ),
+                screen_position: (text.position.x * ctx.viewport.ui_scale, text.position.y * ctx.viewport.ui_scale),
                 bounds: (ctx.viewport.width as f32, ctx.viewport.height as f32),
                 text: vec![Text::new(text.text.as_str())
                     .with_color([1.0, 1.0, 1.0, 1.0])
-                    .with_scale(25.0 * ctx.viewport.dpi as f32)],
+                    .with_scale(18.0 * ctx.viewport.ui_scale as f32)],
                 ..Section::default()
             });
         }
