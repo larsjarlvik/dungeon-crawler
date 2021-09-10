@@ -29,7 +29,7 @@ impl<'a> PrimitiveBuilder<'a> {
         self.vertex_buffer = Some(self.ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some(format!("{}_vertex_buffer", self.label).as_str()),
             contents,
-            usage: wgpu::BufferUsage::VERTEX,
+            usage: wgpu::BufferUsages::VERTEX,
         }));
         self
     }
@@ -38,7 +38,7 @@ impl<'a> PrimitiveBuilder<'a> {
         self.index_buffer = Some(self.ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some(format!("{}_index_buffer", self.label).as_str()),
             contents,
-            usage: wgpu::BufferUsage::INDEX,
+            usage: wgpu::BufferUsages::INDEX,
         }));
         self
     }

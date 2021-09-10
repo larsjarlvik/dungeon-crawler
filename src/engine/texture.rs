@@ -1,6 +1,7 @@
 use crate::config;
 use wgpu::util::DeviceExt;
-use wgpu_mipmap::*;
+
+use super::pipelines;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -10,8 +11,8 @@ pub struct Texture {
 impl Texture {
     pub fn create_depth_texture(ctx: &super::Context, label: &str) -> Self {
         let size = wgpu::Extent3d {
-            width: ctx.viewport.width,
-            height: ctx.viewport.height,
+            width: (ctx.viewport.width as f32 * ctx.viewport.render_scale) as u32,
+            height: (ctx.viewport.height as f32 * ctx.viewport.render_scale) as u32,
             depth_or_array_layers: 1,
         };
         let desc = wgpu::TextureDescriptor {
@@ -21,7 +22,7 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: config::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT | wgpu::TextureUsage::SAMPLED,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
         };
         let texture = ctx.device.create_texture(&desc);
 
@@ -31,8 +32,8 @@ impl Texture {
 
     pub fn create_texture(ctx: &super::Context, format: wgpu::TextureFormat, label: &str) -> Self {
         let size = wgpu::Extent3d {
-            width: ctx.viewport.width,
-            height: ctx.viewport.height,
+            width: (ctx.viewport.width as f32 * ctx.viewport.render_scale) as u32,
+            height: (ctx.viewport.height as f32 * ctx.viewport.render_scale) as u32,
             depth_or_array_layers: 1,
         };
         let texture = ctx.device.create_texture(&wgpu::TextureDescriptor {
@@ -42,7 +43,7 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::RENDER_ATTACHMENT,
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -58,14 +59,13 @@ impl Texture {
             depth_or_array_layers: 1,
         };
 
-        let generator = RecommendedMipmapGenerator::new_with_format_hints(&ctx.device, &[wgpu::TextureFormat::Rgba8Unorm]);
         let texture_descriptor = wgpu::TextureDescriptor {
             size,
             mip_level_count,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8Unorm,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT | wgpu::TextureUsage::COPY_DST,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_DST,
             label: None,
         };
 
@@ -78,7 +78,7 @@ impl Texture {
                 buffer: &ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some("mipmap_buffer"),
                     contents: pixels,
-                    usage: wgpu::BufferUsage::COPY_SRC,
+                    usage: wgpu::BufferUsages::COPY_SRC,
                 }),
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
@@ -89,14 +89,13 @@ impl Texture {
             wgpu::ImageCopyTexture {
                 texture: &texture,
                 mip_level: 0,
+                aspect: wgpu::TextureAspect::All,
                 origin: wgpu::Origin3d::ZERO,
             },
             size,
         );
 
-        generator
-            .generate(&ctx.device, &mut encoder, &texture, &texture_descriptor)
-            .unwrap();
+        pipelines::mipmap::generate_mipmaps(ctx, &mut encoder, &texture, mip_level_count);
         ctx.queue.submit(std::iter::once(encoder.finish()));
 
         Self { texture, view }

@@ -33,17 +33,17 @@ impl DeferredPipeline {
         let uniform_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             0,
             "model_uniform_bind_group_layout",
-            &[pipeline_builder.create_uniform_entry(0, wgpu::ShaderStage::FRAGMENT)],
+            &[pipeline_builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT)],
         );
 
         let texture_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             1,
             "texture_bind_group_layout",
             &[
-                pipeline_builder.create_texture_entry(0, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_texture_entry(1, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_texture_entry(2, wgpu::ShaderStage::FRAGMENT),
-                pipeline_builder.create_texture_entry(3, wgpu::ShaderStage::FRAGMENT),
+                pipeline_builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_texture_entry(2, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_texture_entry(3, wgpu::ShaderStages::FRAGMENT),
             ],
         );
 
@@ -96,7 +96,12 @@ impl DeferredPipeline {
         let uniforms = uniforms::Uniforms {
             inv_view_proj: camera.view_proj.invert().unwrap().into(),
             eye_pos: camera.eye.to_vec().extend(0.0).into(),
-            viewport_size: [ctx.viewport.width as f32, ctx.viewport.height as f32, 0.0, 0.0],
+            viewport_size: [
+                ctx.viewport.width as f32 * ctx.viewport.render_scale,
+                ctx.viewport.height as f32 * ctx.viewport.render_scale,
+                0.0,
+                0.0,
+            ],
             lights,
             lights_count: lights.len() as i32,
         };

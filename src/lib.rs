@@ -16,8 +16,8 @@ fn render(state: &mut state::State, start_time: &Instant, control_flow: &mut Con
     state.update(start_time.elapsed().as_millis() as u64);
     match state.render() {
         Ok(_) => {}
-        Err(wgpu::SwapChainError::Lost) => state.resize(0, 0, 0.0),
-        Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+        Err(wgpu::SurfaceError::Lost) => state.resize(0, 0, 0.0),
+        Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
         Err(e) => eprintln!("{:?}", e),
     }
 }
