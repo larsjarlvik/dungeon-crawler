@@ -1,3 +1,5 @@
+use wgpu::Surface;
+
 use crate::{config, utils};
 
 pub mod model;
@@ -6,8 +8,9 @@ mod texture;
 mod viewport;
 
 pub struct Context {
+    pub instance: wgpu::Instance,
     pub viewport: viewport::Viewport,
-    pub surface: wgpu::Surface,
+    pub surface: Option<wgpu::Surface>,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
 }
@@ -60,9 +63,10 @@ impl Engine {
         );
 
         let ctx = Context {
+            instance,
             viewport,
             device,
-            surface,
+            surface: Some(surface),
             queue,
         };
 
@@ -86,24 +90,35 @@ impl Engine {
         self.deferred_pipeline = pipelines::DeferredPipeline::new(&self.ctx);
     }
 
-    pub fn set_viewport(&mut self, width: u32, height: u32, scale_factor: f32) {
-        self.ctx.viewport = viewport::Viewport::new(width, height, scale_factor);
+    pub fn set_viewport(&mut self, window: &winit::window::Window) {
+        let size = window.inner_size();
+        self.ctx.viewport = viewport::Viewport::new(size.width, size.height, utils::get_scale_factor(window));
         self.scaling_pipeline.resize(&mut self.ctx);
 
-        self.ctx.surface.configure(
-            &self.ctx.device,
-            &wgpu::SurfaceConfiguration {
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                format: config::COLOR_TEXTURE_FORMAT,
-                width: self.ctx.viewport.width,
-                height: self.ctx.viewport.height,
-                present_mode: wgpu::PresentMode::Immediate,
-            },
-        );
+        if self.ctx.surface.is_none() {
+            self.ctx.surface = Some(unsafe { self.ctx.instance.create_surface(window) });
+        }
+
+        if let Some(surface) = &mut self.ctx.surface {
+            surface.configure(
+                &self.ctx.device,
+                &wgpu::SurfaceConfiguration {
+                    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                    format: config::COLOR_TEXTURE_FORMAT,
+                    width: self.ctx.viewport.width,
+                    height: self.ctx.viewport.height,
+                    present_mode: wgpu::PresentMode::Immediate,
+                },
+            );
+        }
     }
 
-    pub fn get_output_frame(&self) -> wgpu::SurfaceTexture {
-        self.ctx.surface.get_current_frame().expect("Failed to get output frame!").output
+    pub fn get_output_frame(&self) -> Option<wgpu::SurfaceTexture> {
+        if let Some(surface) = &self.ctx.surface {
+            return Some(surface.get_current_frame().expect("Failed to get output frame!").output);
+        }
+
+        None
     }
 
     pub fn load_model(&self, path: &str) -> model::GltfModel {

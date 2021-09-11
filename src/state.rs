@@ -117,13 +117,15 @@ impl State {
         println!("Initialized world in: {} ms", start.elapsed().as_millis());
     }
 
-    pub fn resize(&mut self, width: u32, height: u32, scale_factor: f32) {
-        if width > 0 && height > 0 {
-            self.engine.set_viewport(width, height, scale_factor);
+    pub fn resize(&mut self, window: &Window, active: bool) {
+        if active {
+            self.engine.set_viewport(window);
             self.engine.deferred_pipeline.resize(&self.engine.ctx);
 
             let mut camera = self.world.components.write_resource::<world::resources::Camera>();
             *camera = world::resources::Camera::new(self.engine.ctx.viewport.get_aspect());
+        } else {
+            self.engine.ctx.surface = None;
         }
     }
 
@@ -133,8 +135,7 @@ impl State {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let frame = self.engine.get_output_frame();
-        {
+        if let Some(frame) = self.engine.get_output_frame() {
             let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
             self.engine

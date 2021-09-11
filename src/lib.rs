@@ -2,7 +2,7 @@ use std::time::Instant;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
+    window::{self, WindowBuilder},
 };
 use winit_input_helper::WinitInputHelper;
 
@@ -12,11 +12,11 @@ mod state;
 mod utils;
 mod world;
 
-fn render(state: &mut state::State, start_time: &Instant, control_flow: &mut ControlFlow) {
+fn render(window: &window::Window, state: &mut state::State, start_time: &Instant, control_flow: &mut ControlFlow) {
     state.update(start_time.elapsed().as_millis() as u64);
     match state.render() {
         Ok(_) => {}
-        Err(wgpu::SurfaceError::Lost) => state.resize(0, 0, 0.0),
+        Err(wgpu::SurfaceError::Lost) => state.resize(window, false),
         Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
         Err(e) => eprintln!("{:?}", e),
     }
@@ -59,7 +59,7 @@ pub fn main() {
             }
 
             if let Some(state) = &mut state {
-                render(state, &start_time, control_flow);
+                render(&window, state, &start_time, control_flow);
             }
         }
 
@@ -68,19 +68,26 @@ pub fn main() {
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 if let Some(state) = &mut state {
                     match event {
-                        WindowEvent::Resized(physical_size) => {
-                            state.resize(physical_size.width, physical_size.height, utils::get_scale_factor(&window));
+                        WindowEvent::Resized(..) => {
+                            state.resize(&window, true);
                         }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            state.resize(new_inner_size.width, new_inner_size.height, utils::get_scale_factor(&window));
+                        WindowEvent::ScaleFactorChanged { .. } => {
+                            state.resize(&window, true);
                         }
                         _ => {}
                     }
                 }
             }
             Event::Resumed => {
-                if state.is_none() {
+                if let Some(state) = &mut state {
+                    state.resize(&window, true);
+                } else {
                     state = Some(pollster::block_on(state::State::new(&window)));
+                }
+            }
+            Event::Suspended => {
+                if let Some(state) = &mut state {
+                    state.resize(&window, false);
                 }
             }
             _ => {}
