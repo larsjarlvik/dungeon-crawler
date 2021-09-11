@@ -1,5 +1,3 @@
-use wgpu::Surface;
-
 use crate::{config, utils};
 
 pub mod model;
