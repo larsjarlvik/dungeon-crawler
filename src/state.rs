@@ -22,7 +22,7 @@ impl State {
 
     pub fn init(&mut self) {
         let start = Instant::now();
-        // let room = self.engine.load_model("models/room.glb");
+        let room = self.engine.load_model("models/room.glb");
         let character = self.engine.load_model("models/character.glb");
 
         self.engine.init();
@@ -84,31 +84,24 @@ impl State {
             .with(world::components::Position(vec3(2.4, 2.0, 2.4)))
             .build();
 
-        // for z in -3..3 {
-        //     for x in -3..3 {
-        //         self.world
-        //             .components
-        //             .create_entity()
-        //             .with(world::components::Model::new(self.engine.model_pipeline.gltf(
-        //                 &self.engine.ctx,
-        //                 &room,
-        //                 "room",
-        //             )))
-        //             .with(world::components::Position(vec3(x as f32 * 10.0, 0.0, z as f32 * 10.0)))
-        //             .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
-        //             .with(world::components::Render::default())
-        //             .build();
-        //     }
-        // }
+        for z in -3..3 {
+            for x in -3..3 {
+                self.world
+                    .components
+                    .create_entity()
+                    .with(world::components::Model::new(&self.engine, &room, "room"))
+                    .with(world::components::Position(vec3(x as f32 * 10.0, 0.0, z as f32 * 10.0)))
+                    .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
+                    .with(world::components::Render::default())
+                    .build();
+            }
+        }
 
         self.world
             .components
             .create_entity()
-            .with(world::components::Model::new(self.engine.model_pipeline.gltf(
-                &self.engine.ctx,
-                &character,
-                "character",
-            )))
+            .with(world::components::Model::new(&self.engine, &character, "character"))
+            .with(world::components::Animation::new("run"))
             .with(world::components::Position(vec3(0.0, 1.0, 0.0)))
             .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
             .with(world::components::Render::default())

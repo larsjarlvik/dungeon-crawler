@@ -1,4 +1,9 @@
+mod model;
 mod uniforms;
+use std::convert::TryInto;
+
+pub use model::Model;
+
 use crate::{
     config,
     engine::{
@@ -8,18 +13,8 @@ use crate::{
     },
     world::*,
 };
-use cgmath::{Matrix4, SquareMatrix, Zero};
 use specs::{Join, WorldExt};
-use std::mem;
 pub use uniforms::Uniforms;
-
-use self::uniforms::PrimitiveUniforms;
-
-pub struct Model {
-    pub uniform_buffer: wgpu::Buffer,
-    pub primitive_buffers: Vec<wgpu::Buffer>,
-    pub render_bundle: wgpu::RenderBundle,
-}
 
 pub struct ModelPipeline {
     render_pipeline: builders::Pipeline,
@@ -80,72 +75,32 @@ impl ModelPipeline {
         }
     }
 
-    pub fn gltf(&self, ctx: &engine::Context, model: &engine::model::GltfModel, mesh_name: &str) -> Model {
-        let mesh = model.get_mesh_by_name(mesh_name);
-        let joint_transforms = mesh.get_transforms();
-
-        let builder = builders::RenderBundleBuilder::new(ctx, mesh_name);
-        let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<Uniforms>() as u64);
-
-        let mut builder = builder
-            .with_pipeline(&self.render_pipeline)
-            .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer);
-
-        let mut primitive_buffers = vec![];
-        for primitive in mesh.primitives.iter() {
-            let material = model.get_material(primitive.material);
-            let uniform_buffer = builder.create_uniform_buffer_init(bytemuck::cast_slice(&[PrimitiveUniforms {
-                orm_factor: [1.0, material.roughness_factor, material.metallic_factor, 0.0],
-                joint_transforms,
-                is_animated: primitive.is_animated as u32,
-            }]));
-
-            primitive_buffers.push(uniform_buffer);
-        }
-
-        for (i, primitive) in mesh.primitives.iter().enumerate() {
-            let material = model.get_material(primitive.material);
-            let texture_entries = &[
-                builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&material.base_color_texture.view)),
-                builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&material.normal_texture.view)),
-                builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&material.orm_texture.view)),
-                builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&self.sampler)),
-            ];
-
-            builder = builder.with_primitive(
-                builders::PrimitiveBuilder::new(ctx, mesh_name)
-                    .with_uniform_bind_group(&self.primitive_uniform_bind_group_layout, &primitive_buffers[i])
-                    .with_texture_bind_group(&self.texture_bind_group_layout, texture_entries)
-                    .with_vertices(bytemuck::cast_slice(primitive.vertices.as_slice()))
-                    .with_indices(bytemuck::cast_slice(&primitive.indices.as_slice()))
-                    .with_length(primitive.length),
-            );
-        }
-
-        let render_bundle = builder.build();
-        Model {
-            uniform_buffer,
-            primitive_buffers,
-            render_bundle,
-        }
-    }
-
     pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &pipelines::DeferredPipeline) {
         let models = components.read_storage::<components::Model>();
         let render = components.read_storage::<components::Render>();
         let mut bundles = vec![];
 
         for (model, render) in (&models, &render).join() {
+            let mut joint_transforms = vec![[[0.0; 4]; 4]; 20];
+            for (_, skin) in model.skins.iter().enumerate() {
+                for (index, joint) in skin.joints.iter().take(20).enumerate() {
+                    let joint_matrix = joint.matrix;
+                    joint_transforms[index] = joint_matrix.into();
+                }
+            }
+
             ctx.queue.write_buffer(
-                &model.uniform_buffer,
+                &model.model.uniform_buffer,
                 self.uniform_bind_group_layout.index as u64,
                 bytemuck::cast_slice(&[Uniforms {
                     view_proj: render.view_proj.into(),
                     model: render.model_matrix.into(),
+                    joint_transforms: joint_transforms.try_into().unwrap(),
+                    is_animated: (model.skins.len() > 0) as u32,
                 }]),
             );
 
-            bundles.push(&model.render_bundle);
+            bundles.push(&model.model.render_bundle);
         }
 
         builders::RenderTargetBuilder::new(ctx, "model")

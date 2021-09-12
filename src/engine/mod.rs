@@ -123,4 +123,8 @@ impl Engine {
         let bytes = utils::read_bytes(path);
         model::GltfModel::new(&self.ctx, bytes.as_slice())
     }
+
+    pub fn get_mesh(&self, model: &model::GltfModel, name: &str) -> pipelines::model::Model {
+        pipelines::model::Model::new(&self.ctx, &self.model_pipeline, model, name)
+    }
 }

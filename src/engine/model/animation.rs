@@ -1,29 +1,77 @@
+use super::node;
+use cgmath::*;
 use std::cmp::Ordering;
 
-use cgmath::*;
-
+#[derive(Clone)]
 enum Interpolation {
     Linear,
     Step,
     CubicSpline,
 }
 
+struct NodesKeyFrame(
+    Vec<(usize, Vector3<f32>)>,
+    Vec<(usize, Quaternion<f32>)>,
+    Vec<(usize, Vector3<f32>)>,
+);
+
+#[derive(Clone)]
 struct Sampler<T> {
     interpolation: Interpolation,
     times: Vec<f32>,
     values: Vec<T>,
 }
 
+impl<T> Sampler<T> {
+    fn sample(&self, t: f32) -> Option<T>
+    where
+        T: Copy,
+    {
+        let index = {
+            let mut index = None;
+            for i in 0..(self.times.len() - 1) {
+                let previous = self.times[i];
+                let next = self.times[i + 1];
+                if t >= previous && t < next {
+                    index = Some(i);
+                    break;
+                }
+            }
+            index
+        };
+
+        index.map(|i| {
+            // TODO
+            match self.interpolation {
+                Interpolation::Step => self.values[i],
+                Interpolation::Linear => self.values[i],
+                Interpolation::CubicSpline => self.values[i],
+            }
+        })
+    }
+}
+
+#[derive(Clone)]
 struct Channel<T> {
     sampler: Sampler<T>,
     node_index: usize,
 }
 
+impl<T> Channel<T> {
+    fn sample(&self, t: f32) -> Option<(usize, T)>
+    where
+        T: Copy,
+    {
+        self.sampler.sample(t).map(|s| (self.node_index, s))
+    }
+}
+
+#[derive(Clone)]
 pub struct Animation {
     translation_channels: Vec<Channel<Vector3<f32>>>,
     rotation_channels: Vec<Channel<Quaternion<f32>>>,
     scale_channels: Vec<Channel<Vector3<f32>>>,
-    total_time: f32,
+    pub total_time: f32,
 }
 
 impl Animation {
@@ -59,6 +107,29 @@ impl Animation {
             scale_channels,
             total_time,
         }
+    }
+
+    pub fn animate(&mut self, nodes: &mut Vec<node::Node>, time: f32) -> bool {
+        let NodesKeyFrame(translations, rotations, scale) = self.sample(time);
+        translations.iter().for_each(|(node_index, translation)| {
+            nodes[*node_index].set_translation(*translation);
+        });
+        rotations.iter().for_each(|(node_index, rotation)| {
+            nodes[*node_index].set_rotation(*rotation);
+        });
+        scale.iter().for_each(|(node_index, scale)| {
+            nodes[*node_index].set_scale(*scale);
+        });
+
+        !translations.is_empty() || !rotations.is_empty() || !scale.is_empty()
+    }
+
+    fn sample(&self, t: f32) -> NodesKeyFrame {
+        NodesKeyFrame(
+            self.translation_channels.iter().filter_map(|tc| tc.sample(t)).collect::<Vec<_>>(),
+            self.rotation_channels.iter().filter_map(|tc| tc.sample(t)).collect::<Vec<_>>(),
+            self.scale_channels.iter().filter_map(|tc| tc.sample(t)).collect::<Vec<_>>(),
+        )
     }
 }
 

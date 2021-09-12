@@ -4,7 +4,6 @@ pub struct Primitive {
     pub indices: Vec<u32>,
     pub vertices: Vec<Vertex>,
     pub material: usize,
-    pub is_animated: bool,
     pub length: u32,
 }
 
@@ -23,8 +22,8 @@ impl Primitive {
             .collect::<Vec<[f32; 2]>>();
         let mut joints = vec![[0u32; 4]; positions.len()];
         let mut weights = vec![[0.0; 4]; positions.len()];
-        let is_animated = reader.read_joints(0).is_some() && reader.read_weights(0).is_some();
 
+        let is_animated = reader.read_joints(0).is_some() && reader.read_weights(0).is_some();
         if is_animated {
             if let Some(read_joints) = reader.read_joints(0) {
                 joints = read_joints
@@ -37,10 +36,8 @@ impl Primitive {
                 weights = read_weights.into_f32().collect();
             }
         }
-        dbg!(&weights);
 
         let material = primitive.material().index().expect("No material found!");
-
         let mut vertices = vec![];
         for i in 0..positions.len() {
             vertices.push(Vertex {
@@ -58,7 +55,6 @@ impl Primitive {
             indices,
             vertices,
             material,
-            is_animated,
             length,
         }
     }

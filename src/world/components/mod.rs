@@ -1,3 +1,4 @@
+mod animation;
 mod bounce;
 mod fps;
 mod light;
@@ -7,6 +8,7 @@ mod render;
 mod rotation;
 mod text;
 
+pub use animation::Animation;
 pub use bounce::Bouce;
 pub use fps::Fps;
 pub use light::Light;

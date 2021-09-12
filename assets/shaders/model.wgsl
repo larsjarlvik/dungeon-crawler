@@ -3,13 +3,13 @@
 struct Uniforms {
     view_proj: mat4x4<f32>;
     model: mat4x4<f32>;
+    joint_transforms: array<mat4x4<f32>, 20>;
+    is_animated: u32;
 };
 
 [[block]]
 struct PrimitiveUniforms {
     orm_factor: vec4<f32>;
-    joint_transforms: array<mat4x4<f32>, 20>;
-    is_animated: u32;
 };
 
 [[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
@@ -45,12 +45,12 @@ fn main(
         vec4<f32>(0.0, 0.0, 0.0, 0.0),
     );
 
-    if (primitive_uniforms.is_animated == 1u32) {
+    if (uniforms.is_animated == 1u32) {
         let w = model.weights;
 
         for (var i: i32 = 0; i < 4; i = i + 1) {
             let j = model.joints[i];
-            var jx: mat4x4<f32> = primitive_uniforms.joint_transforms[j];
+            var jx: mat4x4<f32> = uniforms.joint_transforms[j];
 
             skin_matrix = mat4x4<f32>(
                 vec4<f32>(skin_matrix[0][0] + w[i] * jx[0][0], skin_matrix[0][1] + w[i] * jx[0][1], skin_matrix[0][2] + w[i] * jx[0][2], skin_matrix[0][3] + w[i] * jx[0][3]),
