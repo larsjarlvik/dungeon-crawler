@@ -8,6 +8,7 @@ use crate::{
     },
     world::*,
 };
+use cgmath::{Matrix4, SquareMatrix, Zero};
 use specs::{Join, WorldExt};
 use std::mem;
 pub use uniforms::Uniforms;
@@ -42,7 +43,7 @@ impl ModelPipeline {
         let primitive_uniform_bind_group_layout = builder.create_bindgroup_layout(
             1,
             "model_uniform_bind_group_layout",
-            &[builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT)],
+            &[builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT | wgpu::ShaderStages::VERTEX)],
         );
 
         let texture_bind_group_layout = builder.create_bindgroup_layout(
@@ -81,6 +82,7 @@ impl ModelPipeline {
 
     pub fn gltf(&self, ctx: &engine::Context, model: &engine::model::GltfModel, mesh_name: &str) -> Model {
         let mesh = model.get_mesh_by_name(mesh_name);
+        let joint_transforms = mesh.get_transforms();
 
         let builder = builders::RenderBundleBuilder::new(ctx, mesh_name);
         let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<Uniforms>() as u64);
@@ -94,6 +96,8 @@ impl ModelPipeline {
             let material = model.get_material(primitive.material);
             let uniform_buffer = builder.create_uniform_buffer_init(bytemuck::cast_slice(&[PrimitiveUniforms {
                 orm_factor: [1.0, material.roughness_factor, material.metallic_factor, 0.0],
+                joint_transforms,
+                is_animated: primitive.is_animated as u32,
             }]));
 
             primitive_buffers.push(uniform_buffer);

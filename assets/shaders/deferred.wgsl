@@ -37,9 +37,6 @@ var M_PI: f32 = 3.141592653589793;
 [[group(1), binding(2)]] var t_color: texture_2d<f32>;
 [[group(1), binding(3)]] var t_orm: texture_2d<f32>;
 
-[[group(2), binding(0)]] var t_brdf_lut: texture_2d<f32>;
-[[group(2), binding(1)]] var t_sampler: sampler;
-
 struct PBRInfo {
     n_dot_l: f32;
     n_dot_v: f32;
