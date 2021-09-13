@@ -69,7 +69,7 @@ fn main(
     }
 
     var t: vec4<f32> = normalize(model.tangent);
-    out.normal_w = normalize((uniforms.model * vec4<f32>(model.normal, 0.0)).xyz);
+    out.normal_w = normalize((uniforms.model * skin_matrix * vec4<f32>(model.normal, 0.0)).xyz);
     out.tangent_w = normalize((uniforms.model * model.tangent).xyz);
     out.bitangent_w = cross(out.normal_w, out.tangent_w) * t.w;
 
