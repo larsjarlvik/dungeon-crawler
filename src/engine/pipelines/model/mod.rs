@@ -1,8 +1,7 @@
 mod model;
 mod uniforms;
-use std::convert::TryInto;
-
 pub use model::Model;
+use std::convert::TryInto;
 
 use crate::{
     config,

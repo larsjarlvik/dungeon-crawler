@@ -1,4 +1,4 @@
-use std::usize;
+use std::{collections::HashMap, usize};
 
 pub mod animation;
 mod interpolation;
@@ -18,7 +18,7 @@ pub struct GltfModel {
     pub skins: Vec<skin::Skin>,
     pub nodes: Vec<node::Node>,
     pub materials: Vec<material::Material>,
-    pub animations: Vec<animation::Animation>,
+    pub animations: HashMap<String, animation::Animation>,
     pub depth_first_taversal_indices: Vec<(usize, Option<usize>)>,
 }
 
@@ -54,7 +54,13 @@ impl GltfModel {
         let animations = gltf
             .animations()
             .into_iter()
-            .map(|animation| animation::Animation::new(animation, &buffers))
+            .map(|animation| {
+                println!("A: {}", animation.name().unwrap());
+                (
+                    animation.name().unwrap().to_string(),
+                    animation::Animation::new(animation, &buffers),
+                )
+            })
             .collect();
 
         Self {

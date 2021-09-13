@@ -101,7 +101,7 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Model::new(&self.engine, &character, "character"))
-            .with(world::components::Animation::new("run"))
+            .with(world::components::Animation::new(vec!["arms", "legs"]))
             .with(world::components::Position(vec3(0.0, 1.0, 0.0)))
             .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
             .with(world::components::Render::default())

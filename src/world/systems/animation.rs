@@ -11,41 +11,53 @@ impl<'a> System<'a> for Animation {
     );
 
     fn run(&mut self, (time, mut animation, mut model): Self::SystemData) {
-        for (animation, model) in (&mut animation, &mut model).join() {
-            animation.time += time.elapsed;
-
+        for (animations, model) in (&mut animation, &mut model).join() {
             // Animate
-            let nodes = &mut model.nodes;
-            let animations = &mut model.animations.iter_mut();
-            for model_animation in animations {
-                model_animation.animate(nodes, animation.time.as_millis() as f32 / 1000.0 % model_animation.total_time);
-            }
+            let mut dirty = false;
 
-            // Transform
-            for (index, parent_index) in &model.depth_first_taversal_indices {
-                let parent_transform = parent_index
-                    .map(|id| {
-                        let parent = &model.nodes[id];
-                        parent.global_transform_matrix
-                    })
-                    .or(Matrix4::identity().into());
+            for channel in animations.channels.iter_mut() {
+                channel.time += time.elapsed;
 
-                if let Some(matrix) = parent_transform {
-                    let node = &mut model.nodes[*index];
-                    node.apply_transform(matrix);
+                let active_animation = model
+                    .animations
+                    .get_mut(&channel.name)
+                    .expect(format!("Could not find animation: {}", &channel.name).as_str());
+
+                if active_animation.animate(
+                    &mut model.nodes,
+                    channel.time.as_millis() as f32 / 1000.0 % active_animation.total_time,
+                ) {
+                    dirty = true;
                 }
             }
 
-            // Compute
-            let transforms: Vec<(usize, Matrix4<f32>)> = model
-                .nodes
-                .iter()
-                .filter(|n| n.skin_index.is_some())
-                .map(|n| (n.skin_index.unwrap(), n.global_transform_matrix))
-                .collect();
+            if dirty {
+                // Transform
+                for (index, parent_index) in &model.depth_first_taversal_indices {
+                    let parent_transform = parent_index
+                        .map(|id| {
+                            let parent = &model.nodes[id];
+                            parent.global_transform_matrix
+                        })
+                        .or(Matrix4::identity().into());
 
-            for (index, transform) in transforms {
-                model.skins[index].compute_joints_matrices(transform, &model.nodes);
+                    if let Some(matrix) = parent_transform {
+                        let node = &mut model.nodes[*index];
+                        node.apply_transform(matrix);
+                    }
+                }
+
+                // Compute
+                let transforms: Vec<(usize, Matrix4<f32>)> = model
+                    .nodes
+                    .iter()
+                    .filter(|n| n.skin_index.is_some())
+                    .map(|n| (n.skin_index.unwrap(), n.global_transform_matrix))
+                    .collect();
+
+                for (index, transform) in transforms {
+                    model.skins[index].compute_joints_matrices(transform, &model.nodes);
+                }
             }
         }
     }

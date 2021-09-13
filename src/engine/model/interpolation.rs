@@ -1,5 +1,12 @@
 use cgmath::*;
 
+#[derive(Clone)]
+pub enum Interpolation {
+    Linear,
+    Step,
+    CubicSpline,
+}
+
 pub trait Interpolate: Copy {
     fn linear(self, other: Self, amount: f32) -> Self;
 

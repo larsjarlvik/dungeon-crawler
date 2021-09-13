@@ -1,13 +1,9 @@
-use super::{interpolation::Interpolate, node};
+use super::{
+    interpolation::{Interpolate, Interpolation},
+    node,
+};
 use cgmath::*;
 use std::cmp::Ordering;
-
-#[derive(Clone)]
-enum Interpolation {
-    Linear,
-    Step,
-    CubicSpline,
-}
 
 struct NodesKeyFrame(
     Vec<(usize, Vector3<f32>)>,
@@ -117,6 +113,7 @@ impl Animation {
 
     pub fn animate(&mut self, nodes: &mut Vec<node::Node>, time: f32) -> bool {
         let NodesKeyFrame(translations, rotations, scale) = self.sample(time);
+
         translations.iter().for_each(|(node_index, translation)| {
             nodes[*node_index].set_translation(*translation);
         });

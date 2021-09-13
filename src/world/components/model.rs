@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::engine::{self, model};
 use specs::{Component, VecStorage};
 
@@ -6,7 +8,7 @@ pub struct Model {
     pub model: engine::pipelines::model::Model,
     pub nodes: Vec<model::node::Node>,
     pub skins: Vec<model::skin::Skin>,
-    pub animations: Vec<model::animation::Animation>,
+    pub animations: HashMap<String, model::animation::Animation>,
 }
 
 impl Model {

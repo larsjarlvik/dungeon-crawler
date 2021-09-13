@@ -1,10 +1,13 @@
 use core::time;
-
 use specs::{Component, VecStorage};
 
-pub struct Animation {
+pub struct Channel {
     pub name: String,
     pub time: time::Duration,
+}
+
+pub struct Animation {
+    pub channels: Vec<Channel>,
 }
 
 impl Component for Animation {
@@ -12,10 +15,15 @@ impl Component for Animation {
 }
 
 impl Animation {
-    pub fn new(name: &str) -> Self {
+    pub fn new(names: Vec<&str>) -> Self {
         Self {
-            name: name.to_string(),
-            time: time::Duration::new(0, 0),
+            channels: names
+                .iter()
+                .map(|n| Channel {
+                    name: n.to_string(),
+                    time: time::Duration::new(0, 0),
+                })
+                .collect(),
         }
     }
 }
