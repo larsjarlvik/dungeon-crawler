@@ -1,4 +1,4 @@
-use super::node;
+use super::{interpolation::Interpolate, node};
 use cgmath::*;
 use std::cmp::Ordering;
 
@@ -22,11 +22,8 @@ struct Sampler<T> {
     values: Vec<T>,
 }
 
-impl<T> Sampler<T> {
-    fn sample(&self, t: f32) -> Option<T>
-    where
-        T: Copy,
-    {
+impl<T: Interpolate> Sampler<T> {
+    fn sample(&self, t: f32) -> Option<T> {
         let index = {
             let mut index = None;
             for i in 0..(self.times.len() - 1) {
@@ -41,11 +38,20 @@ impl<T> Sampler<T> {
         };
 
         index.map(|i| {
-            // TODO
+            let previous_time = self.times[i];
+            let next_time = self.times[i + 1];
+            let delta = next_time - previous_time;
+            let from_start = t - previous_time;
+            let factor = from_start / delta;
+
             match self.interpolation {
                 Interpolation::Step => self.values[i],
-                Interpolation::Linear => self.values[i],
-                Interpolation::CubicSpline => self.values[i],
+                Interpolation::Linear => self.values[i].linear(self.values[i + 1], factor),
+                Interpolation::CubicSpline => {
+                    let previous_values = [self.values[i * 3], self.values[i * 3 + 1], self.values[i * 3 + 2]];
+                    let next_values = [self.values[i * 3 + 3], self.values[i * 3 + 4], self.values[i * 3 + 5]];
+                    Interpolate::cubic_spline(previous_values, previous_time, next_values, next_time, factor)
+                }
             }
         })
     }
@@ -57,7 +63,7 @@ struct Channel<T> {
     node_index: usize,
 }
 
-impl<T> Channel<T> {
+impl<T: Interpolate> Channel<T> {
     fn sample(&self, t: f32) -> Option<(usize, T)>
     where
         T: Copy,

@@ -1,6 +1,7 @@
 use std::usize;
 
 pub mod animation;
+mod interpolation;
 mod material;
 mod mesh;
 pub mod node;
