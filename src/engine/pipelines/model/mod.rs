@@ -77,15 +77,14 @@ impl ModelPipeline {
     pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &pipelines::DeferredPipeline) {
         let models = components.read_storage::<components::Model>();
         let render = components.read_storage::<components::Render>();
+        let animation = components.read_storage::<components::Animation>();
         let mut bundles = vec![];
 
-        for (model, render) in (&models, &render).join() {
+        for (model, animation, render) in (&models, (&animation).maybe(), &render).join() {
             let mut joint_transforms = vec![[[0.0; 4]; 4]; 20];
-            for (_, skin) in model.skins.iter().enumerate() {
-                for (index, joint) in skin.joints.iter().take(20).enumerate() {
-                    let joint_matrix = joint.matrix;
-                    joint_transforms[index] = joint_matrix.into();
-                }
+
+            if let Some(animation) = animation {
+                joint_transforms = animation.joint_matrices.iter().map(|jm| jm.clone().into()).collect();
             }
 
             ctx.queue.write_buffer(

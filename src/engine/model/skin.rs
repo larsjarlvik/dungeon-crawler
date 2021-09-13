@@ -1,11 +1,9 @@
-use super::node;
 use cgmath::*;
 
 #[derive(Clone)]
 pub struct Joint {
-    pub matrix: Matrix4<f32>,
-    inverse_bind_matrix: Matrix4<f32>,
-    node_id: usize,
+    pub inverse_bind_matrix: Matrix4<f32>,
+    pub node_id: usize,
 }
 
 #[derive(Clone)]
@@ -28,20 +26,11 @@ impl Skin {
             .zip(node_ids)
             .map(|(matrix, node_id)| Joint {
                 inverse_bind_matrix: *matrix,
-                matrix: Matrix4::identity(),
                 node_id,
             })
             .collect::<Vec<_>>();
 
         Self { joints }
-    }
-
-    pub fn compute_joints_matrices(&mut self, transform: Matrix4<f32>, nodes: &[node::Node]) {
-        self.joints.iter_mut().for_each(|joint| {
-            let global_transform_inverse = transform.invert().expect("Transform matrix should be invertible");
-            let node_transform = nodes[joint.node_id].global_transform_matrix;
-            joint.matrix = global_transform_inverse * node_transform * joint.inverse_bind_matrix;
-        });
     }
 }
 

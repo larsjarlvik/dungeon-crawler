@@ -1,4 +1,4 @@
-mod animation;
+pub mod animation;
 mod bounce;
 mod fps;
 mod light;

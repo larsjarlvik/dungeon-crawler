@@ -12,53 +12,57 @@ impl<'a> System<'a> for Animation {
 
     fn run(&mut self, (time, mut animation, mut model): Self::SystemData) {
         for (animations, model) in (&mut animation, &mut model).join() {
-            // Animate
-            let mut dirty = false;
+            animations.joint_matrices = vec![Matrix4::identity(); 20];
 
+            // Animate
             for channel in animations.channels.iter_mut() {
                 channel.time += time.elapsed;
-
-                let active_animation = model
-                    .animations
-                    .get_mut(&channel.name)
-                    .expect(format!("Could not find animation: {}", &channel.name).as_str());
-
-                if active_animation.animate(
-                    &mut model.nodes,
-                    channel.time.as_millis() as f32 / 1000.0 % active_animation.total_time,
-                ) {
-                    dirty = true;
-                }
-            }
-
-            if dirty {
-                // Transform
-                for (index, parent_index) in &model.depth_first_taversal_indices {
-                    let parent_transform = parent_index
-                        .map(|id| {
-                            let parent = &model.nodes[id];
-                            parent.global_transform_matrix
-                        })
-                        .or(Matrix4::identity().into());
-
-                    if let Some(matrix) = parent_transform {
-                        let node = &mut model.nodes[*index];
-                        node.apply_transform(matrix);
-                    }
-                }
-
-                // Compute
-                let transforms: Vec<(usize, Matrix4<f32>)> = model
-                    .nodes
-                    .iter()
-                    .filter(|n| n.skin_index.is_some())
-                    .map(|n| (n.skin_index.unwrap(), n.global_transform_matrix))
-                    .collect();
-
-                for (index, transform) in transforms {
-                    model.skins[index].compute_joints_matrices(transform, &model.nodes);
-                }
+                animate(model, channel, &mut animations.joint_matrices);
             }
         }
+    }
+}
+
+fn animate(model: &mut components::Model, channel: &mut components::animation::Channel, joint_matrices: &mut Vec<Matrix4<f32>>) {
+    let animation = model
+        .animations
+        .get_mut(&channel.name)
+        .expect(format!("Could not find animation: {}", &channel.name).as_str());
+
+    animation.animate(
+        &mut model.nodes,
+        channel.time.as_millis() as f32 / 1000.0 % animation.total_time,
+    );
+
+    // Transform
+    for (index, parent_index) in &model.depth_first_taversal_indices {
+        let parent_transform = parent_index
+            .map(|id| {
+                let parent = &model.nodes[id];
+                parent.global_transform_matrix
+            })
+            .or(Matrix4::identity().into());
+
+        if let Some(matrix) = parent_transform {
+            let node = &mut model.nodes[*index];
+            node.apply_transform(matrix);
+        }
+    }
+
+    // Compute
+    let transforms: Vec<(usize, Matrix4<f32>)> = model
+        .nodes
+        .iter()
+        .filter(|n| n.skin_index.is_some())
+        .map(|n| (n.skin_index.unwrap(), n.global_transform_matrix))
+        .collect();
+
+    for (s_index, transform) in transforms {
+        model.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
+            let global_transform_inverse = transform.invert().expect("Transform matrix should be invertible");
+            let node_transform = model.nodes[joint.node_id].global_transform_matrix;
+
+            joint_matrices[j_index] = joint_matrices[j_index] * global_transform_inverse * node_transform * joint.inverse_bind_matrix;
+        });
     }
 }
