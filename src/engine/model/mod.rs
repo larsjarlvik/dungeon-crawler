@@ -55,7 +55,6 @@ impl GltfModel {
             .animations()
             .into_iter()
             .map(|animation| {
-                println!("A: {}", animation.name().unwrap());
                 (
                     animation.name().unwrap().to_string(),
                     animation::Animation::new(animation, &buffers),

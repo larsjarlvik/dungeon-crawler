@@ -111,7 +111,7 @@ impl Animation {
         }
     }
 
-    pub fn animate(&mut self, nodes: &mut Vec<node::Node>, time: f32) -> bool {
+    pub fn animate_nodes(&self, nodes: &mut Vec<node::Node>, time: f32) -> bool {
         let NodesKeyFrame(translations, rotations, scale) = self.sample(time);
 
         translations.iter().for_each(|(node_index, translation)| {
