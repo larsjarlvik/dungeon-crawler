@@ -6,7 +6,7 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new<'a>(mesh: gltf::Mesh<'_>, buffers: &Vec<gltf::buffer::Data>) -> Self {
+    pub fn new<'a>(mesh: &gltf::Mesh, buffers: &Vec<gltf::buffer::Data>) -> Self {
         let mut primitives = vec![];
         let name = String::from(mesh.name().unwrap());
 

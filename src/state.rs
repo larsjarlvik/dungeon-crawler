@@ -89,11 +89,7 @@ impl State {
                 self.world
                     .components
                     .create_entity()
-                    .with(world::components::Model::new(self.engine.model_pipeline.gltf(
-                        &self.engine.ctx,
-                        &room,
-                        "room",
-                    )))
+                    .with(world::components::Model::new(&self.engine, &room, "room"))
                     .with(world::components::Position(vec3(x as f32 * 10.0, 0.0, z as f32 * 10.0)))
                     .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
                     .with(world::components::Render::default())
@@ -104,11 +100,8 @@ impl State {
         self.world
             .components
             .create_entity()
-            .with(world::components::Model::new(self.engine.model_pipeline.gltf(
-                &self.engine.ctx,
-                &character,
-                "character",
-            )))
+            .with(world::components::Model::new(&self.engine, &character, "character"))
+            .with(world::components::Animation::new(vec!["arms", "legs"]))
             .with(world::components::Position(vec3(0.0, 1.0, 0.0)))
             .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
             .with(world::components::Render::default())

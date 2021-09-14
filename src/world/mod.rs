@@ -19,12 +19,14 @@ impl<'a> World {
         components.register::<components::Text>();
         components.register::<components::Fps>();
         components.register::<components::Light>();
+        components.register::<components::Animation>();
 
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Bounce, "bounce", &[])
             .with(systems::Rotate, "rotate", &[])
             .with(systems::Render, "render", &[])
-            .with(systems::Fps, "FPS", &[])
+            .with(systems::Fps, "fps", &[])
+            .with(systems::Animation, "animation", &[])
             .build();
 
         Self { components, dispatcher }
