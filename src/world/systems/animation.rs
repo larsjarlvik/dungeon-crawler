@@ -15,7 +15,7 @@ impl<'a> System<'a> for Animation {
             animations.joint_matrices = vec![Matrix4::identity(); 20];
 
             // Animate
-            for channel in animations.channels.iter_mut() {
+            for (_, channel) in animations.channels.iter_mut() {
                 channel.time += time.elapsed;
                 animate(model, channel, &mut animations.joint_matrices);
             }

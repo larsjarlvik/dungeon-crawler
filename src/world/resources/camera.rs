@@ -28,7 +28,7 @@ impl Default for Camera {
 
 impl Camera {
     pub fn new(aspect: f32) -> Self {
-        let eye = Point3::new(0.0, 2.0, 3.0);
+        let eye = Point3::new(0.0, 10.0, 6.0);
         let target = Point3::new(0.0, 1.2, 0.0);
         let view = Matrix4::look_at_rh(eye, target, Vector3::unit_y());
         let proj = perspective(Deg(45.0), aspect, 0.1, 100.0);

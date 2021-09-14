@@ -13,20 +13,18 @@ impl<'a> World {
         let mut components = specs::World::new();
         components.register::<components::Render>();
         components.register::<components::Model>();
-        components.register::<components::Position>();
-        components.register::<components::Rotation>();
-        components.register::<components::Bouce>();
+        components.register::<components::Transform>();
         components.register::<components::Text>();
         components.register::<components::Fps>();
         components.register::<components::Light>();
         components.register::<components::Animation>();
+        components.register::<components::UserControl>();
 
         let dispatcher = DispatcherBuilder::new()
-            .with(systems::Bounce, "bounce", &[])
-            .with(systems::Rotate, "rotate", &[])
             .with(systems::Render, "render", &[])
             .with(systems::Fps, "fps", &[])
             .with(systems::Animation, "animation", &[])
+            .with(systems::UserControl, "user_control", &[])
             .build();
 
         Self { components, dispatcher }

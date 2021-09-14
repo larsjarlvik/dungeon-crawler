@@ -1,26 +1,14 @@
-use std::time::Instant;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
-    window::{self, WindowBuilder},
+    window::WindowBuilder,
 };
-use winit_input_helper::WinitInputHelper;
 
 mod config;
 mod engine;
 mod state;
 mod utils;
 mod world;
-
-fn render(window: &window::Window, state: &mut state::State, start_time: &Instant, control_flow: &mut ControlFlow) {
-    state.update(start_time.elapsed().as_millis() as u64);
-    match state.render() {
-        Ok(_) => {}
-        Err(wgpu::SurfaceError::Lost) => state.resize(window, false),
-        Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-        Err(e) => eprintln!("{:?}", e),
-    }
-}
 
 #[cfg_attr(
     target_os = "android",
@@ -32,8 +20,6 @@ pub fn main() {
 
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().with_title("Dungeon Crawler").build(&event_loop).unwrap();
-    let mut input = WinitInputHelper::new();
-    let start_time = Instant::now();
 
     #[allow(unused_assignments)]
     let mut state: Option<state::State> = None;
@@ -47,22 +33,6 @@ pub fn main() {
     utils::aquire_wakelock();
 
     event_loop.run(move |event, _, control_flow| {
-        if input.update(&event) {
-            if input.key_released(VirtualKeyCode::Escape) || input.quit() {
-                *control_flow = ControlFlow::Exit;
-                return;
-            }
-            if input.key_released(VirtualKeyCode::R) {
-                if let Some(state) = &mut state {
-                    state.init();
-                }
-            }
-
-            if let Some(state) = &mut state {
-                render(&window, state, &start_time, control_flow);
-            }
-        }
-
         match event {
             #[cfg(not(target_os = "android"))]
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
@@ -73,6 +43,13 @@ pub fn main() {
                         }
                         WindowEvent::ScaleFactorChanged { .. } => {
                             state.resize(&window, true);
+                        }
+                        WindowEvent::KeyboardInput { input, .. } => {
+                            if input.virtual_keycode == Some(VirtualKeyCode::Escape) {
+                                *control_flow = ControlFlow::Exit;
+                            } else {
+                                state.keyboard(input);
+                            }
                         }
                         _ => {}
                     }
@@ -89,6 +66,18 @@ pub fn main() {
                 if let Some(state) = &mut state {
                     state.resize(&window, false);
                 }
+            }
+            Event::MainEventsCleared => {
+                if let Some(state) = &mut state {
+                    state.update();
+                    match state.render() {
+                        Ok(_) => {}
+                        Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
+                        Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                        Err(e) => eprintln!("{:?}", e),
+                    }
+                }
+                window.request_redraw();
             }
             _ => {}
         };

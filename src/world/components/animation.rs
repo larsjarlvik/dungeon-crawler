@@ -1,6 +1,7 @@
 use cgmath::{Matrix4, SquareMatrix};
 use core::time;
 use specs::{Component, VecStorage};
+use std::collections::HashMap;
 
 pub struct Channel {
     pub name: String,
@@ -8,7 +9,7 @@ pub struct Channel {
 }
 
 pub struct Animation {
-    pub channels: Vec<Channel>,
+    pub channels: HashMap<String, Channel>,
     pub joint_matrices: Vec<Matrix4<f32>>,
 }
 
@@ -17,16 +18,26 @@ impl Component for Animation {
 }
 
 impl Animation {
-    pub fn new(names: Vec<&str>) -> Self {
+    pub fn new() -> Self {
         Self {
             joint_matrices: vec![Matrix4::identity(); 20],
-            channels: names
-                .iter()
-                .map(|n| Channel {
-                    name: n.to_string(),
-                    time: time::Duration::new(0, 0),
-                })
-                .collect(),
+            channels: HashMap::new(),
+        }
+    }
+
+    pub fn set_animation(&mut self, key: &str, animation: &str, enabled: bool) {
+        if enabled {
+            if !self.channels.contains_key(key) {
+                self.channels.insert(
+                    key.to_string(),
+                    Channel {
+                        name: animation.to_string(),
+                        time: time::Duration::new(0, 0),
+                    },
+                );
+            }
+        } else {
+            self.channels.remove(&key.to_string());
         }
     }
 }

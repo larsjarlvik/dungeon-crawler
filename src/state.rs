@@ -3,7 +3,7 @@ use std::time::Instant;
 use crate::{engine, world};
 use cgmath::*;
 use specs::{Builder, WorldExt};
-use winit::window::Window;
+use winit::{event::VirtualKeyCode, window::Window};
 
 pub struct State {
     engine: engine::Engine,
@@ -32,6 +32,7 @@ impl State {
             .components
             .insert(world::resources::Camera::new(self.engine.ctx.viewport.get_aspect()));
         self.world.components.insert(world::resources::Time::default());
+        self.world.components.insert(world::resources::Input::default());
 
         self.world
             .components
@@ -48,7 +49,7 @@ impl State {
                 intensity: 0.4,
                 radius: Some(7.1),
             })
-            .with(world::components::Position(vec3(-2.4, 2.0, -2.4)))
+            .with(world::components::Transform::from_translation(vec3(-2.4, 2.0, -2.4)))
             .build();
 
         self.world
@@ -59,7 +60,7 @@ impl State {
                 intensity: 0.4,
                 radius: Some(7.0),
             })
-            .with(world::components::Position(vec3(2.4, 2.0, -2.4)))
+            .with(world::components::Transform::from_translation(vec3(2.4, 2.0, -2.4)))
             .build();
 
         self.world
@@ -70,7 +71,7 @@ impl State {
                 intensity: 0.4,
                 radius: Some(6.8),
             })
-            .with(world::components::Position(vec3(-2.4, 2.0, 2.4)))
+            .with(world::components::Transform::from_translation(vec3(-2.4, 2.0, 2.4)))
             .build();
 
         self.world
@@ -81,7 +82,7 @@ impl State {
                 intensity: 0.4,
                 radius: Some(7.3),
             })
-            .with(world::components::Position(vec3(2.4, 2.0, 2.4)))
+            .with(world::components::Transform::from_translation(vec3(2.4, 2.0, 2.4)))
             .build();
 
         for z in -3..3 {
@@ -90,8 +91,11 @@ impl State {
                     .components
                     .create_entity()
                     .with(world::components::Model::new(&self.engine, &room, "room"))
-                    .with(world::components::Position(vec3(x as f32 * 10.0, 0.0, z as f32 * 10.0)))
-                    .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
+                    .with(world::components::Transform::from_translation(vec3(
+                        x as f32 * 10.0,
+                        0.0,
+                        z as f32 * 10.0,
+                    )))
                     .with(world::components::Render::default())
                     .build();
             }
@@ -101,9 +105,9 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Model::new(&self.engine, &character, "character"))
-            .with(world::components::Animation::new(vec!["arms", "legs"]))
-            .with(world::components::Position(vec3(0.0, 1.0, 0.0)))
-            .with(world::components::Rotation(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Animation::new())
+            .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
+            .with(world::components::UserControl)
             .with(world::components::Render::default())
             .build();
 
@@ -122,7 +126,16 @@ impl State {
         }
     }
 
-    pub fn update(&mut self, _elapsed: u64) {
+    pub fn keyboard(&mut self, keyboard_input: &winit::event::KeyboardInput) {
+        if keyboard_input.virtual_keycode == Some(VirtualKeyCode::R) {
+            self.init();
+        }
+
+        let mut input = self.world.components.write_resource::<world::resources::Input>();
+        input.keyboard(keyboard_input);
+    }
+
+    pub fn update(&mut self) {
         self.world.update();
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
     }
