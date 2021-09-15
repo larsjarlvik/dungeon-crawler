@@ -108,6 +108,7 @@ impl State {
             .with(world::components::Animation::new())
             .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
             .with(world::components::UserControl)
+            .with(world::components::Movement::new(3.0))
             .with(world::components::Render::default())
             .build();
 

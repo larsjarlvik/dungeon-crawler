@@ -14,7 +14,7 @@ impl<'a> System<'a> for Render {
     fn run(&mut self, (camera, mut render, transform): Self::SystemData) {
         for (render, transform) in (&mut render, &transform).join() {
             render.view_proj = camera.view_proj;
-            render.model_matrix = Matrix4::from_translation(transform.translation) * Matrix4::from_angle_y(Deg(transform.rotation));
+            render.model_matrix = Matrix4::from_translation(transform.translation) * Matrix4::from_angle_y(Rad(transform.rotation));
         }
     }
 }
