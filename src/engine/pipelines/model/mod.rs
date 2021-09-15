@@ -123,7 +123,6 @@ fn animate(model: &components::Model, channel: &components::animation::Channel, 
 
     let mut nodes = model.nodes.clone();
     if animation.animate_nodes(&mut nodes, channel.start.elapsed().as_secs_f32() % animation.total_time) {
-        // Transform
         for (index, parent_index) in &model.depth_first_taversal_indices {
             let parent_transform = parent_index
                 .map(|id| {
@@ -138,7 +137,6 @@ fn animate(model: &components::Model, channel: &components::animation::Channel, 
             }
         }
 
-        // Compute
         let transforms: Vec<(usize, Matrix4<f32>)> = nodes
             .iter()
             .filter(|n| n.skin_index.is_some())
@@ -147,10 +145,9 @@ fn animate(model: &components::Model, channel: &components::animation::Channel, 
 
         for (s_index, transform) in transforms {
             model.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
-                let global_transform_inverse = transform.invert().expect("Transform matrix should be invertible");
+                let transform_inverse = transform.invert().expect("Transform matrix should be invertible");
                 let node_transform = nodes[joint.node_id].global_transform_matrix;
-
-                joint_matrices[j_index] = joint_matrices[j_index] * global_transform_inverse * node_transform * joint.inverse_bind_matrix;
+                joint_matrices[j_index] = joint_matrices[j_index] * transform_inverse * node_transform * joint.inverse_bind_matrix;
             });
         }
     }
