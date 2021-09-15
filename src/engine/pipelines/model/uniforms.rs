@@ -1,9 +1,11 @@
+use crate::config;
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Uniforms {
     pub view_proj: [[f32; 4]; 4],
     pub model: [[f32; 4]; 4],
-    pub joint_transforms: [[[f32; 4]; 4]; 20],
+    pub joint_transforms: [[[f32; 4]; 4]; config::MAX_JOINT_COUNT],
     pub is_animated: u32,
 }
 

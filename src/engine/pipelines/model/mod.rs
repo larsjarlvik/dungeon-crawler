@@ -1,5 +1,6 @@
 mod model;
 mod uniforms;
+use cgmath::*;
 pub use model::Model;
 use std::convert::TryInto;
 
@@ -81,11 +82,15 @@ impl ModelPipeline {
         let mut bundles = vec![];
 
         for (model, animation, render) in (&models, (&animation).maybe(), &render).join() {
-            let mut joint_transforms = vec![[[0.0; 4]; 4]; 20];
-
-            if let Some(animation) = animation {
-                joint_transforms = animation.joint_matrices.iter().map(|jm| jm.clone().into()).collect();
-            }
+            let joint_transforms = if let Some(animation) = animation {
+                let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
+                animation.channels.iter().for_each(|(_, channel)| {
+                    animate(model, &channel, &mut joint_transforms);
+                });
+                joint_transforms.iter().map(|jm| jm.clone().into()).collect()
+            } else {
+                vec![[[0.0; 4]; 4]; config::MAX_JOINT_COUNT]
+            };
 
             ctx.queue.write_buffer(
                 &model.model.uniform_buffer,
@@ -107,5 +112,46 @@ impl ModelPipeline {
             .with_color_attachment(&target.orm_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
             .with_depth_attachment(&target.depth_texture.view, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
+    }
+}
+
+fn animate(model: &components::Model, channel: &components::animation::Channel, joint_matrices: &mut Vec<Matrix4<f32>>) {
+    let animation = model
+        .animations
+        .get(&channel.name)
+        .expect(format!("Could not find animation: {}", &channel.name).as_str());
+
+    let mut nodes = model.nodes.clone();
+    if animation.animate_nodes(&mut nodes, channel.start.elapsed().as_secs_f32() % animation.total_time) {
+        // Transform
+        for (index, parent_index) in &model.depth_first_taversal_indices {
+            let parent_transform = parent_index
+                .map(|id| {
+                    let parent = &nodes[id];
+                    parent.global_transform_matrix
+                })
+                .or(Matrix4::identity().into());
+
+            if let Some(matrix) = parent_transform {
+                let node = &mut nodes[*index];
+                node.apply_transform(matrix);
+            }
+        }
+
+        // Compute
+        let transforms: Vec<(usize, Matrix4<f32>)> = nodes
+            .iter()
+            .filter(|n| n.skin_index.is_some())
+            .map(|n| (n.skin_index.unwrap(), n.global_transform_matrix))
+            .collect();
+
+        for (s_index, transform) in transforms {
+            model.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
+                let global_transform_inverse = transform.invert().expect("Transform matrix should be invertible");
+                let node_transform = nodes[joint.node_id].global_transform_matrix;
+
+                joint_matrices[j_index] = joint_matrices[j_index] * global_transform_inverse * node_transform * joint.inverse_bind_matrix;
+            });
+        }
     }
 }

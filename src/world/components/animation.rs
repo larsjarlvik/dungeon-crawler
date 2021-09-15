@@ -1,16 +1,13 @@
-use cgmath::{Matrix4, SquareMatrix};
-use core::time;
 use specs::{Component, VecStorage};
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 pub struct Channel {
     pub name: String,
-    pub time: time::Duration,
+    pub start: Instant,
 }
 
 pub struct Animation {
     pub channels: HashMap<String, Channel>,
-    pub joint_matrices: Vec<Matrix4<f32>>,
 }
 
 impl Component for Animation {
@@ -20,7 +17,6 @@ impl Component for Animation {
 impl Animation {
     pub fn new() -> Self {
         Self {
-            joint_matrices: vec![Matrix4::identity(); 20],
             channels: HashMap::new(),
         }
     }
@@ -32,7 +28,7 @@ impl Animation {
                     key.to_string(),
                     Channel {
                         name: animation.to_string(),
-                        time: time::Duration::new(0, 0),
+                        start: Instant::now(),
                     },
                 );
             }

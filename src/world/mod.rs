@@ -24,7 +24,6 @@ impl<'a> World {
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Render, "render", &[])
             .with(systems::Fps, "fps", &[])
-            .with(systems::Animation, "animation", &[])
             .with(systems::UserControl, "user_control", &[])
             .with(systems::Movement, "movement", &[])
             .build();
