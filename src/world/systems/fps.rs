@@ -1,7 +1,6 @@
-use std::time::Instant;
-
 use crate::world::components;
 use specs::*;
+use std::time::Instant;
 
 pub struct Fps;
 

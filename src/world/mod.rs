@@ -1,4 +1,6 @@
+use crate::config;
 use specs::*;
+use std::time::Instant;
 pub mod components;
 pub mod resources;
 pub mod systems;
@@ -6,6 +8,8 @@ pub mod systems;
 pub struct World {
     pub components: specs::World,
     pub dispatcher: specs::Dispatcher<'static, 'static>,
+    frame_time: f32,
+    last_frame: std::time::Instant,
 }
 
 impl<'a> World {
@@ -28,17 +32,25 @@ impl<'a> World {
             .with(systems::Movement, "movement", &[])
             .build();
 
-        Self { components, dispatcher }
+        Self {
+            components,
+            dispatcher,
+            frame_time: 0.0,
+            last_frame: Instant::now(),
+        }
     }
 
     pub fn update(&mut self) {
-        {
-            let mut time = self.components.write_resource::<resources::Time>();
-            time.set();
+        self.frame_time += self.last_frame.elapsed().as_millis() as f32;
+        self.frame_time = self.frame_time.min(5000.0);
+
+        while self.frame_time >= 0.0 {
+            self.dispatcher.setup(&mut self.components);
+            self.dispatcher.dispatch(&mut self.components);
+            self.components.maintain();
+            self.frame_time -= config::time_step().as_millis() as f32;
         }
 
-        self.dispatcher.setup(&mut self.components);
-        self.dispatcher.dispatch(&mut self.components);
-        self.components.maintain();
+        self.last_frame = Instant::now();
     }
 }

@@ -4,14 +4,13 @@ pub struct Movement;
 
 impl<'a> System<'a> for Movement {
     type SystemData = (
-        Read<'a, resources::Time>,
         WriteStorage<'a, components::Movement>,
         WriteStorage<'a, components::Transform>,
         WriteStorage<'a, components::Animation>,
     );
 
-    fn run(&mut self, (time, mut movement, mut transform, mut animation): Self::SystemData) {
-        let elapsed = time.elapsed.as_secs_f32();
+    fn run(&mut self, (mut movement, mut transform, mut animation): Self::SystemData) {
+        let elapsed = config::time_step().as_secs_f32();
         let acceleration = elapsed * 10.0;
 
         for (movement, transform, animation) in (&mut movement, &mut transform, (&mut animation).maybe()).join() {
