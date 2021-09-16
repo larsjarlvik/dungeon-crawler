@@ -127,6 +127,7 @@ impl State {
         }
     }
 
+    #[allow(unused)]
     pub fn keyboard(&mut self, keyboard_input: &winit::event::KeyboardInput) {
         if keyboard_input.virtual_keycode == Some(VirtualKeyCode::R) {
             self.init();

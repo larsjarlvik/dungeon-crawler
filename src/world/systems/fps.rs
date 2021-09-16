@@ -14,8 +14,6 @@ impl<'a> System<'a> for Fps {
                 fps.last_update = Instant::now();
                 fps.fps = 0;
             }
-
-            fps.fps += 1;
         }
     }
 }

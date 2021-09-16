@@ -55,6 +55,11 @@ impl<'a> World {
             }
         }
 
+        let mut fps = self.components.write_storage::<components::Fps>();
+        for fps in (&mut fps).join() {
+            fps.fps += 1;
+        }
+
         self.last_frame = Instant::now();
     }
 }
