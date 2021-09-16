@@ -26,7 +26,6 @@ impl<'a> World {
         components.register::<components::Movement>();
 
         let dispatcher = DispatcherBuilder::new()
-            .with(systems::Render, "render", &[])
             .with(systems::Fps, "fps", &[])
             .with(systems::UserControl, "user_control", &[])
             .with(systems::Movement, "movement", &[])
@@ -41,14 +40,19 @@ impl<'a> World {
     }
 
     pub fn update(&mut self) {
-        self.frame_time += self.last_frame.elapsed().as_millis() as f32;
-        self.frame_time = self.frame_time.min(5000.0);
+        self.frame_time += self.last_frame.elapsed().as_secs_f32();
+        self.frame_time = self.frame_time.min(5.0);
 
         while self.frame_time >= 0.0 {
             self.dispatcher.setup(&mut self.components);
             self.dispatcher.dispatch(&mut self.components);
             self.components.maintain();
-            self.frame_time -= config::time_step().as_millis() as f32;
+            self.frame_time -= config::time_step().as_secs_f32();
+
+            {
+                let mut time = self.components.write_resource::<resources::Time>();
+                time.reset();
+            }
         }
 
         self.last_frame = Instant::now();

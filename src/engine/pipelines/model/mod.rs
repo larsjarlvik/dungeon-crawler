@@ -78,10 +78,13 @@ impl ModelPipeline {
     pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &pipelines::DeferredPipeline) {
         let models = components.read_storage::<components::Model>();
         let render = components.read_storage::<components::Render>();
+        let transform = components.read_storage::<components::Transform>();
         let animation = components.read_storage::<components::Animation>();
+        let time = components.read_resource::<resources::Time>();
+        let camera = components.read_resource::<resources::Camera>();
         let mut bundles = vec![];
 
-        for (model, animation, render) in (&models, (&animation).maybe(), &render).join() {
+        for (model, animation, _, transform) in (&models, (&animation).maybe(), &render, &transform).join() {
             let joint_transforms = if let Some(animation) = animation {
                 let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
                 animation.channels.iter().for_each(|(_, channel)| {
@@ -92,12 +95,15 @@ impl ModelPipeline {
                 vec![[[0.0; 4]; 4]; config::MAX_JOINT_COUNT]
             };
 
+            let model_matrix = Matrix4::from_translation(transform.get_translation(time.last_frame))
+                * Matrix4::from(transform.get_rotation(time.last_frame));
+
             ctx.queue.write_buffer(
                 &model.model.uniform_buffer,
                 self.uniform_bind_group_layout.index as u64,
                 bytemuck::cast_slice(&[Uniforms {
-                    view_proj: render.view_proj.into(),
-                    model: render.model_matrix.into(),
+                    view_proj: camera.view_proj.into(),
+                    model: model_matrix.into(),
                     joint_transforms: joint_transforms.try_into().unwrap(),
                     is_animated: (model.skins.len() > 0) as u32,
                 }]),

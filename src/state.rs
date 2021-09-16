@@ -32,6 +32,7 @@ impl State {
             .components
             .insert(world::resources::Camera::new(self.engine.ctx.viewport.get_aspect()));
         self.world.components.insert(world::resources::Input::default());
+        self.world.components.insert(world::resources::Time::default());
 
         self.world
             .components

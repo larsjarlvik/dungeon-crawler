@@ -80,13 +80,15 @@ impl DeferredPipeline {
     pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
         let light_sources = components.read_storage::<components::Light>();
         let transform = components.read_storage::<components::Transform>();
+        let time = components.read_resource::<resources::Time>();
+
         let mut lights: [uniforms::LightUniforms; 10] = Default::default();
 
         for (i, (light, transform)) in (&light_sources, &transform).join().enumerate() {
             let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
 
             lights[i] = uniforms::LightUniforms {
-                position: transform.translation.into(),
+                position: transform.get_translation(time.last_frame).into(),
                 radius,
                 color: (light.color * light.intensity).extend(0.0).into(),
             };

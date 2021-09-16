@@ -17,8 +17,8 @@ impl<'a> System<'a> for Movement {
             let velocity = movement.velocity * acceleration;
 
             movement.velocity *= 1.0 - (elapsed / 0.5);
-            transform.translation += movement.velocity * elapsed;
-            transform.rotation = velocity.x.atan2(velocity.z);
+            transform.set_translation(transform.translation.current + movement.velocity * elapsed);
+            transform.set_rotation(velocity.x.atan2(velocity.z));
 
             if let Some(animation) = animation {
                 let animate = movement.velocity.x.abs() > 0.1 || movement.velocity.z.abs() > 0.1;
