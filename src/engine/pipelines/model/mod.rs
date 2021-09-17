@@ -11,6 +11,7 @@ use crate::{
         pipelines::{self, builders},
         texture,
     },
+    utils::Interpolate,
     world::*,
 };
 use specs::{Join, WorldExt};
@@ -95,8 +96,8 @@ impl ModelPipeline {
                 vec![[[0.0; 4]; 4]; config::MAX_JOINT_COUNT]
             };
 
-            let model_matrix = Matrix4::from_translation(transform.get_translation(time.last_frame))
-                * Matrix4::from(transform.get_rotation(time.last_frame));
+            let model_matrix = Matrix4::from_translation(transform.translation.get(time.last_frame))
+                * Matrix4::from(transform.rotation.get(time.last_frame));
 
             ctx.queue.write_buffer(
                 &model.model.uniform_buffer,

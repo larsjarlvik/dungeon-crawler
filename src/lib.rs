@@ -34,7 +34,6 @@ pub fn main() {
 
     event_loop.run(move |event, _, control_flow| {
         match event {
-            #[cfg(not(target_os = "android"))]
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 if let Some(state) = &mut state {
                     match event {
@@ -49,6 +48,20 @@ pub fn main() {
                                 *control_flow = ControlFlow::Exit;
                             } else {
                                 state.keyboard(input);
+                            }
+                        }
+                        WindowEvent::CursorMoved { position, .. } => {
+                            state.mouse_move(position.x as f32, position.y as f32);
+                        }
+                        WindowEvent::MouseInput { state: mouse_state, .. } => {
+                            state.mouse_press(mouse_state == &winit::event::ElementState::Pressed);
+                        }
+                        WindowEvent::Touch(touch) => {
+                            state.mouse_move(touch.location.x as f32, touch.location.y as f32);
+                            match touch.phase {
+                                TouchPhase::Started => state.mouse_press(true),
+                                TouchPhase::Ended | TouchPhase::Cancelled => state.mouse_press(false),
+                                _ => {}
                             }
                         }
                         _ => {}

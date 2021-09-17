@@ -60,6 +60,12 @@ impl<'a> World {
             fps.fps += 1;
         }
 
+        {
+            let time = self.components.read_resource::<resources::Time>();
+            let mut camera = self.components.write_resource::<resources::Camera>();
+            camera.update(time.last_frame);
+        }
+
         self.last_frame = Instant::now();
     }
 }

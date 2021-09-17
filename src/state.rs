@@ -137,6 +137,20 @@ impl State {
         input.keyboard(keyboard_input);
     }
 
+    pub fn mouse_move(&mut self, x: f32, y: f32) {
+        let mut input = self.world.components.write_resource::<world::resources::Input>();
+        input.mouse_move(
+            Point2::new(x, y),
+            self.engine.ctx.viewport.width,
+            self.engine.ctx.viewport.height,
+        );
+    }
+
+    pub fn mouse_press(&mut self, pressed: bool) {
+        let mut input = self.world.components.write_resource::<world::resources::Input>();
+        input.mouse.pressed = pressed;
+    }
+
     pub fn update(&mut self) {
         self.world.update();
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);

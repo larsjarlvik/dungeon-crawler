@@ -1,6 +1,7 @@
 use crate::{
     config,
     engine::{self, pipelines::builders, texture},
+    utils::Interpolate,
     world::{components, resources},
 };
 use cgmath::*;
@@ -88,7 +89,7 @@ impl DeferredPipeline {
             let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
 
             lights[i] = uniforms::LightUniforms {
-                position: transform.get_translation(time.last_frame).into(),
+                position: transform.translation.get(time.last_frame).into(),
                 radius,
                 color: (light.color * light.intensity).extend(0.0).into(),
             };
@@ -97,7 +98,7 @@ impl DeferredPipeline {
         let camera = components.read_resource::<resources::Camera>();
         let uniforms = uniforms::Uniforms {
             inv_view_proj: camera.view_proj.invert().unwrap().into(),
-            eye_pos: camera.eye.to_vec().extend(0.0).into(),
+            eye_pos: camera.get_eye(time.last_frame).to_vec().extend(0.0).into(),
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             lights,
             lights_count: lights.len() as i32,
