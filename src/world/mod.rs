@@ -1,4 +1,4 @@
-use crate::config;
+use crate::{config, utils::Interpolate};
 use specs::*;
 use std::time::Instant;
 pub mod components;
@@ -8,7 +8,7 @@ pub mod systems;
 pub struct World {
     pub components: specs::World,
     pub dispatcher: specs::Dispatcher<'static, 'static>,
-    frame_time: f32,
+    update_time: f32,
     last_frame: std::time::Instant,
 }
 
@@ -24,6 +24,7 @@ impl<'a> World {
         components.register::<components::Animation>();
         components.register::<components::UserControl>();
         components.register::<components::Movement>();
+        components.register::<components::Follow>();
 
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Fps, "fps", &[])
@@ -34,20 +35,20 @@ impl<'a> World {
         Self {
             components,
             dispatcher,
-            frame_time: 0.0,
+            update_time: 0.0,
             last_frame: Instant::now(),
         }
     }
 
     pub fn update(&mut self) {
-        self.frame_time += self.last_frame.elapsed().as_secs_f32();
-        self.frame_time = self.frame_time.min(5.0);
+        self.update_time += self.last_frame.elapsed().as_secs_f32();
+        self.update_time = self.update_time.min(5.0);
 
-        while self.frame_time >= 0.0 {
+        while self.update_time >= 0.0 {
             self.dispatcher.setup(&mut self.components);
             self.dispatcher.dispatch(&mut self.components);
             self.components.maintain();
-            self.frame_time -= config::time_step().as_secs_f32();
+            self.update_time -= config::time_step().as_secs_f32();
 
             {
                 let mut time = self.components.write_resource::<resources::Time>();
@@ -61,9 +62,16 @@ impl<'a> World {
         }
 
         {
-            let time = self.components.read_resource::<resources::Time>();
             let mut camera = self.components.write_resource::<resources::Camera>();
-            camera.update(time.last_frame);
+            let mut time = self.components.write_resource::<resources::Time>();
+            time.freeze();
+
+            let follow = self.components.read_storage::<components::Follow>();
+            let transform = self.components.read_storage::<components::Transform>();
+
+            for (transform, _) in (&transform, &follow).join() {
+                camera.set(transform.translation.get(time.last_frame));
+            }
         }
 
         self.last_frame = Instant::now();

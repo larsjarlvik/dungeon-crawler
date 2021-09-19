@@ -1,6 +1,5 @@
 use crate::config;
 use cgmath::*;
-use std::time;
 
 pub struct InterpolatedValue<T> {
     pub current: T,
@@ -25,13 +24,13 @@ impl<T> InterpolatedValue<T> {
 }
 
 pub trait Interpolate<T> {
-    fn get(&self, last: time::Instant) -> T;
+    fn get(&self, frame_time: f32) -> T;
 }
 
 impl Interpolate<Vector3<f32>> for InterpolatedValue<Vector3<f32>> {
-    fn get(&self, previous_time: time::Instant) -> Vector3<f32> {
+    fn get(&self, frame_time: f32) -> Vector3<f32> {
         if let Some(prev_value) = self.previous {
-            let factor = previous_time.elapsed().as_secs_f32() / config::time_step().as_secs_f32();
+            let factor = frame_time / config::time_step().as_secs_f32();
             return prev_value.lerp(self.current, factor);
         }
 
@@ -40,9 +39,9 @@ impl Interpolate<Vector3<f32>> for InterpolatedValue<Vector3<f32>> {
 }
 
 impl Interpolate<Quaternion<f32>> for InterpolatedValue<Quaternion<f32>> {
-    fn get(&self, previous_time: time::Instant) -> Quaternion<f32> {
+    fn get(&self, frame_time: f32) -> Quaternion<f32> {
         if let Some(prev_value) = self.previous {
-            let factor = previous_time.elapsed().as_secs_f32() / config::time_step().as_secs_f32();
+            let factor = frame_time / config::time_step().as_secs_f32();
             return prev_value.slerp(self.current, factor);
         }
 

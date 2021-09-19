@@ -98,7 +98,7 @@ impl DeferredPipeline {
         let camera = components.read_resource::<resources::Camera>();
         let uniforms = uniforms::Uniforms {
             inv_view_proj: camera.view_proj.invert().unwrap().into(),
-            eye_pos: camera.get_eye(time.last_frame).to_vec().extend(0.0).into(),
+            eye_pos: camera.get_eye().to_vec().extend(0.0).into(),
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             lights,
             lights_count: lights.len() as i32,

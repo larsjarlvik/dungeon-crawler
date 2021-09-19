@@ -5,13 +5,12 @@ pub struct Movement;
 
 impl<'a> System<'a> for Movement {
     type SystemData = (
-        Write<'a, resources::Camera>,
         WriteStorage<'a, components::Movement>,
         WriteStorage<'a, components::Transform>,
         WriteStorage<'a, components::Animation>,
     );
 
-    fn run(&mut self, (mut camera, mut movement, mut transform, mut animation): Self::SystemData) {
+    fn run(&mut self, (mut movement, mut transform, mut animation): Self::SystemData) {
         for (movement, transform, animation) in (&mut movement, &mut transform, (&mut animation).maybe()).join() {
             let velocity_dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * movement.velocity;
 
@@ -24,10 +23,6 @@ impl<'a> System<'a> for Movement {
             }
 
             movement.velocity *= 0.9;
-
-            camera
-                .target
-                .set(vec3(transform.translation.current.x, 0.0, transform.translation.current.z));
         }
     }
 }

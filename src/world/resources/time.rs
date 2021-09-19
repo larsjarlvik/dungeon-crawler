@@ -1,19 +1,25 @@
 use std::time::Instant;
 
 pub struct Time {
-    pub last_frame: Instant,
+    time: Instant,
+    pub last_frame: f32,
 }
 
 impl Default for Time {
     fn default() -> Self {
         Self {
-            last_frame: Instant::now(),
+            time: Instant::now(),
+            last_frame: 0.0,
         }
     }
 }
 
 impl Time {
     pub fn reset(&mut self) {
-        self.last_frame = Instant::now();
+        self.time = Instant::now();
+    }
+
+    pub fn freeze(&mut self) {
+        self.last_frame = self.time.elapsed().as_secs_f32();
     }
 }

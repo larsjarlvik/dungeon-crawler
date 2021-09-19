@@ -107,9 +107,10 @@ impl State {
             .with(world::components::Model::new(&self.engine, &character, "character"))
             .with(world::components::Animation::new())
             .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
-            .with(world::components::UserControl)
             .with(world::components::Movement::new(3.0))
-            .with(world::components::Render::default())
+            .with(world::components::UserControl)
+            .with(world::components::Render)
+            .with(world::components::Follow)
             .build();
 
         println!("Initialized world in: {} ms", start.elapsed().as_millis());
