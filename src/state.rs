@@ -105,7 +105,7 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Model::new(&self.engine, &character, "character"))
-            .with(world::components::Animation::new())
+            .with(world::components::Animations::new("legs", "legs_idle"))
             .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
             .with(world::components::Movement::new(3.0))
             .with(world::components::UserControl)

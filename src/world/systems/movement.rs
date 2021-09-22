@@ -7,7 +7,7 @@ impl<'a> System<'a> for Movement {
     type SystemData = (
         WriteStorage<'a, components::Movement>,
         WriteStorage<'a, components::Transform>,
-        WriteStorage<'a, components::Animation>,
+        WriteStorage<'a, components::Animations>,
     );
 
     fn run(&mut self, (mut movement, mut transform, mut animation): Self::SystemData) {
@@ -18,8 +18,12 @@ impl<'a> System<'a> for Movement {
             transform.rotation.set(cgmath::Quaternion::from_angle_y(Rad(movement.direction)));
 
             if let Some(animation) = animation {
-                let animate = movement.velocity.abs() > 0.01;
-                animation.set_animation("walk", "legs", animate);
+                let walking = movement.velocity.abs() > 0.01;
+                if walking {
+                    animation.set_animation("legs", "legs");
+                } else {
+                    animation.set_animation("legs", "legs_idle");
+                }
             }
 
             movement.velocity *= 0.9;

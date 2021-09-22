@@ -21,7 +21,7 @@ impl<'a> World {
         components.register::<components::Text>();
         components.register::<components::Fps>();
         components.register::<components::Light>();
-        components.register::<components::Animation>();
+        components.register::<components::Animations>();
         components.register::<components::UserControl>();
         components.register::<components::Movement>();
         components.register::<components::Follow>();

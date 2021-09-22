@@ -1,9 +1,5 @@
 mod model;
 mod uniforms;
-use cgmath::*;
-pub use model::Model;
-use std::convert::TryInto;
-
 use crate::{
     config,
     engine::{
@@ -14,7 +10,10 @@ use crate::{
     utils::Interpolate,
     world::*,
 };
+use cgmath::*;
+pub use model::Model;
 use specs::{Join, WorldExt};
+use std::convert::TryInto;
 pub use uniforms::Uniforms;
 
 pub struct ModelPipeline {
@@ -80,7 +79,7 @@ impl ModelPipeline {
         let models = components.read_storage::<components::Model>();
         let render = components.read_storage::<components::Render>();
         let transform = components.read_storage::<components::Transform>();
-        let animation = components.read_storage::<components::Animation>();
+        let animation = components.read_storage::<components::Animations>();
         let time = components.read_resource::<resources::Time>();
         let camera = components.read_resource::<resources::Camera>();
         let mut bundles = vec![];
@@ -89,7 +88,11 @@ impl ModelPipeline {
             let joint_transforms = if let Some(animation) = animation {
                 let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
                 animation.channels.iter().for_each(|(_, channel)| {
-                    animate(model, &channel, &mut joint_transforms);
+                    if let Some(prev) = &channel.prev {
+                        animate(model, &prev, &mut joint_transforms, 1.0);
+                    }
+
+                    animate(model, &channel.current, &mut joint_transforms, channel.get_blend_factor());
                 });
                 joint_transforms.iter().map(|jm| jm.clone().into()).collect()
             } else {
@@ -122,14 +125,22 @@ impl ModelPipeline {
     }
 }
 
-fn animate(model: &components::Model, channel: &components::animation::Channel, joint_matrices: &mut Vec<Matrix4<f32>>) {
-    let animation = model
-        .animations
-        .get(&channel.name)
-        .expect(format!("Could not find animation: {}", &channel.name).as_str());
-
+fn animate(
+    model: &components::Model,
+    animation: &components::animation::Animation,
+    joint_matrices: &mut Vec<Matrix4<f32>>,
+    blend_factor: f32,
+) {
     let mut nodes = model.nodes.clone();
-    if animation.animate_nodes(&mut nodes, channel.start.elapsed().as_secs_f32() % animation.total_time) {
+    let model_animation = model
+        .animations
+        .get(&animation.name)
+        .expect(format!("Could not find animation: {}", &animation.name).as_str());
+
+    if model_animation.animate_nodes(
+        &mut nodes,
+        animation.started.elapsed().as_secs_f32() % model_animation.total_time,
+    ) {
         for (index, parent_index) in &model.depth_first_taversal_indices {
             let parent_transform = parent_index
                 .map(|id| {
@@ -154,7 +165,8 @@ fn animate(model: &components::Model, channel: &components::animation::Channel, 
             model.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
                 let transform_inverse = transform.invert().expect("Transform matrix should be invertible");
                 let node_transform = nodes[joint.node_id].global_transform_matrix;
-                joint_matrices[j_index] = joint_matrices[j_index] * transform_inverse * node_transform * joint.inverse_bind_matrix;
+                joint_matrices[j_index] =
+                    joint_matrices[j_index].lerp(transform_inverse * node_transform * joint.inverse_bind_matrix, blend_factor);
             });
         }
     }

@@ -9,7 +9,7 @@ mod text;
 mod transform;
 mod user_control;
 
-pub use animation::Animation;
+pub use animation::Animations;
 pub use follow::Follow;
 pub use fps::Fps;
 pub use light::Light;
