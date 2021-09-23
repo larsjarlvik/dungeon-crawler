@@ -88,11 +88,15 @@ impl ModelPipeline {
             let joint_transforms = if let Some(animation) = animation {
                 let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
                 animation.channels.iter().for_each(|(_, channel)| {
-                    if let Some(prev) = &channel.prev {
-                        animate(model, &prev, &mut joint_transforms, 1.0);
+                    let blend_factor = channel.get_blend_factor();
+
+                    if blend_factor < 1.0 {
+                        if let Some(prev) = &channel.prev {
+                            animate(model, &prev, &mut joint_transforms, 1.0);
+                        }
                     }
 
-                    animate(model, &channel.current, &mut joint_transforms, channel.get_blend_factor());
+                    animate(model, &channel.current, &mut joint_transforms, blend_factor);
                 });
                 joint_transforms.iter().map(|jm| jm.clone().into()).collect()
             } else {
