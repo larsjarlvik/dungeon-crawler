@@ -6,7 +6,7 @@ pub const COLOR_TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8
 pub const COLOR_TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 pub const CLEAR_COLOR: wgpu::Color = wgpu::Color::BLACK;
-pub const MAX_JOINT_COUNT: usize = 20;
+pub const MAX_JOINT_COUNT: usize = 64;
 pub const UPDATES_PER_SECOND: f32 = 50.0;
 pub const ANIMATION_BLEND_SECONDS: f32 = 0.3;
 

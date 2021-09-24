@@ -3,12 +3,13 @@ use std::{collections::HashMap, time::Instant};
 
 use crate::config;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Animation {
     pub name: String,
     pub started: Instant,
 }
 
+#[derive(Debug)]
 pub struct Channel {
     pub prev: Option<Animation>,
     pub current: Animation,
@@ -64,7 +65,7 @@ impl Animations {
             channel.updated = Instant::now();
         } else {
             self.channels.insert(
-                animation.to_string(),
+                channel.to_string(),
                 Channel {
                     prev: None,
                     current: Animation {

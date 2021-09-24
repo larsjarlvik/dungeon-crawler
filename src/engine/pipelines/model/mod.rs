@@ -86,19 +86,21 @@ impl ModelPipeline {
 
         for (model, animation, _, transform) in (&models, (&animation).maybe(), &render, &transform).join() {
             let joint_transforms = if let Some(animation) = animation {
-                let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
+                let mut joint_matrices = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
+
                 animation.channels.iter().for_each(|(_, channel)| {
                     let blend_factor = channel.get_blend_factor();
 
                     if blend_factor < 1.0 {
                         if let Some(prev) = &channel.prev {
-                            animate(model, &prev, &mut joint_transforms, 1.0);
+                            animate(model, &prev, &mut joint_matrices, 1.0 - blend_factor);
                         }
                     }
 
-                    animate(model, &channel.current, &mut joint_transforms, blend_factor);
+                    animate(model, &channel.current, &mut joint_matrices, blend_factor);
                 });
-                joint_transforms.iter().map(|jm| jm.clone().into()).collect()
+
+                joint_matrices.iter().map(|jm| jm.clone().into()).collect()
             } else {
                 vec![[[0.0; 4]; 4]; config::MAX_JOINT_COUNT]
             };
@@ -113,7 +115,7 @@ impl ModelPipeline {
                     view_proj: camera.view_proj.into(),
                     model: model_matrix.into(),
                     joint_transforms: joint_transforms.try_into().unwrap(),
-                    is_animated: (model.skins.len() > 0) as u32,
+                    is_animated: animation.is_some() as u32,
                 }]),
             );
 
@@ -162,15 +164,20 @@ fn animate(
         let transforms: Vec<(usize, Matrix4<f32>)> = nodes
             .iter()
             .filter(|n| n.skin_index.is_some())
-            .map(|n| (n.skin_index.unwrap(), n.global_transform_matrix))
+            .map(|n| {
+                (
+                    n.skin_index.unwrap(),
+                    n.global_transform_matrix.invert().expect("Transform matrix should be invertible"),
+                )
+            })
             .collect();
 
-        for (s_index, transform) in transforms {
+        for (s_index, inverse_transform) in transforms {
             model.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
-                let transform_inverse = transform.invert().expect("Transform matrix should be invertible");
-                let node_transform = nodes[joint.node_id].global_transform_matrix;
-                joint_matrices[j_index] =
-                    joint_matrices[j_index].lerp(transform_inverse * node_transform * joint.inverse_bind_matrix, blend_factor);
+                joint_matrices[j_index] = joint_matrices[j_index].lerp(
+                    inverse_transform * nodes[joint.node_id].global_transform_matrix * joint.inverse_bind_matrix,
+                    blend_factor,
+                );
             });
         }
     }

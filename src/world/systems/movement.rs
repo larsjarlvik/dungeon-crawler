@@ -20,9 +20,9 @@ impl<'a> System<'a> for Movement {
             if let Some(animation) = animation {
                 let walking = movement.velocity.abs() > 0.01;
                 if walking {
-                    animation.set_animation("legs", "legs");
+                    animation.set_animation("base", "walk");
                 } else {
-                    animation.set_animation("legs", "legs_idle");
+                    animation.set_animation("base", "idle");
                 }
             }
 
