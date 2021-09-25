@@ -41,6 +41,6 @@ fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let inner = step(length(in.coord.xy), 0.95) * fade;
     let center = clamp(outer - inner, 0.0, 1.0) * 0.45;
 
-    let current = step(length(uniforms.current - in.coord.xy), 0.4) * 0.4;
+    let current = step(length(uniforms.current * 0.95 - in.coord.xy), 0.4) * 0.25;
     return vec4<f32>(0.0, 0.0, 0.0, (center + current) * 2.0);
 }
