@@ -15,6 +15,7 @@ pub struct PipelineBuilder<'a> {
     depth_target: Option<wgpu::RenderBundleDepthStencil>,
     buffer_layouts: Vec<wgpu::VertexBufferLayout<'a>>,
     primitve_topology: wgpu::PrimitiveTopology,
+    blend: Option<wgpu::BlendState>,
     label: &'a str,
 }
 
@@ -34,6 +35,7 @@ impl<'a> PipelineBuilder<'a> {
             depth_target: None,
             buffer_layouts: vec![],
             primitve_topology: wgpu::PrimitiveTopology::TriangleList,
+            blend: None,
             label,
         }
     }
@@ -122,6 +124,11 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
+    pub fn with_blend(mut self, blend: wgpu::BlendState) -> Self {
+        self.blend = Some(blend);
+        self
+    }
+
     pub fn build(self) -> Pipeline {
         let shader = self.shader.unwrap();
 
@@ -131,12 +138,13 @@ impl<'a> PipelineBuilder<'a> {
             push_constant_ranges: &[],
         });
 
+        let blend = self.blend;
         let color_targets: Vec<wgpu::ColorTargetState> = self
             .color_targets
             .iter()
             .map(|format| wgpu::ColorTargetState {
                 format: *format,
-                blend: None,
+                blend,
                 write_mask: wgpu::ColorWrites::ALL,
             })
             .collect();

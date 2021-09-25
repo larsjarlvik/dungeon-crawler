@@ -1,5 +1,5 @@
 mod camera;
-mod input;
+pub mod input;
 mod time;
 
 pub use camera::Camera;

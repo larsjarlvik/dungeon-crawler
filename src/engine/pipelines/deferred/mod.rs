@@ -50,6 +50,7 @@ impl DeferredPipeline {
 
         let render_pipeline = pipeline_builder
             .with_shader("shaders/deferred.wgsl")
+            .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
             .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)

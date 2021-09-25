@@ -143,10 +143,7 @@ fn animate(
         .get(&animation.name)
         .expect(format!("Could not find animation: {}", &animation.name).as_str());
 
-    if model_animation.animate_nodes(
-        &mut nodes,
-        animation.started.elapsed().as_secs_f32() % model_animation.total_time,
-    ) {
+    if model_animation.animate_nodes(&mut nodes, animation.elapsed % model_animation.total_time) {
         for (index, parent_index) in &model.depth_first_taversal_indices {
             let parent_transform = parent_index
                 .map(|id| {

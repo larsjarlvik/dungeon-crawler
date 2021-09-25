@@ -6,7 +6,8 @@ use crate::config;
 #[derive(Clone, Debug)]
 pub struct Animation {
     pub name: String,
-    pub started: Instant,
+    pub elapsed: f32,
+    pub speed: f32,
 }
 
 #[derive(Debug)]
@@ -42,7 +43,8 @@ impl Animations {
                 prev: None,
                 current: Animation {
                     name: animation.to_string(),
-                    started: Instant::now(),
+                    elapsed: 0.0,
+                    speed: 1.0,
                 },
                 updated: Instant::now(),
             },
@@ -51,16 +53,18 @@ impl Animations {
         Self { channels }
     }
 
-    pub fn set_animation(&mut self, channel: &str, animation: &str) {
+    pub fn set_animation(&mut self, channel: &str, animation: &str, speed: f32) {
         if let Some(channel) = self.channels.get_mut(&channel.to_string()) {
             if channel.current.name == animation.to_string() {
+                channel.current.speed = speed;
                 return;
             }
 
             channel.prev = Some(channel.current.clone());
             channel.current = Animation {
                 name: animation.to_string(),
-                started: Instant::now(),
+                speed,
+                elapsed: 0.0,
             };
             channel.updated = Instant::now();
         } else {
@@ -70,7 +74,8 @@ impl Animations {
                     prev: None,
                     current: Animation {
                         name: animation.to_string(),
-                        started: Instant::now(),
+                        speed,
+                        elapsed: 0.0,
                     },
                     updated: Instant::now(),
                 },

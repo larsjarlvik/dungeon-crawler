@@ -12,11 +12,9 @@ impl<'a> System<'a> for UserControl {
 
     fn run(&mut self, (input, _, mut movement): Self::SystemData) {
         for movement in (&mut movement).join() {
-            if input.mouse.pressed {
-                movement.towards(vec3(input.mouse.relative.x, 0.0, input.mouse.relative.y));
-                movement.velocity = 3.0 / config::UPDATES_PER_SECOND;
-            } else {
-                movement.velocity = 0.0;
+            if let Some(joystick) = &input.joystick {
+                movement.towards(vec3(joystick.current.x, 0.0, joystick.current.y));
+                movement.velocity = joystick.strength * 6.0 / config::UPDATES_PER_SECOND;
             }
         }
     }

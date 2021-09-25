@@ -14,15 +14,19 @@ impl<'a> System<'a> for Movement {
         for (movement, transform, animation) in (&mut movement, &mut transform, (&mut animation).maybe()).join() {
             let velocity_dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * movement.velocity;
 
-            transform.translation.set(transform.translation.current + velocity_dir);
-            transform.rotation.set(cgmath::Quaternion::from_angle_y(Rad(movement.direction)));
-
             if let Some(animation) = animation {
-                let walking = movement.velocity.abs() > 0.01;
-                if walking {
-                    animation.set_animation("base", "walk");
+                if movement.velocity.abs() > 0.01 {
+                    transform.translation.set(transform.translation.current + velocity_dir);
+                    transform.rotation.set(cgmath::Quaternion::from_angle_y(Rad(movement.direction)));
+
+                    let animation_velocity = movement.velocity.abs() / 0.05;
+                    if animation_velocity > 1.6 {
+                        animation.set_animation("base", "run", animation_velocity);
+                    } else {
+                        animation.set_animation("base", "walk", animation_velocity);
+                    }
                 } else {
-                    animation.set_animation("base", "idle");
+                    animation.set_animation("base", "idle", 1.0);
                 }
             }
 

@@ -51,16 +51,16 @@ pub fn main() {
                             }
                         }
                         WindowEvent::CursorMoved { position, .. } => {
-                            state.mouse_move(position.x as f32, position.y as f32);
+                            state.mouse_move(0, position.x as f32, position.y as f32);
                         }
                         WindowEvent::MouseInput { state: mouse_state, .. } => {
-                            state.mouse_press(mouse_state == &winit::event::ElementState::Pressed);
+                            state.mouse_press(0, false, mouse_state == &winit::event::ElementState::Pressed);
                         }
                         WindowEvent::Touch(touch) => {
-                            state.mouse_move(touch.location.x as f32, touch.location.y as f32);
+                            state.mouse_move(touch.id, touch.location.x as f32, touch.location.y as f32);
                             match touch.phase {
-                                TouchPhase::Started => state.mouse_press(true),
-                                TouchPhase::Ended | TouchPhase::Cancelled => state.mouse_press(false),
+                                TouchPhase::Started => state.mouse_press(touch.id, true, true),
+                                TouchPhase::Ended | TouchPhase::Cancelled => state.mouse_press(touch.id, true, false),
                                 _ => {}
                             }
                         }

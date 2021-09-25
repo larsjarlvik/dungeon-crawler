@@ -138,23 +138,25 @@ impl State {
         input.keyboard(keyboard_input);
     }
 
-    pub fn mouse_move(&mut self, x: f32, y: f32) {
+    pub fn mouse_move(&mut self, id: u64, x: f32, y: f32) {
         let mut input = self.world.components.write_resource::<world::resources::Input>();
         input.mouse_move(
+            id,
             Point2::new(x, y),
             self.engine.ctx.viewport.width,
             self.engine.ctx.viewport.height,
         );
     }
 
-    pub fn mouse_press(&mut self, pressed: bool) {
+    pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
         let mut input = self.world.components.write_resource::<world::resources::Input>();
-        input.mouse.pressed = pressed;
+        input.mouse_set_pressed(id, touch, pressed);
     }
 
     pub fn update(&mut self) {
         self.world.update();
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
+        self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
@@ -171,6 +173,7 @@ impl State {
             self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
 
             self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
+            self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
         }
 
         Ok(())

@@ -72,6 +72,16 @@ impl<'a> World {
             for (transform, _) in (&transform, &follow).join() {
                 camera.set(transform.translation.get(time.last_frame));
             }
+
+            let mut animations = self.components.write_storage::<components::Animations>();
+            for animation in (&mut animations).join() {
+                for (_, channel) in animation.channels.iter_mut() {
+                    channel.current.elapsed += self.last_frame.elapsed().as_secs_f32() * channel.current.speed;
+                    if let Some(previous) = &mut channel.prev {
+                        previous.elapsed += self.last_frame.elapsed().as_secs_f32() * previous.speed;
+                    }
+                }
+            }
         }
 
         self.last_frame = Instant::now();
