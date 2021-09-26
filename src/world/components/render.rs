@@ -1,8 +1,9 @@
-use specs::{Component, NullStorage};
+use specs::{Component, VecStorage};
 
-#[derive(Default)]
-pub struct Render;
+pub struct Render {
+    pub cull_frustum: bool,
+}
 
 impl Component for Render {
-    type Storage = NullStorage<Self>;
+    type Storage = VecStorage<Self>;
 }

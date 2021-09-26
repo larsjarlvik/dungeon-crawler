@@ -1,5 +1,7 @@
 use crate::{config, utils};
 
+pub mod bounding_box;
+pub mod frustum;
 pub mod model;
 pub mod pipelines;
 mod texture;

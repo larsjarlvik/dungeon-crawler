@@ -96,7 +96,7 @@ impl State {
                         0.0,
                         z as f32 * 10.0,
                     )))
-                    .with(world::components::Render::default())
+                    .with(world::components::Render { cull_frustum: true })
                     .build();
             }
         }
@@ -107,9 +107,14 @@ impl State {
             .with(world::components::Model::new(&self.engine, &character, "character"))
             .with(world::components::Animations::new("base", "idle"))
             .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
+            .with(world::components::Light {
+                color: vec3(1.0, 1.0, 0.72),
+                intensity: 1.0,
+                radius: Some(5.0),
+            })
             .with(world::components::Movement::new(3.0))
             .with(world::components::UserControl)
-            .with(world::components::Render)
+            .with(world::components::Render { cull_frustum: false })
             .with(world::components::Follow)
             .build();
 

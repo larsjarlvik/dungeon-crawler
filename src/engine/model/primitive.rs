@@ -1,8 +1,11 @@
 use super::vertex::Vertex;
+use crate::engine::bounding_box;
+use cgmath::*;
 
 pub struct Primitive {
     pub indices: Vec<u32>,
     pub vertices: Vec<Vertex>,
+    pub bounding_box: bounding_box::BoundingBox,
     pub material: usize,
     pub length: u32,
 }
@@ -50,11 +53,17 @@ impl Primitive {
             });
         }
 
+        let bounding_box = bounding_box::BoundingBox {
+            min: Point3::from(primitive.bounding_box().min),
+            max: Point3::from(primitive.bounding_box().max),
+        };
+
         let length = indices.len() as u32;
         Self {
             indices,
             vertices,
             material,
+            bounding_box,
             length,
         }
     }

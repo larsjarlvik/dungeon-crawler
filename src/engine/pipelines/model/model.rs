@@ -1,7 +1,7 @@
 use std::mem;
 
 use crate::engine::{
-    self,
+    self, bounding_box,
     pipelines::{
         self, builders,
         model::{uniforms::PrimitiveUniforms, Uniforms},
@@ -13,6 +13,7 @@ pub struct Model {
     pub uniform_buffer: wgpu::Buffer,
     pub primitive_buffers: Vec<wgpu::Buffer>,
     pub render_bundle: wgpu::RenderBundle,
+    pub bounding_box: bounding_box::BoundingBox,
 }
 
 impl Model {
@@ -61,6 +62,7 @@ impl Model {
             uniform_buffer,
             primitive_buffers,
             render_bundle,
+            bounding_box: mesh.bounding_box.clone(),
         }
     }
 }

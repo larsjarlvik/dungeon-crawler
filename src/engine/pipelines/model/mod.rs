@@ -84,30 +84,20 @@ impl ModelPipeline {
         let camera = components.read_resource::<resources::Camera>();
         let mut bundles = vec![];
 
-        for (model, animation, _, transform) in (&models, (&animation).maybe(), &render, &transform).join() {
-            let joint_transforms = if let Some(animation) = animation {
-                let mut joint_matrices = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
-
-                animation.channels.iter().for_each(|(_, channel)| {
-                    let blend_factor = channel.get_blend_factor();
-
-                    if blend_factor < 1.0 {
-                        if let Some(prev) = &channel.prev {
-                            animate(model, &prev, &mut joint_matrices, 1.0 - blend_factor);
-                        }
-                    }
-
-                    animate(model, &channel.current, &mut joint_matrices, blend_factor);
-                });
-
-                joint_matrices.iter().map(|jm| jm.clone().into()).collect()
-            } else {
-                vec![[[0.0; 4]; 4]; config::MAX_JOINT_COUNT]
-            };
-
+        for (model, animation, render, transform) in (&models, (&animation).maybe(), &render, &transform).join() {
             let model_matrix = Matrix4::from_translation(transform.translation.get(time.last_frame))
                 * Matrix4::from(transform.rotation.get(time.last_frame));
 
+            if render.cull_frustum {
+                if !camera
+                    .frustum
+                    .test_bounding_box(&model.model.bounding_box.transform(model_matrix.into()))
+                {
+                    continue;
+                }
+            }
+
+            let joint_transforms = get_joint_transforms(&model, &animation);
             ctx.queue.write_buffer(
                 &model.model.uniform_buffer,
                 self.uniform_bind_group_layout.index as u64,
@@ -128,6 +118,28 @@ impl ModelPipeline {
             .with_color_attachment(&target.orm_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
             .with_depth_attachment(&target.depth_texture.view, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
+    }
+}
+
+fn get_joint_transforms(model: &components::Model, animation: &Option<&components::Animations>) -> Vec<[[f32; 4]; 4]> {
+    if let Some(animation) = animation {
+        let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
+
+        animation.channels.iter().for_each(|(_, channel)| {
+            let blend_factor = channel.get_blend_factor();
+
+            if blend_factor < 1.0 {
+                if let Some(prev) = &channel.prev {
+                    animate(model, &prev, &mut joint_transforms, 1.0 - blend_factor);
+                }
+            }
+
+            animate(model, &channel.current, &mut joint_transforms, blend_factor);
+        });
+
+        joint_transforms.iter().map(|jm| jm.clone().into()).collect()
+    } else {
+        vec![[[0.0; 4]; 4]; config::MAX_JOINT_COUNT]
     }
 }
 
