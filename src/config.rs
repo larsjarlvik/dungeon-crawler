@@ -12,9 +12,14 @@ pub const ANIMATION_BLEND_SECONDS: f32 = 0.3;
 pub const JOYSTICK_RADIUS: f32 = 0.12;
 
 #[cfg(not(target_os = "android"))]
-pub const JOYSTICK_SENSITIVITY: f32 = 1.0;
+pub const RENDER_SCALE: f32 = 1.0;
 #[cfg(target_os = "android")]
-pub const JOYSTICK_SENSITIVITY: f32 = 3.0;
+pub const RENDER_SCALE: f32 = 0.75;
+
+#[cfg(not(target_os = "android"))]
+pub const JOYSTICK_SENSITIVITY: f32 = 2.0;
+#[cfg(target_os = "android")]
+pub const JOYSTICK_SENSITIVITY: f32 = 4.0;
 
 pub fn time_step() -> Duration {
     Duration::from_secs_f32(1.0 / UPDATES_PER_SECOND)
