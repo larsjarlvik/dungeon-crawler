@@ -1,7 +1,6 @@
-use std::time::Instant;
-
 use crate::world::components;
 use specs::*;
+use std::time::Instant;
 
 pub struct Fps;
 
@@ -15,8 +14,6 @@ impl<'a> System<'a> for Fps {
                 fps.last_update = Instant::now();
                 fps.fps = 0;
             }
-
-            fps.fps += 1;
         }
     }
 }

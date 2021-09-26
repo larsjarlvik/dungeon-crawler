@@ -22,11 +22,9 @@ impl<T: Interpolate> Sampler<T> {
     fn sample(&self, t: f32) -> Option<T> {
         let index = {
             let mut index = None;
-            for i in 0..(self.times.len() - 1) {
-                let previous = self.times[i];
-                let next = self.times[i + 1];
-                if t >= previous && t < next {
-                    index = Some(i);
+            for i in 0..self.times.len() {
+                index = Some(i);
+                if t >= self.times[i] && t < self.times[i + 1] {
                     break;
                 }
             }
@@ -35,14 +33,14 @@ impl<T: Interpolate> Sampler<T> {
 
         index.map(|i| {
             let previous_time = self.times[i];
-            let next_time = self.times[i + 1];
+            let next_time = self.times[(i + 1) % self.times.len()];
             let delta = next_time - previous_time;
             let from_start = t - previous_time;
             let factor = from_start / delta;
 
             match self.interpolation {
                 Interpolation::Step => self.values[i],
-                Interpolation::Linear => self.values[i].linear(self.values[i + 1], factor),
+                Interpolation::Linear => self.values[i].linear(self.values[(i + 1) % self.values.len()], factor),
                 Interpolation::CubicSpline => {
                     let previous_values = [self.values[i * 3], self.values[i * 3 + 1], self.values[i * 3 + 2]];
                     let next_values = [self.values[i * 3 + 3], self.values[i * 3 + 4], self.values[i * 3 + 5]];

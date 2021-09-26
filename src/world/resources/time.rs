@@ -1,22 +1,25 @@
-use std::time;
+use std::time::Instant;
 
 pub struct Time {
-    pub when: time::Instant,
-    pub elapsed: time::Duration,
+    time: Instant,
+    pub last_frame: f32,
 }
 
 impl Default for Time {
     fn default() -> Self {
         Self {
-            when: time::Instant::now(),
-            elapsed: time::Duration::new(0, 0),
+            time: Instant::now(),
+            last_frame: 0.0,
         }
     }
 }
 
 impl Time {
-    pub fn set(&mut self) {
-        self.elapsed = self.when.elapsed();
-        self.when = time::Instant::now();
+    pub fn reset(&mut self) {
+        self.time = Instant::now();
+    }
+
+    pub fn freeze(&mut self) {
+        self.last_frame = self.time.elapsed().as_secs_f32();
     }
 }

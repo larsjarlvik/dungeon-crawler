@@ -1,11 +1,7 @@
-mod animation;
-mod bounce;
 mod fps;
-mod render;
-mod rotate;
+mod movement;
+mod user_control;
 
-pub use animation::Animation;
-pub use bounce::Bounce;
 pub use fps::Fps;
-pub use render::Render;
-pub use rotate::Rotate;
+pub use movement::Movement;
+pub use user_control::UserControl;

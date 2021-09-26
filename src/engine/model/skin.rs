@@ -1,4 +1,5 @@
 use cgmath::*;
+use crate::config;
 
 #[derive(Clone)]
 pub struct Joint {
@@ -14,8 +15,8 @@ pub struct Skin {
 impl Skin {
     pub fn new(skin: &gltf::Skin, buffers: &Vec<gltf::buffer::Data>) -> Self {
         let joint_count = skin.joints().count();
-        if joint_count > 20 {
-            panic!("{} joints is more than 20 allowed!", joint_count);
+        if joint_count > config::MAX_JOINT_COUNT {
+            panic!("{} joints is more than {} allowed!", joint_count, config::MAX_JOINT_COUNT);
         }
 
         let inverse_bind_matrices = map_inverse_bind_matrices(skin, buffers);

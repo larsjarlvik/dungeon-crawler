@@ -1,6 +1,7 @@
 use crate::{
     config,
     engine::{self, pipelines::builders, texture},
+    utils::Interpolate,
     world::{components, resources},
 };
 use cgmath::*;
@@ -49,6 +50,7 @@ impl DeferredPipeline {
 
         let render_pipeline = pipeline_builder
             .with_shader("shaders/deferred.wgsl")
+            .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
             .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
@@ -79,14 +81,16 @@ impl DeferredPipeline {
 
     pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
         let light_sources = components.read_storage::<components::Light>();
-        let positions = components.read_storage::<components::Position>();
+        let transform = components.read_storage::<components::Transform>();
+        let time = components.read_resource::<resources::Time>();
+
         let mut lights: [uniforms::LightUniforms; 10] = Default::default();
 
-        for (i, (light, position)) in (&light_sources, &positions).join().enumerate() {
+        for (i, (light, transform)) in (&light_sources, &transform).join().enumerate() {
             let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
 
             lights[i] = uniforms::LightUniforms {
-                position: position.0.into(),
+                position: transform.translation.get(time.last_frame).into(),
                 radius,
                 color: (light.color * light.intensity).extend(0.0).into(),
             };
@@ -95,7 +99,7 @@ impl DeferredPipeline {
         let camera = components.read_resource::<resources::Camera>();
         let uniforms = uniforms::Uniforms {
             inv_view_proj: camera.view_proj.invert().unwrap().into(),
-            eye_pos: camera.eye.to_vec().extend(0.0).into(),
+            eye_pos: camera.get_eye().to_vec().extend(0.0).into(),
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             lights,
             lights_count: lights.len() as i32,

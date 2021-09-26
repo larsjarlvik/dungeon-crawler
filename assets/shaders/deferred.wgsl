@@ -23,8 +23,8 @@ fn main([[builtin(vertex_index)]] vertex_index: u32) -> [[builtin(position)]] ve
     let tc = vec2<f32>(f32(x) * 2.0, f32(y) * 2.0);
 
     return vec4<f32>(
-        tc.x * 2.0 - 1.0,
-        1.0 - tc.y * 2.0,
+        tc.x - 1.0,
+        1.0 - tc.y,
         0.0, 1.0
     );
 }

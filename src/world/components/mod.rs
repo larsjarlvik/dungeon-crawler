@@ -1,19 +1,21 @@
 pub mod animation;
-mod bounce;
+mod follow;
 mod fps;
 mod light;
 mod model;
-mod position;
+mod movement;
 mod render;
-mod rotation;
 mod text;
+mod transform;
+mod user_control;
 
-pub use animation::Animation;
-pub use bounce::Bouce;
+pub use animation::Animations;
+pub use follow::Follow;
 pub use fps::Fps;
 pub use light::Light;
 pub use model::Model;
-pub use position::Position;
+pub use movement::Movement;
 pub use render::Render;
-pub use rotation::Rotation;
 pub use text::Text;
+pub use transform::Transform;
+pub use user_control::UserControl;
