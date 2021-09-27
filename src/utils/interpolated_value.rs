@@ -21,6 +21,10 @@ impl<T> InterpolatedValue<T> {
         self.previous = Some(self.current);
         self.current = value;
     }
+
+    pub fn freeze(&mut self) {
+        self.previous = None;
+    }
 }
 
 pub trait Interpolate<T> {
