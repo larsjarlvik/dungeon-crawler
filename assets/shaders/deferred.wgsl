@@ -102,7 +102,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     pbr.diffuse = pbr.diffuse * (1.0 - pbr.metalness);
     pbr.specular = mix(f0, color.rgb, vec3<f32>(pbr.metalness));
     pbr.reflectance0 = pbr.specular.rgb;
-    pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 25.0, 0.0, 1.0);
+    pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 5.0, 0.0, 1.0);
 
     var total_light: vec3<f32> = vec3<f32>(0.1);
 
