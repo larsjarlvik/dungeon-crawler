@@ -15,10 +15,12 @@ impl<'a> System<'a> for Movement {
             let velocity_dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * movement.velocity;
             transform.rotation.set(cgmath::Quaternion::from_angle_y(Rad(movement.direction)));
 
+            if movement.velocity.abs() > 0.01 {
+                transform.translation.set(transform.translation.current + velocity_dir);
+            }
+
             if let Some(animation) = animation {
                 if movement.velocity.abs() > 0.01 {
-                    transform.translation.set(transform.translation.current + velocity_dir);
-
                     let animation_velocity = movement.velocity.abs() / 0.05;
                     if animation_velocity > 1.6 {
                         animation.set_animation("base", "run", animation_velocity);

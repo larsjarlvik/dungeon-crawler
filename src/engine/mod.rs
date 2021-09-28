@@ -6,6 +6,7 @@ pub mod model;
 pub mod pipelines;
 mod texture;
 mod viewport;
+pub mod collision;
 
 pub struct Context {
     pub instance: wgpu::Instance,

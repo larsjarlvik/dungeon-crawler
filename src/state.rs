@@ -96,6 +96,12 @@ impl State {
                         0.0,
                         z as f32 * 10.0,
                     )))
+                    .with(world::components::Collision::new(vec![
+                        Vector2::new(-1.0, 1.0),
+                        Vector2::new(1.0, 1.0),
+                        Vector2::new(1.0, -1.0),
+                        Vector2::new(-1.0, -1.0),
+                    ]))
                     .with(world::components::Render { cull_frustum: true })
                     .build();
             }
@@ -114,6 +120,12 @@ impl State {
             })
             .with(world::components::Movement::new(3.0))
             .with(world::components::UserControl)
+            .with(world::components::Collider::new(vec![
+                Vector2::new(-1.0, 1.0),
+                Vector2::new(1.0, 1.0),
+                Vector2::new(1.0, -1.0),
+                Vector2::new(-1.0, -1.0),
+            ]))
             .with(world::components::Render { cull_frustum: false })
             .with(world::components::Follow)
             .build();

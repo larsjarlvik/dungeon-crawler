@@ -1,4 +1,6 @@
 pub mod animation;
+mod collider;
+mod collision;
 mod follow;
 mod fps;
 mod light;
@@ -10,6 +12,8 @@ mod transform;
 mod user_control;
 
 pub use animation::Animations;
+pub use collider::Collider;
+pub use collision::Collision;
 pub use follow::Follow;
 pub use fps::Fps;
 pub use light::Light;

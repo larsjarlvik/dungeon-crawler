@@ -25,9 +25,13 @@ impl<'a> World {
         components.register::<components::UserControl>();
         components.register::<components::Movement>();
         components.register::<components::Follow>();
+        components.register::<components::Collider>();
+        components.register::<components::Collision>();
 
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Fps, "fps", &[])
+            .with(systems::CollisionDetection, "collision_detection", &[])
+            .with(systems::CollisionResolver, "collision_resolver", &[])
             .with(systems::UserControl, "user_control", &[])
             .with(systems::Movement, "movement", &[])
             .build();
