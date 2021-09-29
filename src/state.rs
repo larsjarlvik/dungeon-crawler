@@ -85,27 +85,23 @@ impl State {
             .with(world::components::Transform::from_translation(vec3(2.4, 2.0, 2.4)))
             .build();
 
-        for z in -3..3 {
-            for x in -3..3 {
-                self.world
-                    .components
-                    .create_entity()
-                    .with(world::components::Model::new(&self.engine, &room, "room"))
-                    .with(world::components::Transform::from_translation(vec3(
-                        x as f32 * 10.0,
-                        0.0,
-                        z as f32 * 10.0,
-                    )))
-                    .with(world::components::Collision::new(vec![
-                        Vector2::new(-1.0, 1.0),
-                        Vector2::new(1.0, 1.0),
-                        Vector2::new(1.0, -1.0),
-                        Vector2::new(-1.0, -1.0),
-                    ]))
-                    .with(world::components::Render { cull_frustum: true })
-                    .build();
-            }
-        }
+        // for z in -3..3 {
+        //     for x in -3..3 {
+        self.world
+            .components
+            .create_entity()
+            .with(world::components::Model::new(&self.engine, &room, "room"))
+            .with(world::components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Collision::new(vec![
+                Vector2::new(-1.0, 1.0),
+                Vector2::new(1.0, 1.0),
+                Vector2::new(1.0, -1.0),
+                Vector2::new(-1.0, -1.0),
+            ]))
+            .with(world::components::Render { cull_frustum: true })
+            .build();
+        //     }
+        // }
 
         self.world
             .components

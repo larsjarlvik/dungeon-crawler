@@ -1,8 +1,8 @@
-use cgmath::*;
+use crate::engine::collision::Polygon;
 use specs::{Component, VecStorage};
 
 pub struct Collision {
-    pub polygon: Vec<Vector2<f32>>,
+    pub polygon: Polygon,
 }
 
 impl Component for Collision {
@@ -10,14 +10,7 @@ impl Component for Collision {
 }
 
 impl Collision {
-    pub fn new(polygon: Vec<Vector2<f32>>) -> Self {
+    pub fn new(polygon: Polygon) -> Self {
         Self { polygon }
-    }
-
-    pub fn transform(&self, position: Vector3<f32>) -> Self {
-        let polygon = self.polygon.iter().map(|p| Vector2::new(position.x + p.x, position.z + p.y)).collect();
-        Self {
-            polygon
-        }
     }
 }

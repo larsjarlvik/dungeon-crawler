@@ -30,8 +30,6 @@ impl<'a> World {
 
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Fps, "fps", &[])
-            .with(systems::CollisionDetection, "collision_detection", &[])
-            .with(systems::CollisionResolver, "collision_resolver", &[])
             .with(systems::UserControl, "user_control", &[])
             .with(systems::Movement, "movement", &[])
             .build();
