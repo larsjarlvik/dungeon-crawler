@@ -97,10 +97,18 @@ impl State {
                         z as f32 * 10.0,
                     )))
                     .with(world::components::Collision::new(vec![
-                        Vector2::new(-1.0, 1.0),
-                        Vector2::new(1.0, 1.0),
-                        Vector2::new(1.0, -1.0),
-                        Vector2::new(-1.0, -1.0),
+                        vec![
+                            Vector2::new(-1.0, 1.0),
+                            Vector2::new(1.0, 1.0),
+                            Vector2::new(1.0, -1.0),
+                            Vector2::new(-1.0, -1.0),
+                        ],
+                        vec![
+                            Vector2::new(1.0, 3.0),
+                            Vector2::new(3.0, 3.0),
+                            Vector2::new(3.0, 1.0),
+                            Vector2::new(1.0, 1.0),
+                        ],
                     ]))
                     .with(world::components::Render { cull_frustum: true })
                     .build();

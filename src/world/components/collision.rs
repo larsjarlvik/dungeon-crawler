@@ -2,7 +2,7 @@ use crate::engine::collision::Polygon;
 use specs::{Component, VecStorage};
 
 pub struct Collision {
-    pub polygon: Polygon,
+    pub polygons: Vec<Polygon>,
 }
 
 impl Component for Collision {
@@ -10,7 +10,7 @@ impl Component for Collision {
 }
 
 impl Collision {
-    pub fn new(polygon: Polygon) -> Self {
-        Self { polygon }
+    pub fn new(polygons: Vec<Polygon>) -> Self {
+        Self { polygons }
     }
 }
