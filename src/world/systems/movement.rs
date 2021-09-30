@@ -1,7 +1,7 @@
 use crate::{
     engine::{
         self,
-        collision::{Intersection, PolygonMethods},
+        collision::{Intersection, Polygon, PolygonMethods},
     },
     world::*,
 };
@@ -19,39 +19,41 @@ impl<'a> System<'a> for Movement {
     );
 
     fn run(&mut self, (mut movement, mut transform, mut animation, collider, collision): Self::SystemData) {
+        let collisions: Vec<Polygon> = (&collision, &transform)
+            .join()
+            .map(|(c, t)| c.polygon.transform(Some(t.translation.current)))
+            .collect();
+
         for (movement, transform, animation, collider) in
             (&mut movement, &mut transform, (&mut animation).maybe(), (&collider).maybe()).join()
         {
             let velocity_dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * movement.velocity;
             transform.rotation.set(cgmath::Quaternion::from_angle_y(Rad(movement.direction)));
 
-            if movement.velocity.abs() > 0.01 {
-                let mut offset = velocity_dir;
+            let mut offset = velocity_dir;
 
-                if let Some(collider) = collider {
-                    let mut result = Intersection::None;
-
-                    for collision in (&collision).join() {
-                        result = engine::collision::check_collision(
-                            &collider.polygon.transform(Some(transform.translation.current)),
-                            &collision.polygon,
-                            vec2(velocity_dir.x, velocity_dir.z),
-                        );
-                    }
+            if let Some(collider) = collider {
+                for collision in collisions.iter() {
+                    let result = engine::collision::check_collision(
+                        &collider.polygon.transform(Some(transform.translation.current)),
+                        &collision,
+                        vec2(velocity_dir.x, velocity_dir.z),
+                    );
 
                     offset = match result {
-                        Intersection::None => velocity_dir,
+                        Intersection::None => offset,
                         Intersection::WillIntersect(mtv) => velocity_dir + vec3(mtv.x, 0.0, mtv.y),
                         Intersection::Intersect => vec3(0.0, 0.0, 0.0),
                     };
                 }
-
-                transform.translation.set(transform.translation.current + offset);
             }
 
+            let velocity = vec2(offset.x, offset.z).distance(vec2(0.0, 0.0));
+
             if let Some(animation) = animation {
-                if movement.velocity.abs() > 0.01 {
-                    let animation_velocity = movement.velocity.abs() / 0.05;
+                if velocity > 0.01 {
+                    transform.translation.set(transform.translation.current + offset);
+                    let animation_velocity = velocity / 0.05;
                     if animation_velocity > 1.6 {
                         animation.set_animation("base", "run", animation_velocity);
                     } else {
