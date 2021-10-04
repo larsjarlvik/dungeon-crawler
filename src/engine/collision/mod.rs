@@ -87,9 +87,8 @@ fn project_polygon(axis: Vector2<f32>, polygon: &Polygon) -> (f32, f32) {
 }
 
 fn interval_distance(min_a: f32, max_a: f32, min_b: f32, max_b: f32) -> f32 {
-    if min_a < min_b {
-        min_b - max_a
-    } else {
-        min_a - max_b
-    }
+    let d1 = min_b - max_a;
+    let d2 = min_a - max_b;
+    let sign = if min_a < min_b { d1 / d1.abs() } else { d2 / d2.abs() };
+    sign * d1.abs().min(d2.abs())
 }

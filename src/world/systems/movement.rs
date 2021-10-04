@@ -21,7 +21,11 @@ impl<'a> System<'a> for Movement {
     fn run(&mut self, (mut movement, mut transform, mut animation, collider, collision): Self::SystemData) {
         let collisions: Vec<Polygon> = (&collision, &transform)
             .join()
-            .flat_map(|(c, t)| c.polygon.iter().map(move |p| p.transform(Some(t.translation.current))))
+            .flat_map(|(c, t)| {
+                c.polygon
+                    .iter()
+                    .map(move |p| p.transform(t.translation.current, t.rotation.current))
+            })
             .collect();
 
         for (movement, transform, animation, collider) in
@@ -34,8 +38,9 @@ impl<'a> System<'a> for Movement {
                 let collider: Vec<Polygon> = collider
                     .polygon
                     .iter()
-                    .map(|p| p.transform(Some(transform.translation.current.clone())))
+                    .map(|p| p.transform(transform.translation.current, transform.rotation.current))
                     .collect();
+
                 for polygon in collider {
                     velocity_dir = get_collision_offset(velocity_dir, &polygon, &collisions);
                 }
@@ -68,8 +73,11 @@ fn get_collision_offset(velocity_dir: Vector3<f32>, collider: &Polygon, collisio
     let mut hits = 0;
 
     for collision in collisions.iter() {
-        let result = engine::collision::check_collision(&collider.transform(Some(offset)), &collision, vec2(offset.x, offset.z));
+        if collision.center().distance(collider.center()) > 5.0 {
+            continue;
+        }
 
+        let result = engine::collision::check_collision(&collider, &collision, vec2(velocity_dir.x, velocity_dir.z));
         offset = match result {
             Intersection::WillIntersect(mtv) => {
                 hits += 1;
