@@ -66,15 +66,17 @@ impl JoystickPipeline {
 
         if let Some(joystick) = &input.joystick {
             if let Some(center) = joystick.center {
-                let uniforms = uniforms::Uniforms {
-                    center: center.into(),
-                    current: joystick.current.into(),
-                    radius: config::JOYSTICK_RADIUS,
-                    aspect: camera.aspect,
-                };
+                if let Some(current) = joystick.current {
+                    let uniforms = uniforms::Uniforms {
+                        center: center.into(),
+                        current: current.into(),
+                        radius: config::JOYSTICK_RADIUS,
+                        aspect: camera.aspect,
+                    };
 
-                ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
-                self.is_visible = joystick.touch;
+                    ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
+                    self.is_visible = joystick.touch;
+                }
             }
         }
     }

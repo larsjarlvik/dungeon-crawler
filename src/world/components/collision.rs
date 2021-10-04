@@ -2,7 +2,7 @@ use crate::engine::*;
 use specs::{Component, VecStorage};
 
 pub struct Collision {
-    pub polygon: Vec<collision::Polygon>,
+    pub polygons: Vec<collision::Polygon>,
 }
 
 impl Component for Collision {
@@ -12,7 +12,7 @@ impl Component for Collision {
 impl Collision {
     pub fn new(gltf: &model::GltfModel, name: &str) -> Self {
         Self {
-            polygon: gltf
+            polygons: gltf
                 .collisions
                 .get(name)
                 .expect(format!("Could not find collision for: {}!", name).as_str())

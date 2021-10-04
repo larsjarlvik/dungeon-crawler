@@ -22,7 +22,7 @@ impl<'a> System<'a> for Movement {
         let collisions: Vec<Polygon> = (&collision, &transform)
             .join()
             .flat_map(|(c, t)| {
-                c.polygon
+                c.polygons
                     .iter()
                     .map(move |p| p.transform(t.translation.current, t.rotation.current))
             })
@@ -36,17 +36,20 @@ impl<'a> System<'a> for Movement {
 
             if let Some(collider) = collider {
                 let collider: Vec<Polygon> = collider
-                    .polygon
+                    .polygons
                     .iter()
                     .map(|p| p.transform(transform.translation.current, transform.rotation.current))
                     .collect();
 
                 for polygon in collider {
-                    velocity_dir = get_collision_offset(velocity_dir, &polygon, &collisions);
+                    let collision = get_collision_offset(velocity_dir, &polygon, &collisions);
+                    if collision.distance(Vector3::zero()) < velocity_dir.distance(Vector3::zero()) {
+                        velocity_dir = collision;
+                    }
                 }
             }
 
-            let velocity = vec2(velocity_dir.x, velocity_dir.z).distance(vec2(0.0, 0.0));
+            let velocity = vec2(velocity_dir.x, velocity_dir.z).distance(Vector2::zero());
             if velocity > 0.01 {
                 transform.translation.set(transform.translation.current + velocity_dir);
 

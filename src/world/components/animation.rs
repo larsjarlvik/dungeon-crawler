@@ -60,13 +60,15 @@ impl Animations {
                 return;
             }
 
-            channel.prev = Some(channel.current.clone());
-            channel.current = Animation {
-                name: animation.to_string(),
-                speed,
-                elapsed: 0.0,
-            };
-            channel.updated = Instant::now();
+            if channel.updated.elapsed().as_secs_f32() > config::ANIMATION_BLEND_SECONDS / 2.0 {
+                channel.prev = Some(channel.current.clone());
+                channel.current = Animation {
+                    name: animation.to_string(),
+                    speed,
+                    elapsed: 0.0,
+                };
+                channel.updated = Instant::now();
+            }
         } else {
             self.channels.insert(
                 channel.to_string(),
