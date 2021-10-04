@@ -2,7 +2,7 @@ use crate::engine::*;
 use specs::{Component, VecStorage};
 
 pub struct Collision {
-    pub polygon: collision::Polygon,
+    pub polygon: Vec<collision::Polygon>,
 }
 
 impl Component for Collision {

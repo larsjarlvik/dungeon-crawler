@@ -21,7 +21,7 @@ pub struct GltfModel {
     pub skins: Vec<skin::Skin>,
     pub nodes: Vec<node::Node>,
     pub materials: Vec<material::Material>,
-    pub collisions: HashMap<String, collision::Polygon>,
+    pub collisions: HashMap<String, Vec<collision::Polygon>>,
     pub animations: HashMap<String, animation::Animation>,
     pub depth_first_taversal_indices: Vec<(usize, Option<usize>)>,
 }
@@ -33,27 +33,26 @@ impl GltfModel {
         let mut meshes = vec![];
         let mut skins = vec![];
         let mut nodes = vec![];
-        let mut collisions: HashMap<String, collision::Polygon> = HashMap::new();
+        let mut collisions: HashMap<String, Vec<collision::Polygon>> = HashMap::new();
 
         for mesh in gltf.meshes() {
             if let Some(mesh_name) = mesh.name() {
-                dbg!(mesh_name);
                 if mesh_name.contains("_col") {
                     let key = mesh_name.split("_").collect::<Vec<&str>>()[0].to_string();
                     let primitives: Vec<gltf::Primitive> = mesh.primitives().collect();
-                    let mut polygon = build_collision_polygon(&primitives[0], &buffers);
+                    let mut polygons = build_collision_polygon(&primitives[0], &buffers);
 
                     match collisions.entry(key) {
                         Entry::Vacant(e) => {
-                            e.insert(polygon);
+                            e.insert(polygons);
                         }
                         Entry::Occupied(mut e) => {
-                            e.get_mut().append(&mut polygon);
+                            e.get_mut().append(&mut polygons);
                         }
                     }
-                } else {
-                    meshes.insert(mesh.index(), mesh::Mesh::new(&mesh, &buffers));
                 }
+
+                meshes.insert(mesh.index(), mesh::Mesh::new(&mesh, &buffers));
             }
         }
 
@@ -103,8 +102,12 @@ impl GltfModel {
             .expect(format!("Failed to find mesh: {0}!", name).as_str())
     }
 
-    pub fn get_material(&self, material: usize) -> &material::Material {
-        &self.materials[material]
+    pub fn get_material(&self, material: Option<usize>) -> Option<&material::Material> {
+        if let Some(material) = material {
+            return Some(&self.materials[material]);
+        }
+
+        None
     }
 }
 
@@ -128,59 +131,24 @@ fn build_graph_run_indices_rec(
     }
 }
 
-fn build_collision_polygon(primitive: &gltf::Primitive, buffers: &Vec<gltf::buffer::Data>) -> collision::Polygon {
+fn build_collision_polygon(primitive: &gltf::Primitive, buffers: &Vec<gltf::buffer::Data>) -> Vec<collision::Polygon> {
     let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
 
-    let mut positions: Vec<Vector2<f32>> = reader
+    let positions: Vec<Vector2<f32>> = reader
         .read_positions()
         .expect("No positions found!")
         .map(|p| vec2(p[0], p[2]))
         .collect();
 
-    positions.sort_by(|a, b| {
-        if a.x == b.x {
-            a.y.partial_cmp(&b.y).unwrap()
-        } else {
-            a.x.partial_cmp(&b.x).unwrap()
-        }
-    });
-
-    let mut upper_hull = vec![];
-    for p in positions.iter() {
-        while upper_hull.len() >= 2 {
-            let q: Vector2<f32> = upper_hull[upper_hull.len() - 1];
-            let r: Vector2<f32> = upper_hull[upper_hull.len() - 2];
-
-            if (q.x - r.x) * (p.y - r.y) >= (q.y - r.y) * (p.x - r.x) {
-                upper_hull.pop();
-            } else {
-                break;
-            }
-        }
-        upper_hull.push(*p);
+    let indices = reader.read_indices().expect("No indices found!").into_u32().collect::<Vec<u32>>();
+    let mut polygons = vec![];
+    for i in (0..indices.len()).step_by(3) {
+        polygons.push(vec![
+            positions[indices[i] as usize],
+            positions[indices[i + 1] as usize],
+            positions[indices[i + 2] as usize],
+        ]);
     }
-    upper_hull.pop();
 
-    let mut lower_hull = vec![];
-    for p in positions.iter().rev() {
-        while lower_hull.len() >= 2 {
-            let q: Vector2<f32> = lower_hull[lower_hull.len() - 1];
-            let r: Vector2<f32> = lower_hull[lower_hull.len() - 2];
-
-            if (q.x - r.x) * (p.y - r.y) >= (q.y - r.y) * (p.x - r.x) {
-                lower_hull.pop();
-            } else {
-                break;
-            }
-        }
-        lower_hull.push(*p);
-    }
-    lower_hull.pop();
-
-    if upper_hull.len() == 1 && lower_hull.len() == 1 && upper_hull[0].x == lower_hull[0].x && upper_hull[0].y == lower_hull[0].y {
-        upper_hull
-    } else {
-        upper_hull.append(&mut lower_hull);
-        upper_hull
-    }
+    polygons
 }

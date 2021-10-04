@@ -2,7 +2,7 @@ use crate::engine::{collision::Polygon, model};
 use specs::{Component, VecStorage};
 
 pub struct Collider {
-    pub polygon: Polygon,
+    pub polygon: Vec<Polygon>,
     pub intersections: Vec<Polygon>,
 }
 

@@ -31,7 +31,11 @@ impl Model {
         for primitive in mesh.primitives.iter() {
             let material = model.get_material(primitive.material);
             let uniform_buffer = builder.create_uniform_buffer_init(bytemuck::cast_slice(&[PrimitiveUniforms {
-                orm_factor: [1.0, material.roughness_factor, material.metallic_factor, 0.0],
+                orm_factor: if let Some(material) = material {
+                    [1.0, material.roughness_factor, material.metallic_factor, 0.0]
+                } else {
+                    [1.0, 0.5, 0.5, 0.0]
+                },
             }]));
 
             primitive_buffers.push(uniform_buffer);
@@ -39,21 +43,25 @@ impl Model {
 
         for (i, primitive) in mesh.primitives.iter().enumerate() {
             let material = model.get_material(primitive.material);
-            let texture_entries = &[
-                builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&material.base_color_texture.view)),
-                builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&material.normal_texture.view)),
-                builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&material.orm_texture.view)),
-                builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&pipeline.sampler)),
-            ];
 
-            builder = builder.with_primitive(
-                builders::PrimitiveBuilder::new(ctx, mesh_name)
-                    .with_uniform_bind_group(&pipeline.primitive_uniform_bind_group_layout, &primitive_buffers[i])
-                    .with_texture_bind_group(&pipeline.texture_bind_group_layout, texture_entries)
-                    .with_vertices(bytemuck::cast_slice(primitive.vertices.as_slice()))
-                    .with_indices(bytemuck::cast_slice(&primitive.indices.as_slice()))
-                    .with_length(primitive.length),
-            );
+            let mut primitive_builder = builders::PrimitiveBuilder::new(ctx, mesh_name)
+                .with_uniform_bind_group(&pipeline.primitive_uniform_bind_group_layout, &primitive_buffers[i])
+                .with_vertices(bytemuck::cast_slice(primitive.vertices.as_slice()))
+                .with_indices(bytemuck::cast_slice(&primitive.indices.as_slice()))
+                .with_length(primitive.length);
+
+            if let Some(material) = material {
+                let texture_entries = &[
+                    builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&material.base_color_texture.view)),
+                    builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&material.normal_texture.view)),
+                    builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&material.orm_texture.view)),
+                    builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&pipeline.sampler)),
+                ];
+
+                primitive_builder = primitive_builder.with_texture_bind_group(&pipeline.texture_bind_group_layout, texture_entries);
+            }
+
+            builder = builder.with_primitive(primitive_builder);
         }
 
         let render_bundle = builder.build();

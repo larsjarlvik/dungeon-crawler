@@ -21,7 +21,7 @@ impl<'a> System<'a> for Movement {
     fn run(&mut self, (mut movement, mut transform, mut animation, collider, collision): Self::SystemData) {
         let collisions: Vec<Polygon> = (&collision, &transform)
             .join()
-            .map(|(c, t)| c.polygon.transform(Some(t.translation.current)))
+            .flat_map(|(c, t)| c.polygon.iter().map(move |p| p.transform(Some(t.translation.current))))
             .collect();
 
         for (movement, transform, animation, collider) in
@@ -31,8 +31,14 @@ impl<'a> System<'a> for Movement {
             transform.rotation.set(cgmath::Quaternion::from_angle_y(Rad(movement.direction)));
 
             if let Some(collider) = collider {
-                let collider = collider.polygon.transform(Some(transform.translation.current));
-                velocity_dir = get_collision_offset(velocity_dir, &collider, &collisions);
+                let collider: Vec<Polygon> = collider
+                    .polygon
+                    .iter()
+                    .map(|p| p.transform(Some(transform.translation.current.clone())))
+                    .collect();
+                for polygon in collider {
+                    velocity_dir = get_collision_offset(velocity_dir, &polygon, &collisions);
+                }
             }
 
             let velocity = vec2(velocity_dir.x, velocity_dir.z).distance(vec2(0.0, 0.0));
@@ -61,29 +67,16 @@ fn get_collision_offset(velocity_dir: Vector3<f32>, collider: &Polygon, collisio
     let mut offset = velocity_dir;
     let mut hits = 0;
 
-    for _ in 0..10 {
-        let mut did_hit = false;
+    for collision in collisions.iter() {
+        let result = engine::collision::check_collision(&collider.transform(Some(offset)), &collision, vec2(offset.x, offset.z));
 
-        for collision in collisions.iter() {
-            let result = engine::collision::check_collision(
-                &collider.transform(Some(offset)),
-                &collision,
-                vec2(velocity_dir.x, velocity_dir.z),
-            );
-
-            offset = match result {
-                Intersection::WillIntersect(mtv) => {
-                    hits += 1;
-                    did_hit = true;
-                    offset + velocity_dir + vec3(mtv.x, 0.0, mtv.y)
-                }
-                _ => offset,
-            };
-        }
-
-        if !did_hit {
-            break;
-        }
+        offset = match result {
+            Intersection::WillIntersect(mtv) => {
+                hits += 1;
+                offset + velocity_dir + vec3(mtv.x, 0.0, mtv.y)
+            }
+            _ => offset,
+        };
     }
 
     offset / (hits + 1) as f32
