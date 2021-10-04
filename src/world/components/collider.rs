@@ -1,5 +1,4 @@
-use crate::engine::collision::Polygon;
-use cgmath::*;
+use crate::engine::{collision::Polygon, model};
 use specs::{Component, VecStorage};
 
 pub struct Collider {
@@ -12,9 +11,13 @@ impl Component for Collider {
 }
 
 impl Collider {
-    pub fn new(polygon: Vec<Vector2<f32>>) -> Self {
+    pub fn new(gltf: &model::GltfModel, name: &str) -> Self {
         Self {
-            polygon,
+            polygon: gltf
+                .collisions
+                .get(name)
+                .expect(format!("Could not find collision for: {}!", name).as_str())
+                .clone(),
             intersections: vec![],
         }
     }

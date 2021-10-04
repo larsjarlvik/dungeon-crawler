@@ -21,7 +21,7 @@ impl<'a> System<'a> for Movement {
     fn run(&mut self, (mut movement, mut transform, mut animation, collider, collision): Self::SystemData) {
         let collisions: Vec<Polygon> = (&collision, &transform)
             .join()
-            .flat_map(|(c, t)| c.polygons.iter().map(move |p| p.transform(Some(t.translation.current))))
+            .map(|(c, t)| c.polygon.transform(Some(t.translation.current)))
             .collect();
 
         for (movement, transform, animation, collider) in
