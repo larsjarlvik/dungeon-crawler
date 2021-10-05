@@ -6,6 +6,7 @@ use winit::{
 
 mod config;
 mod engine;
+mod map;
 mod state;
 mod utils;
 mod world;

@@ -1,8 +1,7 @@
-use std::time::Instant;
-
-use crate::{engine, world};
+use crate::{engine, map, world};
 use cgmath::*;
 use specs::{Builder, WorldExt};
+use std::time::Instant;
 use winit::{event::VirtualKeyCode, window::Window};
 
 pub struct State {
@@ -22,7 +21,6 @@ impl State {
 
     pub fn init(&mut self) {
         let start = Instant::now();
-        let room = self.engine.load_model("models/room.glb");
         let character = self.engine.load_model("models/character.glb");
 
         self.engine.init();
@@ -85,22 +83,8 @@ impl State {
             .with(world::components::Transform::from_translation(vec3(2.4, 2.0, 2.4)))
             .build();
 
-        for z in -3..3 {
-            for x in -3..3 {
-                self.world
-                    .components
-                    .create_entity()
-                    .with(world::components::Model::new(&self.engine, &room, "room"))
-                    .with(world::components::Collision::new(&room, "room"))
-                    .with(world::components::Transform::from_translation(vec3(
-                        x as f32 * 10.0,
-                        0.0,
-                        z as f32 * 10.0,
-                    )))
-                    .with(world::components::Render { cull_frustum: true })
-                    .build();
-            }
-        }
+        let map = map::Map::new(&self.engine, 42432, 100);
+        map.generate(&self.engine, &mut self.world);
 
         self.world
             .components
