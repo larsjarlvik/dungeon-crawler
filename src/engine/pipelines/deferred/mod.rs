@@ -90,7 +90,7 @@ impl DeferredPipeline {
             let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
 
             lights[i] = uniforms::LightUniforms {
-                position: transform.translation.get(time.last_frame).into(),
+                position: (transform.translation.get(time.last_frame) + light.offset).into(),
                 radius,
                 color: (light.color * light.intensity).extend(0.0).into(),
             };

@@ -45,6 +45,7 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Light {
+                offset: vec3(0.0, 0.0, 0.0),
                 color: vec3(1.0, 1.0, 0.75),
                 intensity: 0.4,
                 radius: Some(7.1),
@@ -56,6 +57,7 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Light {
+                offset: vec3(0.0, 0.0, 0.0),
                 color: vec3(1.0, 1.0, 0.7),
                 intensity: 0.4,
                 radius: Some(7.0),
@@ -67,6 +69,7 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Light {
+                offset: vec3(0.0, 0.0, 0.0),
                 color: vec3(1.0, 1.0, 0.63),
                 intensity: 0.4,
                 radius: Some(6.8),
@@ -78,6 +81,7 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Light {
+                offset: vec3(0.0, 0.0, 0.0),
                 color: vec3(1.0, 1.0, 0.72),
                 intensity: 0.4,
                 radius: Some(7.3),
@@ -108,8 +112,9 @@ impl State {
             .with(world::components::Model::new(&self.engine, &character, "character"))
             .with(world::components::Collider::new(&character, "character"))
             .with(world::components::Animations::new("base", "idle"))
-            .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
+            .with(world::components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
             .with(world::components::Light {
+                offset: vec3(0.0, 1.0, 0.5),
                 color: vec3(1.0, 1.0, 0.72),
                 intensity: 1.0,
                 radius: Some(5.0),
