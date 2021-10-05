@@ -13,8 +13,10 @@ impl<'a> System<'a> for UserControl {
     fn run(&mut self, (input, _, mut movement): Self::SystemData) {
         for movement in (&mut movement).join() {
             if let Some(joystick) = &input.joystick {
-                movement.towards(vec3(joystick.current.x, 0.0, joystick.current.y));
-                movement.velocity = joystick.strength * 6.0 / config::UPDATES_PER_SECOND;
+                if let Some(current) = joystick.current {
+                    movement.towards(vec3(current.x, 0.0, current.y));
+                    movement.velocity = joystick.strength * 6.0 / config::UPDATES_PER_SECOND;
+                }
             }
         }
     }

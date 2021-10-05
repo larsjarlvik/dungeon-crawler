@@ -91,6 +91,7 @@ impl State {
                     .components
                     .create_entity()
                     .with(world::components::Model::new(&self.engine, &room, "room"))
+                    .with(world::components::Collision::new(&room, "room"))
                     .with(world::components::Transform::from_translation(vec3(
                         x as f32 * 10.0,
                         0.0,
@@ -105,6 +106,7 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Model::new(&self.engine, &character, "character"))
+            .with(world::components::Collider::new(&character, "character"))
             .with(world::components::Animations::new("base", "idle"))
             .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
             .with(world::components::Light {

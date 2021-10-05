@@ -8,7 +8,7 @@ pub struct Joystick {
     pub id: u64,
     pub touch: bool,
     pub center: Option<Point2<f32>>,
-    pub current: Point2<f32>,
+    pub current: Option<Point2<f32>>,
     pub strength: f32,
 }
 
@@ -63,7 +63,7 @@ impl Input {
 
                     let x = joystick.strength * angle.cos();
                     let y = joystick.strength * angle.sin();
-                    joystick.current = Point2::new(x, y);
+                    joystick.current = Some(Point2::new(x, y));
                 } else {
                     joystick.center = Some(if joystick.touch { relative } else { Point2::new(0.0, 0.0) });
                 }
@@ -83,7 +83,7 @@ impl Input {
                     touch,
                     strength: 0.0,
                     center: None,
-                    current: Point2::new(0.0, 0.0),
+                    current: None,
                 });
             } else {
                 self.mouse.pressed = true;
