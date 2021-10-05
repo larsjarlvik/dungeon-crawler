@@ -10,7 +10,7 @@ struct Uniforms {
     inv_view_proj: mat4x4<f32>;
     eye_pos: vec3<f32>;
     viewport_size: vec4<f32>;
-    light: array<Light, 10>;
+    light: array<Light, 32>;
     light_count: i32;
 };
 

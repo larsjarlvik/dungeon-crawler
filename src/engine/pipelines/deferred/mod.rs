@@ -80,29 +80,15 @@ impl DeferredPipeline {
     }
 
     pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
-        let light_sources = components.read_storage::<components::Light>();
-        let transform = components.read_storage::<components::Transform>();
-        let time = components.read_resource::<resources::Time>();
-
-        let mut lights: [uniforms::LightUniforms; 10] = Default::default();
-
-        for (i, (light, transform)) in (&light_sources, &transform).join().enumerate() {
-            let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
-
-            lights[i] = uniforms::LightUniforms {
-                position: transform.translation.get(time.last_frame).into(),
-                radius,
-                color: (light.color * light.intensity).extend(0.0).into(),
-            };
-        }
-
         let camera = components.read_resource::<resources::Camera>();
+        let (lights_count, lights) = self.get_lights(&camera, components);
+
         let uniforms = uniforms::Uniforms {
             inv_view_proj: camera.view_proj.invert().unwrap().into(),
             eye_pos: camera.get_eye().to_vec().extend(0.0).into(),
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             lights,
-            lights_count: lights.len() as i32,
+            lights_count,
         };
 
         ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
@@ -133,5 +119,42 @@ impl DeferredPipeline {
                 .with_color_attachment(view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
                 .execute_bundles(vec![&render_bundle]);
         }
+    }
+
+    fn get_lights(&self, camera: &resources::Camera, components: &specs::World) -> (i32, [uniforms::LightUniforms; 32]) {
+        let time = components.read_resource::<resources::Time>();
+        let light_sources = components.read_storage::<components::Light>();
+        let transform = components.read_storage::<components::Transform>();
+
+        let mut lights: [uniforms::LightUniforms; 32] = Default::default();
+
+        let visible_lights: Vec<(&components::Light, &components::Transform)> = (&light_sources, &transform)
+            .join()
+            .filter(|(light, transform)| {
+                if let Some(bounding_box) = &light.bounding_box {
+                    camera
+                        .frustum
+                        .test_bounding_box(&bounding_box.transform(transform.to_matrix(time.last_frame).into()))
+                } else {
+                    true
+                }
+            })
+            .collect();
+
+        for (i, (light, transform)) in visible_lights.iter().enumerate() {
+            let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
+
+            if i >= lights.len() {
+                break;
+            }
+
+            lights[i] = uniforms::LightUniforms {
+                position: transform.translation.get(time.last_frame).into(),
+                radius,
+                color: (light.color * light.intensity).extend(0.0).into(),
+            };
+        }
+
+        (visible_lights.len() as i32, lights)
     }
 }

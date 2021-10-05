@@ -7,7 +7,6 @@ use crate::{
         pipelines::{self, builders},
         texture,
     },
-    utils::Interpolate,
     world::*,
 };
 use cgmath::*;
@@ -85,8 +84,7 @@ impl ModelPipeline {
         let mut bundles = vec![];
 
         for (model, animation, render, transform) in (&models, (&animation).maybe(), &render, &transform).join() {
-            let model_matrix = Matrix4::from_translation(transform.translation.get(time.last_frame))
-                * Matrix4::from(transform.rotation.get(time.last_frame));
+            let model_matrix = transform.to_matrix(time.last_frame);
 
             if render.cull_frustum {
                 if !camera

@@ -39,50 +39,6 @@ impl State {
             .with(world::components::Text::new("", vec2(20.0, 20.0)))
             .build();
 
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Light {
-                color: vec3(1.0, 1.0, 0.75),
-                intensity: 0.4,
-                radius: Some(7.1),
-            })
-            .with(world::components::Transform::from_translation(vec3(-2.4, 2.0, -2.4)))
-            .build();
-
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Light {
-                color: vec3(1.0, 1.0, 0.7),
-                intensity: 0.4,
-                radius: Some(7.0),
-            })
-            .with(world::components::Transform::from_translation(vec3(2.4, 2.0, -2.4)))
-            .build();
-
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Light {
-                color: vec3(1.0, 1.0, 0.63),
-                intensity: 0.4,
-                radius: Some(6.8),
-            })
-            .with(world::components::Transform::from_translation(vec3(-2.4, 2.0, 2.4)))
-            .build();
-
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Light {
-                color: vec3(1.0, 1.0, 0.72),
-                intensity: 0.4,
-                radius: Some(7.3),
-            })
-            .with(world::components::Transform::from_translation(vec3(2.4, 2.0, 2.4)))
-            .build();
-
         let map = map::Map::new(&self.engine, 42432, 100);
         map.generate(&self.engine, &mut self.world);
 
@@ -93,11 +49,7 @@ impl State {
             .with(world::components::Collider::new(&character, "character"))
             .with(world::components::Animations::new("base", "idle"))
             .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
-            .with(world::components::Light {
-                color: vec3(1.0, 1.0, 0.72),
-                intensity: 1.0,
-                radius: Some(5.0),
-            })
+            .with(world::components::Light::new(vec3(1.0, 1.0, 0.72), 1.0, Some(5.0)))
             .with(world::components::Movement::new(3.0))
             .with(world::components::UserControl)
             .with(world::components::Render { cull_frustum: false })

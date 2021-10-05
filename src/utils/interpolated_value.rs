@@ -1,6 +1,7 @@
 use crate::config;
 use cgmath::*;
 
+#[derive(Debug)]
 pub struct InterpolatedValue<T> {
     pub current: T,
     pub previous: Option<T>,
