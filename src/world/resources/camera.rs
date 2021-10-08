@@ -51,7 +51,7 @@ impl Camera {
 
     pub fn set(&mut self, target: Vector3<f32>) {
         self.target = target;
-        let eye = Point3::new(target.x + 0.0, target.y + 10.0, target.z + 6.0);
+        let eye = Point3::new(target.x, target.y + 50.0, target.z + 30.0);
         self.view_proj =
             perspective(Deg(45.0), self.aspect, 0.1, 100.0) * Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
 

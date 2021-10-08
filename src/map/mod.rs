@@ -1,91 +1,205 @@
 use crate::{engine, world};
-use cgmath::vec3;
+use cgmath::*;
 use rand::{prelude::StdRng, Rng, SeedableRng};
-use specs::{Builder, WorldExt};
 
 mod block;
 
-const ENTRANCE_MAP: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+#[derive(Clone)]
+struct Room {
+    entrances: [bool; 4],
+    x: i32,
+    z: i32,
+}
+
+impl Default for Room {
+    fn default() -> Self {
+        Self {
+            entrances: [false, false, false, false],
+            x: 0,
+            z: 0,
+        }
+    }
+}
 
 pub struct Map {
-    num_tiles: usize,
     seed: u64,
     block: block::Block,
+    grid_size: usize,
+    number_of_rooms: i32,
 }
 
 impl Map {
-    pub fn new(engine: &engine::Engine, seed: u64, num_tiles: usize) -> Self {
+    pub fn new(engine: &engine::Engine, seed: u64, grid_size: usize) -> Self {
         let block = block::Block::new(engine, 16.0);
-        Self { block, num_tiles, seed }
+        let number_of_rooms = 150;
+        Self {
+            block,
+            seed,
+            grid_size,
+            number_of_rooms,
+        }
     }
 
     pub fn generate(&self, engine: &engine::Engine, world: &mut world::World) {
-        let mut placed_tiles = vec![];
-        let mut to_gen = vec![(0, 0)];
         let mut rng = StdRng::seed_from_u64(self.seed);
-        self.add_tile(engine, world, &mut rng, &mut placed_tiles, &mut to_gen, 0);
-    }
+        let mut rooms = self.create_rooms(&mut rng);
+        self.add_doors(&mut rooms);
 
-    fn add_tile(
-        &self,
-        engine: &engine::Engine,
-        world: &mut world::World,
-        rng: &mut StdRng,
-        placed_tiles: &mut Vec<(i32, i32)>,
-        to_gen: &mut Vec<(i32, i32)>,
-        tile_count: usize,
-    ) {
-        let tile_count = tile_count + 1;
-        if tile_count > self.num_tiles {
-            return;
-        }
-
-        let max_entrance_count = (rng.gen::<f32>().powf(3.0) * 4.0).ceil() as usize;
-
-        let mut is_entrance = vec![true; max_entrance_count];
-        is_entrance.extend(vec![false; 4 - max_entrance_count]);
-        self.shuffle_entrances(rng, &mut is_entrance);
-
-        let mut entrances = vec![false; 4];
-
-        for i in 0..4 {
-            let (gen_x, gen_y) = (to_gen[0].0, to_gen[0].1);
-            let tx = gen_x + ENTRANCE_MAP[i].0;
-            let ty = gen_y + ENTRANCE_MAP[i].1;
-
-            let a = ((tx * tx + ty * ty) as f32).sqrt();
-            let b = ((gen_x * gen_x + gen_y * gen_y) as f32).sqrt();
-
-            if a < b - rng.gen::<f32>() * 8.0 {
-                continue;
+        for x in 0..(self.grid_size * 2) {
+            for z in 0..(self.grid_size * 2) {
+                if let Some(room) = &mut rooms[x][z] {
+                    print!("X");
+                    self.block.build(engine, world, room.x, room.z, &room.entrances);
+                } else {
+                    print!(" ")
+                }
             }
-
-            let exists = placed_tiles.iter().any(|(ptx, pty)| *ptx == tx && *pty == ty);
-            let is_entrance = is_entrance[i] && rng.gen::<f32>() < (self.num_tiles - tile_count) as f32 / (to_gen.len() as f32 * 20.0);
-
-            let needs_gen = to_gen.len() < 2 && tile_count < self.num_tiles;
-            if (!exists && is_entrance) || needs_gen {
-                to_gen.push((tx, ty));
-            }
-
-            entrances[i] = is_entrance || needs_gen;
-        }
-
-        placed_tiles.push(to_gen[0]);
-        self.block.build(engine, world, rng, to_gen[0].0, to_gen[0].1, &is_entrance);
-
-        if to_gen.len() > 1 {
-            to_gen.remove(0);
-            self.add_tile(engine, world, rng, placed_tiles, to_gen, tile_count);
+            println!("");
         }
     }
 
-    fn shuffle_entrances(&self, rng: &mut StdRng, entrances: &mut Vec<bool>) {
-        for i in (0..(entrances.len() - 1)).rev() {
-            let j = (rng.gen::<f32>() * (i as f32 + 1.0)).floor() as usize;
-            let temp = entrances[i];
-            entrances[i] = entrances[j];
-            entrances[j] = temp;
+    fn create_rooms(&self, rng: &mut StdRng) -> Vec<Vec<Option<Room>>> {
+        let mut rooms = vec![vec![None; self.grid_size * 2]; self.grid_size * 2];
+        let mut taken_positions = vec![(0, 0)];
+
+        rooms[self.grid_size][self.grid_size] = Some(Room {
+            x: 0,
+            z: 0,
+            entrances: [false, false, false, false],
+        });
+
+        let random_compare_start = 0.2f32;
+        let random_compare_end = 0.01f32;
+
+        for i in 0..(self.number_of_rooms - 1) {
+            let random_perc = (i as f32) / (self.number_of_rooms - 1) as f32;
+            let random_compare = vec1(random_compare_start).lerp(vec1(random_compare_end), random_perc).x;
+            let mut check_pos = self.new_position(rng, &taken_positions);
+
+            if self.number_of_neighbors(&check_pos, &taken_positions) > 1 && rng.gen::<f32>() > random_compare * 0.5 {
+                for _ in 0..100 {
+                    check_pos = self.selective_new_position(rng, &taken_positions);
+                    if self.number_of_neighbors(&check_pos, &taken_positions) == 0 {
+                        break;
+                    }
+                }
+            }
+
+            rooms[check_pos.0 as usize + self.grid_size][check_pos.1 as usize + self.grid_size] = Some(Room {
+                x: check_pos.0,
+                z: check_pos.1,
+                entrances: [false, false, false, false],
+            });
+
+            taken_positions.insert(0, check_pos);
         }
+
+        rooms
+    }
+
+    fn add_doors(&self, rooms: &mut Vec<Vec<Option<Room>>>) {
+        for x in 0..(self.grid_size * 2) {
+            for z in 0..(self.grid_size * 2) {
+                self.add_door(rooms, x as i32, z as i32, 0, -1, 0);
+                self.add_door(rooms, x as i32, z as i32, 1, 0, 1);
+                self.add_door(rooms, x as i32, z as i32, 0, 1, 2);
+                self.add_door(rooms, x as i32, z as i32, -1, 0, 3);
+            }
+        }
+    }
+
+    fn add_door(&self, rooms: &mut Vec<Vec<Option<Room>>>, x: i32, z: i32, ox: i32, oz: i32, entrance: usize) {
+        let existing = rooms.clone();
+
+        if let Some(room) = &mut rooms[x as usize][z as usize] {
+            if z + oz >= 0 && z + oz < self.grid_size as i32 * 2 && x + ox >= 0 && x + ox < self.grid_size as i32 * 2 {
+                if existing[(x + ox) as usize][(z + oz) as usize].is_some() {
+                    room.entrances[entrance] = true;
+                }
+            }
+        }
+    }
+
+    fn selective_new_position(&self, rng: &mut StdRng, taken_positions: &Vec<(i32, i32)>) -> (i32, i32) {
+        let mut check_pos: (i32, i32);
+
+        loop {
+            let mut index = 0;
+            for _ in 0..100 {
+                index = rng.gen_range(0..taken_positions.len());
+                if self.number_of_neighbors(&taken_positions[index], taken_positions) <= 1 {
+                    break;
+                }
+            }
+
+            let (mut x, mut z) = taken_positions[index];
+            let up_down = rng.gen::<f32>() < 0.5;
+            let positive = rng.gen::<f32>() < 0.5;
+            if up_down {
+                if positive {
+                    z += 1;
+                } else {
+                    z -= 1;
+                }
+            } else {
+                if positive {
+                    x += 1;
+                } else {
+                    x -= 1;
+                }
+            }
+
+            check_pos = (x, z);
+
+            let gs = self.grid_size as i32;
+            if !taken_positions.iter().any(|t| t == &check_pos) && x >= -gs && x < gs && z >= -gs && z < gs {
+                break;
+            }
+        }
+
+        check_pos
+    }
+
+    fn number_of_neighbors(&self, pos: &(i32, i32), taken_positions: &Vec<(i32, i32)>) -> usize {
+        let (x, z) = pos;
+        taken_positions.iter().filter(|(tx, tz)| tx == &(x + 1) && tz == z).count()
+            + taken_positions.iter().filter(|(tx, tz)| tx == &(x - 1) && tz == z).count()
+            + taken_positions.iter().filter(|(tx, tz)| tx == x && tz == &(z + 1)).count()
+            + taken_positions.iter().filter(|(tx, tz)| tx == x && tz == &(z - 1)).count()
+    }
+
+    fn new_position(&self, rng: &mut StdRng, taken_positions: &Vec<(i32, i32)>) -> (i32, i32) {
+        let mut checking_pos: (i32, i32);
+
+        loop {
+            let index = rng.gen_range(0..taken_positions.len());
+            let (mut x, mut z) = taken_positions[index];
+
+            let up_down = rng.gen::<f32>() < 0.5;
+            let positive = rng.gen::<f32>() < 0.5;
+
+            if up_down {
+                if positive {
+                    z += 1;
+                } else {
+                    z -= 1;
+                }
+            } else {
+                if positive {
+                    x += 1;
+                } else {
+                    x -= 1;
+                }
+            }
+
+            checking_pos = (x as i32, z as i32);
+
+            let gs = self.grid_size as i32;
+            if !taken_positions.iter().any(|t| t == &checking_pos) && x >= -gs && x < gs && z >= -gs && z < gs {
+                break;
+            }
+        }
+
+        checking_pos
     }
 }

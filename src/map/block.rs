@@ -1,6 +1,5 @@
 use crate::{engine, world};
 use cgmath::*;
-use rand::prelude::StdRng;
 use specs::{Builder, WorldExt};
 
 pub struct Block {
@@ -14,13 +13,9 @@ impl Block {
         Self { block, size }
     }
 
-    pub fn build(&self, engine: &engine::Engine, world: &mut world::World, rng: &mut StdRng, x: i32, y: i32, entrances: &Vec<bool>) {
+    pub fn build(&self, engine: &engine::Engine, world: &mut world::World, x: i32, y: i32, entrances: &[bool; 4]) {
         let center = vec3(x as f32 * self.size, 0.0, y as f32 * self.size);
         let (block, rotation) = self.determine_block(entrances);
-
-        dbg!(x);
-        dbg!(y);
-        dbg!(&entrances);
 
         world
             .components
@@ -39,8 +34,8 @@ impl Block {
             .build();
     }
 
-    fn determine_block(&self, entrances: &Vec<bool>) -> (&str, f32) {
-        match entrances.as_slice() {
+    fn determine_block(&self, entrances: &[bool; 4]) -> (&str, f32) {
+        match entrances {
             [true, false, false, false] => ("Room1000-1", 0.0),
             [false, true, false, false] => ("Room1000-1", 90.0),
             [false, false, true, false] => ("Room1000-1", 180.0),
@@ -55,9 +50,9 @@ impl Block {
             [false, true, false, true] => ("Room1010-1", 90.0),
 
             [true, true, true, false] => ("Room1110-1", 0.0),
-            [false, true, true, true] => ("Room1110-1", 0.0),
-            [true, false, true, true] => ("Room1110-1", 0.0),
-            [true, true, false, true] => ("Room1110-1", 0.0),
+            [false, true, true, true] => ("Room1110-1", 90.0),
+            [true, false, true, true] => ("Room1110-1", 180.0),
+            [true, true, false, true] => ("Room1110-1", 270.0),
 
             _ => ("Room1111-1", 0.0),
         }

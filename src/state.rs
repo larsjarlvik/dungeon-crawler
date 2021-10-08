@@ -39,7 +39,7 @@ impl State {
             .with(world::components::Text::new("", vec2(20.0, 20.0)))
             .build();
 
-        let map = map::Map::new(&self.engine, 42312, 200);
+        let map = map::Map::new(&self.engine, 42312, 20);
         map.generate(&self.engine, &mut self.world);
 
         self.world
