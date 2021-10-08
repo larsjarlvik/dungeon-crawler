@@ -1,20 +1,22 @@
 use crate::{engine, world};
+use cgmath::vec3;
 use rand::{prelude::StdRng, Rng, SeedableRng};
+use specs::{Builder, WorldExt};
 
-mod room;
+mod block;
 
 const ENTRANCE_MAP: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
 
 pub struct Map {
     num_tiles: usize,
     seed: u64,
-    room: room::Room,
+    block: block::Block,
 }
 
 impl Map {
     pub fn new(engine: &engine::Engine, seed: u64, num_tiles: usize) -> Self {
-        let room = room::Room::new(engine);
-        Self { room, num_tiles, seed }
+        let block = block::Block::new(engine, 16.0);
+        Self { block, num_tiles, seed }
     }
 
     pub fn generate(&self, engine: &engine::Engine, world: &mut world::World) {
@@ -70,7 +72,7 @@ impl Map {
         }
 
         placed_tiles.push(to_gen[0]);
-        self.room.build(engine, world, rng, to_gen[0].0, to_gen[0].1);
+        self.block.build(engine, world, rng, to_gen[0].0, to_gen[0].1, &is_entrance);
 
         if to_gen.len() > 1 {
             to_gen.remove(0);
