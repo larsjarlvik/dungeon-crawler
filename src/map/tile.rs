@@ -12,7 +12,7 @@ pub struct Tile {
 impl Tile {
     pub fn new(engine: &engine::Engine, size: f32) -> Self {
         let tile = engine.load_model("models/catacombs.glb");
-        let assets = engine.load_model("models/assets.glb");
+        let assets = engine.load_model("models/decor.glb");
         Self { tile, assets, size }
     }
 
@@ -43,15 +43,18 @@ impl Tile {
                 .build();
         });
 
-        let s = self.size / 2.0;
+        let s = self.size / 2.0 - 2.0;
+        let decor = vec!["barrel", "table", "torch"];
         for _ in 0..10 {
+            let current = decor[rng.gen_range(0..decor.len())];
             world
                 .components
                 .create_entity()
-                .with(world::components::Model::new(&engine, &self.assets, "barrel"))
-                .with(world::components::Collision::new(&self.assets, "barrel"))
-                .with(world::components::Transform::from_translation(
+                .with(world::components::Model::new(&engine, &self.assets, current))
+                .with(world::components::Collision::new(&self.assets, current))
+                .with(world::components::Transform::from_translation_angle(
                     center + vec3(rng.gen_range(-s..s), 0.0, rng.gen_range(-s..s)),
+                    rng.gen::<f32>() * 360.0,
                 ))
                 .with(world::components::Render { cull_frustum: true })
                 .build();
