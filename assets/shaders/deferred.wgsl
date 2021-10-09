@@ -85,7 +85,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     }
 
     var color: vec4<f32> = textureLoad(t_color, c, 0);
-    var normal: vec3<f32> = textureLoad(t_normal, c, 0).xyz;
+    var normal: vec3<f32> = normalize(textureLoad(t_normal, c, 0).xyz);
     var orm: vec3<f32> = textureLoad(t_orm, c, 0).xyz;
     var position: vec3<f32> = world_pos_from_depth(coord.xy / uniforms.viewport_size.xy, depth, uniforms.inv_view_proj);
 
@@ -108,10 +108,10 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
 
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];
-        let light_dir = normalize(light.position - position);
         var light_dist: f32 = distance(light.position, position);
 
         if (light_dist < light.radius) {
+            let light_dir = normalize(light.position - position);
             let half_dir = normalize(light_dir + view_dir);
             let reflection = -normalize(reflect(view_dir, normal));
 
@@ -135,7 +135,8 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
                 var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
                 light_contrib = light_contrib + normal.y;
 
-                total_light = total_light + total_attenuation * light.color * light_contrib;
+                let new_light = mix(total_light, total_attenuation * light.color * light_contrib, 0.5);
+                total_light = max(total_light, new_light);
             }
         }
     }

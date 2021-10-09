@@ -48,7 +48,7 @@ impl<'a> World {
 
         while self.update_time >= 0.0 {
             self.dispatcher.setup(&mut self.components);
-            self.dispatcher.dispatch(&mut self.components);
+            self.dispatcher.dispatch_par(&mut self.components);
             self.components.maintain();
             self.update_time -= config::time_step().as_secs_f32();
 

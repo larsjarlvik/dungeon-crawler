@@ -2,54 +2,44 @@ use crate::{engine, world};
 use cgmath::*;
 use rand::{prelude::StdRng, Rng, SeedableRng};
 
-mod block;
+mod tile;
 
 #[derive(Clone)]
-struct Room {
+struct Tile {
     entrances: [bool; 4],
     x: i32,
     z: i32,
 }
 
-impl Default for Room {
-    fn default() -> Self {
-        Self {
-            entrances: [false, false, false, false],
-            x: 0,
-            z: 0,
-        }
-    }
-}
-
 pub struct Map {
     seed: u64,
-    block: block::Block,
+    tile: tile::Tile,
     grid_size: usize,
-    number_of_rooms: i32,
+    number_of_tiles: i32,
 }
 
 impl Map {
     pub fn new(engine: &engine::Engine, seed: u64, grid_size: usize) -> Self {
-        let block = block::Block::new(engine, 16.0);
-        let number_of_rooms = 150;
+        let tile = tile::Tile::new(engine, 14.0);
+        let number_of_tiles = 25;
         Self {
-            block,
+            tile,
             seed,
             grid_size,
-            number_of_rooms,
+            number_of_tiles,
         }
     }
 
     pub fn generate(&self, engine: &engine::Engine, world: &mut world::World) {
         let mut rng = StdRng::seed_from_u64(self.seed);
-        let mut rooms = self.create_rooms(&mut rng);
-        self.add_doors(&mut rooms);
+        let mut tiles = self.create_tiles(&mut rng);
+        self.add_entrances(&mut tiles);
 
         for x in 0..(self.grid_size * 2) {
             for z in 0..(self.grid_size * 2) {
-                if let Some(room) = &mut rooms[x][z] {
+                if let Some(tile) = &mut tiles[x][z] {
                     print!("X");
-                    self.block.build(engine, world, room.x, room.z, &room.entrances);
+                    self.tile.build(engine, world, &mut rng, tile.x, tile.z, &tile.entrances);
                 } else {
                     print!(" ")
                 }
@@ -58,11 +48,11 @@ impl Map {
         }
     }
 
-    fn create_rooms(&self, rng: &mut StdRng) -> Vec<Vec<Option<Room>>> {
-        let mut rooms = vec![vec![None; self.grid_size * 2]; self.grid_size * 2];
+    fn create_tiles(&self, rng: &mut StdRng) -> Vec<Vec<Option<Tile>>> {
+        let mut tiles = vec![vec![None; self.grid_size * 2]; self.grid_size * 2];
         let mut taken_positions = vec![(0, 0)];
 
-        rooms[self.grid_size][self.grid_size] = Some(Room {
+        tiles[self.grid_size][self.grid_size] = Some(Tile {
             x: 0,
             z: 0,
             entrances: [false, false, false, false],
@@ -71,8 +61,8 @@ impl Map {
         let random_compare_start = 0.2f32;
         let random_compare_end = 0.01f32;
 
-        for i in 0..(self.number_of_rooms - 1) {
-            let random_perc = (i as f32) / (self.number_of_rooms - 1) as f32;
+        for i in 0..(self.number_of_tiles - 1) {
+            let random_perc = (i as f32) / (self.number_of_tiles - 1) as f32;
             let random_compare = vec1(random_compare_start).lerp(vec1(random_compare_end), random_perc).x;
             let mut check_pos = self.new_position(rng, &taken_positions);
 
@@ -85,7 +75,7 @@ impl Map {
                 }
             }
 
-            rooms[check_pos.0 as usize + self.grid_size][check_pos.1 as usize + self.grid_size] = Some(Room {
+            tiles[check_pos.0 as usize + self.grid_size][check_pos.1 as usize + self.grid_size] = Some(Tile {
                 x: check_pos.0,
                 z: check_pos.1,
                 entrances: [false, false, false, false],
@@ -94,27 +84,27 @@ impl Map {
             taken_positions.insert(0, check_pos);
         }
 
-        rooms
+        tiles
     }
 
-    fn add_doors(&self, rooms: &mut Vec<Vec<Option<Room>>>) {
+    fn add_entrances(&self, tiles: &mut Vec<Vec<Option<Tile>>>) {
         for x in 0..(self.grid_size * 2) {
             for z in 0..(self.grid_size * 2) {
-                self.add_door(rooms, x as i32, z as i32, 0, -1, 0);
-                self.add_door(rooms, x as i32, z as i32, 1, 0, 1);
-                self.add_door(rooms, x as i32, z as i32, 0, 1, 2);
-                self.add_door(rooms, x as i32, z as i32, -1, 0, 3);
+                self.add_entrance(tiles, x as i32, z as i32, 0, -1, 0);
+                self.add_entrance(tiles, x as i32, z as i32, 1, 0, 1);
+                self.add_entrance(tiles, x as i32, z as i32, 0, 1, 2);
+                self.add_entrance(tiles, x as i32, z as i32, -1, 0, 3);
             }
         }
     }
 
-    fn add_door(&self, rooms: &mut Vec<Vec<Option<Room>>>, x: i32, z: i32, ox: i32, oz: i32, entrance: usize) {
-        let existing = rooms.clone();
+    fn add_entrance(&self, tiles: &mut Vec<Vec<Option<Tile>>>, x: i32, z: i32, ox: i32, oz: i32, entrance: usize) {
+        let existing = tiles.clone();
 
-        if let Some(room) = &mut rooms[x as usize][z as usize] {
+        if let Some(tile) = &mut tiles[x as usize][z as usize] {
             if z + oz >= 0 && z + oz < self.grid_size as i32 * 2 && x + ox >= 0 && x + ox < self.grid_size as i32 * 2 {
                 if existing[(x + ox) as usize][(z + oz) as usize].is_some() {
-                    room.entrances[entrance] = true;
+                    tile.entrances[entrance] = true;
                 }
             }
         }

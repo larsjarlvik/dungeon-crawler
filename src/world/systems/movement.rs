@@ -54,11 +54,11 @@ impl<'a> System<'a> for Movement {
                 transform.translation.set(transform.translation.current + velocity_dir);
 
                 if let Some(animation) = animation {
-                    let animation_velocity = velocity / 0.05;
+                    let animation_velocity = velocity / 0.06;
                     if animation_velocity > 1.6 {
                         animation.set_animation("base", "run", animation_velocity);
                     } else if animation_velocity > 0.3 {
-                        animation.set_animation("base", "walk", animation_velocity);
+                        animation.set_animation("base", "walk", animation_velocity * 0.5);
                     }
                 }
             } else if let Some(animation) = animation {

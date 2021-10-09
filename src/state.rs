@@ -48,9 +48,14 @@ impl State {
             .with(world::components::Model::new(&self.engine, &character, "character"))
             .with(world::components::Collider::new(&character, "character"))
             .with(world::components::Animations::new("base", "idle"))
-            .with(world::components::Transform::from_translation(vec3(0.0, 1.0, 0.0)))
-            .with(world::components::Light::new(vec3(1.0, 1.0, 0.72), 1.0, Some(5.0)))
-            .with(world::components::Movement::new(3.0))
+            .with(world::components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
+            .with(world::components::Light::new(
+                vec3(1.0, 1.0, 0.72),
+                1.0,
+                Some(5.0),
+                vec3(0.0, 2.0, 0.0),
+            ))
+            .with(world::components::Movement::new(15.0))
             .with(world::components::UserControl)
             .with(world::components::Render { cull_frustum: false })
             .with(world::components::Follow)

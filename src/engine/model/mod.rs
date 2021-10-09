@@ -5,6 +5,7 @@ use std::{
 };
 pub mod animation;
 mod interpolation;
+mod light;
 mod material;
 mod mesh;
 pub mod node;
@@ -20,6 +21,7 @@ pub struct GltfModel {
     pub meshes: Vec<mesh::Mesh>,
     pub skins: Vec<skin::Skin>,
     pub nodes: Vec<node::Node>,
+    pub lights: Vec<light::Light>,
     pub materials: Vec<material::Material>,
     pub collisions: HashMap<String, Vec<collision::Polygon>>,
     pub animations: HashMap<String, animation::Animation>,
@@ -37,7 +39,7 @@ impl GltfModel {
 
         for mesh in gltf.meshes() {
             if let Some(mesh_name) = mesh.name() {
-                if mesh_name.contains("_col") {
+                if mesh_name.split("_").any(|w| w == "col") {
                     let key = mesh_name.split("_").collect::<Vec<&str>>()[0].to_string();
                     let primitives: Vec<gltf::Primitive> = mesh.primitives().collect();
                     let mut polygons = build_collision_polygon(&primitives[0], &buffers);
@@ -84,6 +86,18 @@ impl GltfModel {
             })
             .collect();
 
+        let lights = gltf
+            .nodes()
+            .filter(|n| {
+                if let Some(name) = n.name() {
+                    name.split("_").any(|w| w == "light")
+                } else {
+                    false
+                }
+            })
+            .map(|l| light::Light::new(&l))
+            .collect();
+
         Self {
             meshes,
             skins,
@@ -91,6 +105,7 @@ impl GltfModel {
             materials,
             collisions,
             animations,
+            lights,
             depth_first_taversal_indices,
         }
     }

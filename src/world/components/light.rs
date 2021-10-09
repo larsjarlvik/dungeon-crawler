@@ -9,10 +9,11 @@ pub struct Light {
     pub intensity: f32,
     pub radius: Option<f32>,
     pub bounding_box: Option<bounding_box::BoundingBox>,
+    pub offset: Vector3<f32>,
 }
 
 impl Light {
-    pub fn new(color: Vector3<f32>, intensity: f32, radius: Option<f32>) -> Self {
+    pub fn new(color: Vector3<f32>, intensity: f32, radius: Option<f32>, offset: Vector3<f32>) -> Self {
         let bounding_box = if let Some(radius) = radius {
             Some(bounding_box::BoundingBox {
                 min: point3(-radius, -radius, -radius),
@@ -27,6 +28,7 @@ impl Light {
             intensity,
             radius,
             bounding_box,
+            offset,
         }
     }
 }
