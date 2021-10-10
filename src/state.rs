@@ -51,7 +51,7 @@ impl State {
             .with(world::components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
             .with(world::components::Light::new(
                 vec3(1.0, 1.0, 0.72),
-                1.0,
+                0.6,
                 Some(5.0),
                 vec3(0.0, 2.0, 0.0),
             ))

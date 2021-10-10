@@ -34,7 +34,7 @@ impl Light {
         Self {
             name: light.name().unwrap().to_string(),
             radius: light.range().unwrap_or(5.0),
-            intensity: light.intensity() / 10.0,
+            intensity: light.intensity() / 20.0,
             flicker,
             color: Vector3::from(light.color()),
             translation: Vector3::from(translation),

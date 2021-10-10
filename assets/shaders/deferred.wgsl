@@ -130,12 +130,11 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
                 let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
                 let attenuation = clamp(1.0 - light_dist * light_dist / (light.radius * light.radius), 0.0, 1.0);
-                let total_attenuation = clamp(attenuation * attenuation, 0.0, 1.0);
 
                 var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
                 light_contrib = light_contrib + normal.y;
 
-                let new_light = mix(total_light, total_attenuation * light.color * light_contrib, 0.5);
+                let new_light = mix(total_light, attenuation * light.color * light_contrib, 0.5);
                 total_light = max(total_light, new_light);
             }
         }

@@ -14,7 +14,7 @@ impl Flicker {
         Self {
             amount,
             last: rng.gen::<f32>(),
-            speed: rng.gen::<f32>() * 0.02 + 0.02,
+            speed: rng.gen::<f32>() * 0.01 + 0.01,
         }
     }
 }
