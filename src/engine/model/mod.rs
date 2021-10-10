@@ -36,6 +36,7 @@ impl GltfModel {
         let mut skins = vec![];
         let mut nodes = vec![];
         let mut collisions: HashMap<String, Vec<collision::Polygon>> = HashMap::new();
+        let mut lights = vec![];
 
         for mesh in gltf.meshes() {
             if let Some(mesh_name) = mesh.name() {
@@ -64,6 +65,11 @@ impl GltfModel {
 
         for node in gltf.nodes() {
             nodes.insert(node.index(), node::Node::new(&node));
+
+            if let Some(light) = node.light() {
+                let n = gltf.nodes().filter(|n| n.name() == light.name()).collect();
+                lights.push(light::Light::new(&light, &n));
+            }
         }
 
         let roots_indices = gltf.default_scene().unwrap().nodes().map(|n| n.index()).collect::<Vec<_>>();
@@ -84,18 +90,6 @@ impl GltfModel {
                     animation::Animation::new(animation, &buffers),
                 )
             })
-            .collect();
-
-        let lights = gltf
-            .nodes()
-            .filter(|n| {
-                if let Some(name) = n.name() {
-                    name.split("_").any(|w| w == "light")
-                } else {
-                    false
-                }
-            })
-            .map(|l| light::Light::new(&l))
             .collect();
 
         Self {

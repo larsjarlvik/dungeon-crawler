@@ -141,6 +141,5 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
         }
     }
 
-    let light_with_fade = clamp(total_light, vec3<f32>(0.0), vec3<f32>(1.0)) * clamp((2.7 - position.y) * 1.5 - 0.75, 0.0, 1.0);
-    return vec4<f32>(light_with_fade * color.rgb * orm.r, color.a);
+    return vec4<f32>(total_light * color.rgb * orm.r, color.a);
 }

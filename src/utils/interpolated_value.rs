@@ -32,6 +32,17 @@ pub trait Interpolate<T> {
     fn get(&self, frame_time: f32) -> T;
 }
 
+impl Interpolate<f32> for InterpolatedValue<f32> {
+    fn get(&self, frame_time: f32) -> f32 {
+        if let Some(prev_value) = self.previous {
+            let factor = frame_time / config::time_step().as_secs_f32();
+            return vec1(prev_value).lerp(vec1(self.current), factor).x;
+        }
+
+        self.current
+    }
+}
+
 impl Interpolate<Vector3<f32>> for InterpolatedValue<Vector3<f32>> {
     fn get(&self, frame_time: f32) -> Vector3<f32> {
         if let Some(prev_value) = self.previous {

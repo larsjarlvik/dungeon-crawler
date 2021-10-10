@@ -27,11 +27,13 @@ impl<'a> World {
         components.register::<components::Follow>();
         components.register::<components::Collider>();
         components.register::<components::Collision>();
+        components.register::<components::Flicker>();
 
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Fps, "fps", &[])
             .with(systems::UserControl, "user_control", &[])
             .with(systems::Movement, "movement", &[])
+            .with(systems::LightFlicker, "light_flicker", &[])
             .build();
 
         Self {

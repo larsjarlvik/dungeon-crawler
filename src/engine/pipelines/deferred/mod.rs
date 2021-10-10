@@ -151,7 +151,7 @@ impl DeferredPipeline {
             lights[i] = uniforms::LightUniforms {
                 position: (transform.translation.get(time.last_frame) + light.offset).into(),
                 radius,
-                color: (light.color * light.intensity).extend(0.0).into(),
+                color: (light.color * light.intensity.get(time.last_frame)).extend(0.0).into(),
             };
         }
 

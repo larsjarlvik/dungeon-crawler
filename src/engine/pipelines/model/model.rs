@@ -30,12 +30,18 @@ impl Model {
 
         for primitive in mesh.primitives.iter() {
             let material = model.get_material(primitive.material);
+            let (has_textures, orm_factor) = if let Some(material) = material {
+                (
+                    material.textures.is_some(),
+                    [1.0, material.roughness_factor, material.metallic_factor, 0.0],
+                )
+            } else {
+                (false, [1.0, 0.5, 0.5, 0.0])
+            };
+
             let uniform_buffer = builder.create_uniform_buffer_init(bytemuck::cast_slice(&[PrimitiveUniforms {
-                orm_factor: if let Some(material) = material {
-                    [1.0, material.roughness_factor, material.metallic_factor, 0.0]
-                } else {
-                    [1.0, 0.5, 0.5, 0.0]
-                },
+                has_textures: has_textures.into(),
+                orm_factor,
             }]));
 
             primitive_buffers.push(uniform_buffer);
@@ -51,14 +57,18 @@ impl Model {
                 .with_length(primitive.length);
 
             if let Some(material) = material {
-                let texture_entries = &[
-                    builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&material.base_color_texture.view)),
-                    builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&material.normal_texture.view)),
-                    builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&material.orm_texture.view)),
-                    builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&pipeline.sampler)),
-                ];
-
-                primitive_builder = primitive_builder.with_texture_bind_group(&pipeline.texture_bind_group_layout, texture_entries);
+                if let Some(textures) = &material.textures {
+                    let texture_entries = &[
+                        builders::RenderBundleBuilder::create_entry(
+                            0,
+                            wgpu::BindingResource::TextureView(&textures.base_color_texture.view),
+                        ),
+                        builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&textures.normal_texture.view)),
+                        builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&textures.orm_texture.view)),
+                        builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::Sampler(&pipeline.sampler)),
+                    ];
+                    primitive_builder = primitive_builder.with_texture_bind_group(&pipeline.texture_bind_group_layout, texture_entries);
+                }
             }
 
             builder = builder.with_primitive(primitive_builder);

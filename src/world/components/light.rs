@@ -1,12 +1,13 @@
 use cgmath::*;
 use specs::{Component, VecStorage};
 
-use crate::engine::bounding_box;
+use crate::{engine::bounding_box, utils::InterpolatedValue};
 
 #[derive(Debug)]
 pub struct Light {
     pub color: Vector3<f32>,
-    pub intensity: f32,
+    pub base_intensity: f32,
+    pub intensity: InterpolatedValue<f32>,
     pub radius: Option<f32>,
     pub bounding_box: Option<bounding_box::BoundingBox>,
     pub offset: Vector3<f32>,
@@ -25,7 +26,8 @@ impl Light {
 
         Self {
             color,
-            intensity,
+            base_intensity: intensity,
+            intensity: InterpolatedValue::new(intensity),
             radius,
             bounding_box,
             offset,

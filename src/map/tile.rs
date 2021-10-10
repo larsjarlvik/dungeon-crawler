@@ -34,17 +34,22 @@ impl Tile {
                 .components
                 .create_entity()
                 .with(world::components::Light::new(
-                    vec3(1.0, 1.0, 0.7),
-                    0.4,
+                    l.color,
+                    l.intensity,
                     Some(l.radius),
-                    Vector3::zero(),
+                    l.translation,
                 ))
-                .with(world::components::Transform::from_translation(center + l.translation))
+                .with(world::components::Transform::from_translation(center))
+                .maybe_with(if let Some(flicker) = l.flicker {
+                    Some(world::components::Flicker::new(flicker))
+                } else {
+                    None
+                })
                 .build();
         });
 
         let s = self.size / 2.0 - 2.0;
-        let decor = vec!["barrel", "table", "torch"];
+        let decor = vec!["barrel", "table", "torch", "crate"];
         for _ in 0..10 {
             let current = decor[rng.gen_range(0..decor.len())];
             world
