@@ -7,7 +7,6 @@ use crate::{
         pipelines::{self, builders},
         texture,
     },
-    utils::Interpolate,
     world::*,
 };
 use cgmath::*;
@@ -82,35 +81,35 @@ impl ModelPipeline {
         let animation = components.read_storage::<components::Animations>();
         let time = components.read_resource::<resources::Time>();
         let camera = components.read_resource::<resources::Camera>();
-        let mut bundles = vec![];
 
-        for (model, animation, render, transform) in (&models, (&animation).maybe(), &render, &transform).join() {
-            let model_matrix = Matrix4::from_translation(transform.translation.get(time.last_frame))
-                * Matrix4::from(transform.rotation.get(time.last_frame));
+        let bundles = (&models, (&animation).maybe(), &render, &transform)
+            .join()
+            .filter_map(|(model, animation, render, transform)| {
+                let model_matrix = transform.to_matrix(time.last_frame);
 
-            if render.cull_frustum {
-                if !camera
-                    .frustum
-                    .test_bounding_box(&model.model.bounding_box.transform(model_matrix.into()))
+                if render.cull_frustum
+                    && !camera
+                        .frustum
+                        .test_bounding_box(&model.model.bounding_box.transform(model_matrix.into()))
                 {
-                    continue;
+                    return None;
                 }
-            }
 
-            let joint_transforms = get_joint_transforms(&model, &animation);
-            ctx.queue.write_buffer(
-                &model.model.uniform_buffer,
-                self.uniform_bind_group_layout.index as u64,
-                bytemuck::cast_slice(&[Uniforms {
-                    view_proj: camera.view_proj.into(),
-                    model: model_matrix.into(),
-                    joint_transforms: joint_transforms.try_into().unwrap(),
-                    is_animated: animation.is_some() as u32,
-                }]),
-            );
+                let joint_transforms = get_joint_transforms(&model, &animation);
+                ctx.queue.write_buffer(
+                    &model.model.uniform_buffer,
+                    self.uniform_bind_group_layout.index as u64,
+                    bytemuck::cast_slice(&[Uniforms {
+                        view_proj: camera.view_proj.into(),
+                        model: model_matrix.into(),
+                        joint_transforms: joint_transforms.try_into().unwrap(),
+                        is_animated: animation.is_some() as u32,
+                    }]),
+                );
 
-            bundles.push(&model.model.render_bundle);
-        }
+                Some(&model.model.render_bundle)
+            })
+            .collect();
 
         builders::RenderTargetBuilder::new(ctx, "model")
             .with_color_attachment(&target.normal_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))

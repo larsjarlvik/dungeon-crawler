@@ -15,7 +15,7 @@ impl<'a> System<'a> for UserControl {
             if let Some(joystick) = &input.joystick {
                 if let Some(current) = joystick.current {
                     movement.towards(vec3(current.x, 0.0, current.y));
-                    movement.velocity = joystick.strength * 6.0 / config::UPDATES_PER_SECOND;
+                    movement.velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
                 }
             }
         }

@@ -2,7 +2,7 @@ use cgmath::*;
 
 #[derive(Clone)]
 pub struct Node {
-    local_transform: gltf::scene::Transform,
+    pub local_transform: gltf::scene::Transform,
     pub global_transform_matrix: Matrix4<f32>,
     pub skin_index: Option<usize>,
     pub children_indices: Vec<usize>,

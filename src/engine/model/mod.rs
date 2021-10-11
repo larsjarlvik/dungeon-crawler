@@ -5,6 +5,7 @@ use std::{
 };
 pub mod animation;
 mod interpolation;
+mod light;
 mod material;
 mod mesh;
 pub mod node;
@@ -20,6 +21,7 @@ pub struct GltfModel {
     pub meshes: Vec<mesh::Mesh>,
     pub skins: Vec<skin::Skin>,
     pub nodes: Vec<node::Node>,
+    pub lights: Vec<light::Light>,
     pub materials: Vec<material::Material>,
     pub collisions: HashMap<String, Vec<collision::Polygon>>,
     pub animations: HashMap<String, animation::Animation>,
@@ -34,10 +36,11 @@ impl GltfModel {
         let mut skins = vec![];
         let mut nodes = vec![];
         let mut collisions: HashMap<String, Vec<collision::Polygon>> = HashMap::new();
+        let mut lights = vec![];
 
         for mesh in gltf.meshes() {
             if let Some(mesh_name) = mesh.name() {
-                if mesh_name.contains("_col") {
+                if mesh_name.split("_").any(|w| w == "col") {
                     let key = mesh_name.split("_").collect::<Vec<&str>>()[0].to_string();
                     let primitives: Vec<gltf::Primitive> = mesh.primitives().collect();
                     let mut polygons = build_collision_polygon(&primitives[0], &buffers);
@@ -62,6 +65,11 @@ impl GltfModel {
 
         for node in gltf.nodes() {
             nodes.insert(node.index(), node::Node::new(&node));
+
+            if let Some(light) = node.light() {
+                let n = gltf.nodes().filter(|n| n.name() == light.name()).collect();
+                lights.push(light::Light::new(&light, &n));
+            }
         }
 
         let roots_indices = gltf.default_scene().unwrap().nodes().map(|n| n.index()).collect::<Vec<_>>();
@@ -91,6 +99,7 @@ impl GltfModel {
             materials,
             collisions,
             animations,
+            lights,
             depth_first_taversal_indices,
         }
     }

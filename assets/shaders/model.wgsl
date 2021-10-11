@@ -10,6 +10,7 @@ struct Uniforms {
 [[block]]
 struct PrimitiveUniforms {
     orm_factor: vec4<f32>;
+    has_textures: u32;
 };
 
 [[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
@@ -94,11 +95,18 @@ struct GBufferOutput {
 fn main(in: VertexOutput) -> GBufferOutput {
     var output : GBufferOutput;
 
-    output.color = textureSample(t_base_color, t_sampler, in.tex_coord);
-    output.orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord) * primitive_uniforms.orm_factor;
+    if (primitive_uniforms.has_textures == 1u32) {
+        output.color = textureSample(t_base_color, t_sampler, in.tex_coord);
+        output.orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord) * primitive_uniforms.orm_factor;
 
-    var tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
-    var normal: vec3<f32> = textureSample(t_normal, t_sampler, in.tex_coord).xyz;
-    output.normal = vec4<f32>(tangent * normalize(2.0 * normal - 1.0), 1.0);
+        var tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
+        var normal: vec3<f32> = textureSample(t_normal, t_sampler, in.tex_coord).xyz;
+        output.normal = vec4<f32>(tangent * normalize(2.0 * normal - 1.0), 1.0);
+    } else {
+        output.color = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+        output.orm = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+        output.normal = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+    }
+
     return output;
 }
