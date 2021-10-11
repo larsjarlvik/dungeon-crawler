@@ -1,6 +1,6 @@
 use cgmath::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BoundingBox {
     pub min: Point3<f32>,
     pub max: Point3<f32>,
@@ -21,12 +21,12 @@ impl BoundingBox {
         Self {
             min: Point3::new(
                 if b1.x < b2.x { b1.x } else { b2.x },
-                if b1.y < b2.y { b1.y } else { b2.y },
+                if b1.y < b2.y { b1.y.max(0.0) } else { b2.y.max(0.0) },
                 if b1.z < b2.z { b1.z } else { b2.z },
             ),
             max: Point3::new(
                 if b1.x > b2.x { b1.x } else { b2.x },
-                if b1.y > b2.y { b1.y } else { b2.y },
+                if b1.y > b2.y { b1.y.min(2.5) } else { b2.y.min(2.5) },
                 if b1.z > b2.z { b1.z } else { b2.z },
             ),
         }

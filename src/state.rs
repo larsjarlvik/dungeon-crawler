@@ -1,8 +1,7 @@
-use std::time::Instant;
-
-use crate::{engine, world};
+use crate::{engine, map, world};
 use cgmath::*;
 use specs::{Builder, WorldExt};
+use std::time::Instant;
 use winit::{event::VirtualKeyCode, window::Window};
 
 pub struct State {
@@ -22,7 +21,6 @@ impl State {
 
     pub fn init(&mut self) {
         let start = Instant::now();
-        let room = self.engine.load_model("models/room.glb");
         let character = self.engine.load_model("models/character.glb");
 
         self.engine.init();
@@ -41,70 +39,8 @@ impl State {
             .with(world::components::Text::new("", vec2(20.0, 20.0)))
             .build();
 
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Light {
-                offset: vec3(0.0, 0.0, 0.0),
-                color: vec3(1.0, 1.0, 0.75),
-                intensity: 0.4,
-                radius: Some(7.1),
-            })
-            .with(world::components::Transform::from_translation(vec3(-2.4, 2.0, -2.4)))
-            .build();
-
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Light {
-                offset: vec3(0.0, 0.0, 0.0),
-                color: vec3(1.0, 1.0, 0.7),
-                intensity: 0.4,
-                radius: Some(7.0),
-            })
-            .with(world::components::Transform::from_translation(vec3(2.4, 2.0, -2.4)))
-            .build();
-
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Light {
-                offset: vec3(0.0, 0.0, 0.0),
-                color: vec3(1.0, 1.0, 0.63),
-                intensity: 0.4,
-                radius: Some(6.8),
-            })
-            .with(world::components::Transform::from_translation(vec3(-2.4, 2.0, 2.4)))
-            .build();
-
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Light {
-                offset: vec3(0.0, 0.0, 0.0),
-                color: vec3(1.0, 1.0, 0.72),
-                intensity: 0.4,
-                radius: Some(7.3),
-            })
-            .with(world::components::Transform::from_translation(vec3(2.4, 2.0, 2.4)))
-            .build();
-
-        for z in -3..3 {
-            for x in -3..3 {
-                self.world
-                    .components
-                    .create_entity()
-                    .with(world::components::Model::new(&self.engine, &room, "room"))
-                    .with(world::components::Collision::new(&room, "room"))
-                    .with(world::components::Transform::from_translation(vec3(
-                        x as f32 * 10.0,
-                        0.0,
-                        z as f32 * 10.0,
-                    )))
-                    .with(world::components::Render { cull_frustum: true })
-                    .build();
-            }
-        }
+        let map = map::Map::new(&self.engine, 42312, 20);
+        map.generate(&self.engine, &mut self.world);
 
         self.world
             .components
@@ -113,13 +49,13 @@ impl State {
             .with(world::components::Collider::new(&character, "character"))
             .with(world::components::Animations::new("base", "idle"))
             .with(world::components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
-            .with(world::components::Light {
-                offset: vec3(0.0, 1.0, 0.5),
-                color: vec3(1.0, 1.0, 0.72),
-                intensity: 1.0,
-                radius: Some(5.0),
-            })
-            .with(world::components::Movement::new(3.0))
+            .with(world::components::Light::new(
+                vec3(1.0, 1.0, 0.72),
+                0.6,
+                Some(5.0),
+                vec3(0.0, 2.0, 0.0),
+            ))
+            .with(world::components::Movement::new(15.0))
             .with(world::components::UserControl)
             .with(world::components::Render { cull_frustum: false })
             .with(world::components::Follow)

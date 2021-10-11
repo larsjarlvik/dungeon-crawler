@@ -1,6 +1,7 @@
 pub mod animation;
 mod collider;
 mod collision;
+mod flicker;
 mod follow;
 mod fps;
 mod light;
@@ -14,6 +15,7 @@ mod user_control;
 pub use animation::Animations;
 pub use collider::Collider;
 pub use collision::Collision;
+pub use flicker::Flicker;
 pub use follow::Follow;
 pub use fps::Fps;
 pub use light::Light;

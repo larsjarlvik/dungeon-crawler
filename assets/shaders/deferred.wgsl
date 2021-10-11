@@ -10,7 +10,7 @@ struct Uniforms {
     inv_view_proj: mat4x4<f32>;
     eye_pos: vec3<f32>;
     viewport_size: vec4<f32>;
-    light: array<Light, 10>;
+    light: array<Light, 32>;
     light_count: i32;
 };
 
@@ -85,7 +85,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     }
 
     var color: vec4<f32> = textureLoad(t_color, c, 0);
-    var normal: vec3<f32> = textureLoad(t_normal, c, 0).xyz;
+    var normal: vec3<f32> = normalize(textureLoad(t_normal, c, 0).xyz);
     var orm: vec3<f32> = textureLoad(t_orm, c, 0).xyz;
     var position: vec3<f32> = world_pos_from_depth(coord.xy / uniforms.viewport_size.xy, depth, uniforms.inv_view_proj);
 
@@ -108,10 +108,10 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
 
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];
-        let light_dir = normalize(light.position - position);
         var light_dist: f32 = distance(light.position, position);
 
         if (light_dist < light.radius) {
+            let light_dir = normalize(light.position - position);
             let half_dir = normalize(light_dir + view_dir);
             let reflection = -normalize(reflect(view_dir, normal));
 
@@ -130,16 +130,15 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
                 let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
                 let attenuation = clamp(1.0 - light_dist * light_dist / (light.radius * light.radius), 0.0, 1.0);
-                let total_attenuation = clamp(attenuation * attenuation, 0.0, 1.0);
 
                 var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
                 light_contrib = light_contrib + normal.y;
 
-                total_light = total_light + total_attenuation * light.color * light_contrib;
+                let new_light = mix(total_light, attenuation * light.color * light_contrib, 0.5);
+                total_light = max(total_light, new_light);
             }
         }
     }
 
-    let light_with_fade = clamp(total_light, vec3<f32>(0.0), vec3<f32>(1.0)) * clamp(2.5 - position.y, 0.0, 1.0);
     return vec4<f32>(total_light * color.rgb * orm.r, color.a);
 }
