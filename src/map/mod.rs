@@ -38,13 +38,9 @@ impl Map {
         for x in 0..(self.grid_size * 2) {
             for z in 0..(self.grid_size * 2) {
                 if let Some(tile) = &mut tiles[x][z] {
-                    print!("X");
                     self.tile.build(engine, world, &mut rng, tile.x, tile.z, &tile.entrances);
-                } else {
-                    print!(" ")
                 }
             }
-            println!("");
         }
     }
 

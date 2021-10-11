@@ -14,7 +14,6 @@ pub struct Light {
 impl Light {
     pub fn new(light: &gltf::khr_lights_punctual::Light, nodes: &Vec<gltf::Node>) -> Self {
         let mut translation = Vector3::zero();
-        dbg!(nodes.len());
         for n in nodes.iter() {
             let (t, _, _) = n.transform().decomposed();
             translation += Vector3::from(t);

@@ -46,15 +46,19 @@ impl Material {
 
 fn load_image(ctx: &engine::Context, texture: gltf::Texture, images: &Vec<gltf::image::Data>) -> texture::Texture {
     let image = images.iter().nth(texture.source().index()).expect("Could not find normal texture!");
-    let channels = image.pixels.len() as u32 / (image.height * image.width);
+    let channels = image.pixels.len() as usize / (image.height * image.width) as usize;
 
     let pixels = if channels < 4 {
-        let mut pixels = Vec::with_capacity(image.pixels.len() / channels as usize * 4);
-        for chunk in image.pixels.chunks(channels as usize) {
-            pixels.append(&mut chunk.to_vec());
-            pixels.append(&mut vec![255; 4 - channels as usize]);
-        }
-        pixels
+        let len = (image.pixels.len() / channels) * 4;
+        let mut result = Vec::with_capacity(len as usize);
+        let remain = vec![0; 4 - channels];
+
+        image.pixels.chunks(channels).for_each(|c| {
+            result.extend_from_slice(c);
+            result.extend_from_slice(remain.as_slice());
+        });
+
+        result
     } else {
         image.pixels.clone()
     };
