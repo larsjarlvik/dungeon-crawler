@@ -5,6 +5,7 @@ pub struct Uniforms {
     pub eye_pos: [f32; 4],
     pub viewport_size: [f32; 4],
     pub lights: [LightUniforms; 32],
+    pub ssao_samples: [[f32; 4]; 64],
     pub lights_count: i32,
 }
 

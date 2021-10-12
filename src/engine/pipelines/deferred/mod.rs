@@ -5,6 +5,7 @@ use crate::{
     world::{components, resources},
 };
 use cgmath::*;
+use rand::Rng;
 use specs::{Join, WorldExt};
 use std::mem;
 
@@ -16,10 +17,12 @@ pub struct DeferredPipeline {
     texture_bind_group_layout: builders::MappedBindGroupLayout,
     render_bundle: Option<wgpu::RenderBundle>,
     uniform_buffer: wgpu::Buffer,
+    noise_texture: texture::Texture,
     pub depth_texture: texture::Texture,
     pub normal_texture: texture::Texture,
     pub color_texture: texture::Texture,
     pub orm_texture: texture::Texture,
+    pub ssao_kernel: [[f32; 4]; 64],
 }
 
 impl DeferredPipeline {
@@ -30,6 +33,7 @@ impl DeferredPipeline {
         let normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
         let color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
         let orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "orm_texture");
+        let noise_texture = texture::Texture::create_noise_texture(ctx, 1024, 1024);
 
         let uniform_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             0,
@@ -45,6 +49,7 @@ impl DeferredPipeline {
                 pipeline_builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT),
                 pipeline_builder.create_texture_entry(2, wgpu::ShaderStages::FRAGMENT),
                 pipeline_builder.create_texture_entry(3, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_texture_entry(4, wgpu::ShaderStages::FRAGMENT),
             ],
         );
 
@@ -59,6 +64,18 @@ impl DeferredPipeline {
         let builder = builders::RenderBundleBuilder::new(ctx, "deferred");
         let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<uniforms::Uniforms>() as u64);
 
+        let mut ssao_kernel = [[0.0, 0.0, 0.0, 0.0]; 64];
+        let mut rng = rand::thread_rng();
+        for i in 0..64 {
+            let mut sample = vec3(rng.gen::<f32>() * 2.0 - 1.0, rng.gen::<f32>() * 2.0 - 1.0, rng.gen::<f32>()).normalize();
+            sample *= rng.gen::<f32>();
+
+            let scale = vec1(0.1f32).lerp(vec1(1.0), (i as f32 / 64.0).powf(2.0)).x;
+            sample *= scale;
+
+            ssao_kernel[i] = sample.extend(0.0).into();
+        }
+
         Self {
             render_pipeline,
             depth_texture,
@@ -69,6 +86,8 @@ impl DeferredPipeline {
             texture_bind_group_layout,
             uniform_buffer,
             render_bundle: None,
+            ssao_kernel,
+            noise_texture,
         }
     }
 
@@ -84,11 +103,12 @@ impl DeferredPipeline {
         let (lights_count, lights) = self.get_lights(&camera, components);
 
         let uniforms = uniforms::Uniforms {
-            inv_view_proj: camera.view_proj.invert().unwrap().into(),
+            inv_view_proj: (camera.proj * camera.view).invert().unwrap().into(),
             eye_pos: camera.get_eye().to_vec().extend(0.0).into(),
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             lights,
             lights_count,
+            ssao_samples: self.ssao_kernel,
         };
 
         ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
@@ -98,6 +118,7 @@ impl DeferredPipeline {
             builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&self.normal_texture.view)),
             builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&self.color_texture.view)),
             builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::TextureView(&self.orm_texture.view)),
+            builders::RenderBundleBuilder::create_entry(4, wgpu::BindingResource::TextureView(&self.noise_texture.view)),
         ];
 
         self.render_bundle = Some(

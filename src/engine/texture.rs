@@ -1,4 +1,5 @@
 use crate::config;
+use rand::Rng;
 use wgpu::util::DeviceExt;
 
 use super::pipelines;
@@ -50,8 +51,26 @@ impl Texture {
         Self { texture, view }
     }
 
-    pub fn create_mipmapped_view(ctx: &super::Context, pixels: &[u8], width: u32, height: u32) -> Self {
-        let mip_level_count = (1f32 + ((width as f32).max(height as f32)).log2().floor()) as u32;
+    pub fn create_noise_texture(ctx: &super::Context, width: u32, height: u32) -> Self {
+        let mut pixels = vec![];
+        let mut rng = rand::thread_rng();
+
+        for _ in 0..width {
+            for _ in 0..height {
+                pixels.append(&mut vec![rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
+            }
+        }
+
+        // TODO: RGBA?
+        Texture::create_mipmapped_view(ctx, pixels.as_slice(), width, height, Some(1))
+    }
+
+    pub fn create_mipmapped_view(ctx: &super::Context, pixels: &[u8], width: u32, height: u32, mip_level_count: Option<u32>) -> Self {
+        let mip_level_count = if let Some(mip_level_count) = mip_level_count {
+            mip_level_count
+        } else {
+            (1f32 + ((width as f32).max(height as f32)).log2().floor()) as u32
+        };
 
         let size = wgpu::Extent3d {
             width,

@@ -100,7 +100,7 @@ impl ModelPipeline {
                     &model.model.uniform_buffer,
                     self.uniform_bind_group_layout.index as u64,
                     bytemuck::cast_slice(&[Uniforms {
-                        view_proj: camera.view_proj.into(),
+                        view_proj: (camera.proj * camera.view).into(),
                         model: model_matrix.into(),
                         joint_transforms: joint_transforms.try_into().unwrap(),
                         is_animated: animation.is_some() as u32,
