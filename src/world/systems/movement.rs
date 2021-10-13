@@ -32,7 +32,11 @@ impl<'a> System<'a> for Movement {
             (&mut movement, &mut transform, (&mut animation).maybe(), (&collider).maybe()).join()
         {
             let mut velocity_dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * movement.velocity;
-            transform.rotation.set(cgmath::Quaternion::from_angle_y(Rad(movement.direction)));
+
+            let current_rot = transform.rotation.current;
+            let new_rot = cgmath::Quaternion::from_angle_y(Rad(movement.direction));
+
+            transform.rotation.set(current_rot.slerp(new_rot, 0.2));
 
             if let Some(collider) = collider {
                 let collider: Vec<Polygon> = collider

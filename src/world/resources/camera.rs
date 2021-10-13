@@ -1,6 +1,6 @@
 use cgmath::*;
 
-use crate::engine::frustum;
+use crate::{config, engine::frustum};
 
 pub struct Camera {
     pub target: Vector3<f32>,
@@ -51,7 +51,11 @@ impl Camera {
 
     pub fn set(&mut self, target: Vector3<f32>) {
         self.target = target;
-        let eye = Point3::new(target.x, target.y + 10.0, target.z + 6.0);
+
+        let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
+        let dist = rot.rotate_point(point3(0.0, 10.0, 6.0)).to_vec();
+        let eye = Point3::from_vec(target + dist);
+
         self.view_proj =
             perspective(Deg(45.0), self.aspect, 0.1, 100.0) * Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
 

@@ -14,7 +14,8 @@ impl<'a> System<'a> for UserControl {
         for movement in (&mut movement).join() {
             if let Some(joystick) = &input.joystick {
                 if let Some(current) = joystick.current {
-                    movement.towards(vec3(current.x, 0.0, current.y));
+                    let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
+                    movement.towards(rot.rotate_vector(vec3(current.x, 0.0, current.y)));
                     movement.velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
                 }
             }
