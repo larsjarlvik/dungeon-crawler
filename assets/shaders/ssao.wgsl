@@ -32,7 +32,7 @@ fn linearize_depth(d: f32, near: f32, far: f32) -> f32 {
 }
 
 [[stage(fragment)]]
-fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
+fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] f32 {
     var c: vec2<f32> = vec2<f32>(coord.xy / uniforms.viewport.xy);
     let near = uniforms.viewport.z;
     let far = uniforms.viewport.w;
@@ -51,5 +51,5 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     }
 
     occlusion = 1.0 - occlusion / f32(SAMPLE_COUNT);
-    return vec4<f32>(occlusion * 2.0, 0.0, 0.0, 0.0);
+    return occlusion * 2.0;
 }

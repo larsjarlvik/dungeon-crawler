@@ -31,7 +31,7 @@ impl DeferredPipeline {
         let normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
         let color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
         let orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "orm_texture");
-        let ssao_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "ssao_texture");
+        let ssao_texture = texture::Texture::create_texture(ctx, wgpu::TextureFormat::R8Unorm, "ssao_texture");
 
         let uniform_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             0,

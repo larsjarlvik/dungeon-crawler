@@ -40,7 +40,7 @@ impl SsaoPipeline {
 
         let render_pipeline = builder
             .with_shader("shaders/ssao.wgsl")
-            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
+            .with_color_targets(vec![wgpu::TextureFormat::R8Unorm])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
