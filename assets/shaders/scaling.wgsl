@@ -15,8 +15,8 @@ fn main([[builtin(vertex_index)]] vertex_index: u32) -> [[builtin(position)]] ve
 // Fragment shader
 [[block]]
 struct Uniforms {
-    viewport_width: f32;
-    viewport_height: f32;
+    width: f32;
+    height: f32;
 };
 
 [[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
@@ -26,5 +26,5 @@ struct Uniforms {
 
 [[stage(fragment)]]
 fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return textureSample(t_texture, t_sampler, coord.xy / vec2<f32>(uniforms.viewport_width, uniforms.viewport_height));
+    return textureSample(t_texture, t_sampler, coord.xy / vec2<f32>(uniforms.width, uniforms.height));
 }

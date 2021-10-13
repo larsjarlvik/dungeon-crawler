@@ -1,5 +1,4 @@
 use crate::config;
-use rand::Rng;
 use wgpu::util::DeviceExt;
 
 use super::pipelines;
@@ -49,20 +48,6 @@ impl Texture {
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
         Self { texture, view }
-    }
-
-    pub fn create_noise_texture(ctx: &super::Context, width: u32, height: u32) -> Self {
-        let mut pixels = vec![];
-        let mut rng = rand::thread_rng();
-
-        for _ in 0..width {
-            for _ in 0..height {
-                pixels.append(&mut vec![rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
-            }
-        }
-
-        // TODO: RGBA?
-        Texture::create_mipmapped_view(ctx, pixels.as_slice(), width, height, Some(1))
     }
 
     pub fn create_mipmapped_view(ctx: &super::Context, pixels: &[u8], width: u32, height: u32, mip_level_count: Option<u32>) -> Self {
@@ -120,14 +105,14 @@ impl Texture {
         Self { texture, view }
     }
 
-    pub fn create_sampler(ctx: &super::Context) -> wgpu::Sampler {
+    pub fn create_sampler(ctx: &super::Context, address_mode: wgpu::AddressMode, filter_mode: wgpu::FilterMode) -> wgpu::Sampler {
         ctx.device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::Repeat,
-            address_mode_v: wgpu::AddressMode::Repeat,
-            address_mode_w: wgpu::AddressMode::Repeat,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Linear,
+            address_mode_u: address_mode,
+            address_mode_v: address_mode,
+            address_mode_w: address_mode,
+            mag_filter: filter_mode,
+            min_filter: filter_mode,
+            mipmap_filter: filter_mode,
             ..Default::default()
         })
     }

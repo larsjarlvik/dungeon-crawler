@@ -12,6 +12,8 @@ pub const ANIMATION_BLEND_SECONDS: f32 = 0.3;
 pub const JOYSTICK_RADIUS: f32 = 0.12;
 pub const CAMERA_ROTATION: f32 = 30.0;
 
+pub const SSAO_KERNEL_SIZE: usize = 32;
+
 #[cfg(not(target_os = "android"))]
 pub const RENDER_SCALE: f32 = 1.0;
 #[cfg(target_os = "android")]

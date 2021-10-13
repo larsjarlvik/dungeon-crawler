@@ -8,11 +8,9 @@ struct Light {
 [[block]]
 struct Uniforms {
     inv_view_proj: mat4x4<f32>;
-    proj: mat4x4<f32>;
     eye_pos: vec3<f32>;
     viewport_size: vec4<f32>;
     light: array<Light, 32>;
-    ssao_samples: array<vec4<f32>, 64>;
     light_count: i32;
 };
 
@@ -38,7 +36,7 @@ var M_PI: f32 = 3.141592653589793;
 [[group(1), binding(1)]] var t_normal: texture_2d<f32>;
 [[group(1), binding(2)]] var t_color: texture_2d<f32>;
 [[group(1), binding(3)]] var t_orm: texture_2d<f32>;
-[[group(1), binding(4)]] var t_noise: texture_2d<f32>;
+[[group(1), binding(4)]] var t_ssao: texture_2d<f32>;
 
 struct PBRInfo {
     n_dot_l: f32;
@@ -78,30 +76,6 @@ fn microfacetDistribution(pbr: PBRInfo) -> f32 {
     return roughness_sq2 / (M_PI * f * f);
 }
 
-fn ssao(normal: vec3<f32>, coord: vec2<f32>, depth: f32) -> f32 {
-    let noise_scale = uniforms.viewport_size.xy / 4.0;
-    let random_vec = textureLoad(t_noise, vec2<i32>(coord), 0).xyz;
-
-    var occlusion: f32 = 0.0;
-    for (var i: i32 = 0; i < 64; i = i + 1) {
-        let sample_pos = random_vec * normal * uniforms.ssao_samples[i].xyz;
-        var offset: vec4<f32> = vec4<f32>(sample_pos.x, sample_pos.y, sample_pos.z, 1.0);
-        offset = uniforms.proj * offset;
-        offset = vec4<f32>(offset.xyz / offset.w, offset.w);
-        offset = vec4<f32>(offset.xyz * 0.5 + 1.0, offset.w);
-
-        var c: vec2<f32> = ((coord.xy / uniforms.viewport_size.xy) + offset.xy) * uniforms.viewport_size.xy;
-
-        var sample_depth: f32 = textureLoad(t_depth, vec2<i32>(c), 0).r;
-        if (sample_depth >= sample_pos.z + 0.025) {
-            let range_check = smoothStep(0.0, 1.0, 2.0 / abs(depth - sample_depth));
-            occlusion = occlusion + 1.0 * range_check;
-        }
-    }
-
-    return occlusion;
-}
-
 [[stage(fragment)]]
 fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     var c: vec2<i32> = vec2<i32>(coord.xy);
@@ -115,59 +89,60 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     var normal: vec3<f32> = normalize(textureLoad(t_normal, c, 0).xyz);
     var orm: vec3<f32> = textureLoad(t_orm, c, 0).xyz;
     var position: vec3<f32> = world_pos_from_depth(coord.xy / uniforms.viewport_size.xy, depth, uniforms.inv_view_proj);
+    var ssao: f32 = textureLoad(t_ssao, c, 0).r;
 
     // PBR
-    // let view_dir = normalize(uniforms.eye_pos - position);
+    let view_dir = normalize(uniforms.eye_pos - position);
 
-    // var pbr: PBRInfo;
-    // pbr.roughness = orm.g;
-    // pbr.metalness = orm.b;
-    // pbr.roughness_sq = pbr.roughness * pbr.roughness;
+    var pbr: PBRInfo;
+    pbr.roughness = orm.g;
+    pbr.metalness = orm.b;
+    pbr.roughness_sq = pbr.roughness * pbr.roughness;
 
-    // let f0 = vec3<f32>(0.02);
-    // pbr.diffuse = color.rgb * (vec3<f32>(1.0) - f0);
-    // pbr.diffuse = pbr.diffuse * (1.0 - pbr.metalness);
-    // pbr.specular = mix(f0, color.rgb, vec3<f32>(pbr.metalness));
-    // pbr.reflectance0 = pbr.specular.rgb;
-    // pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 5.0, 0.0, 1.0);
+    let f0 = vec3<f32>(0.02);
+    pbr.diffuse = color.rgb * (vec3<f32>(1.0) - f0);
+    pbr.diffuse = pbr.diffuse * (1.0 - pbr.metalness);
+    pbr.specular = mix(f0, color.rgb, vec3<f32>(pbr.metalness));
+    pbr.reflectance0 = pbr.specular.rgb;
+    pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 5.0, 0.0, 1.0);
 
-    // var total_light: vec3<f32> = vec3<f32>(0.1);
+    var total_light: vec3<f32> = vec3<f32>(0.3 * ssao);
 
-    // for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
-    //     let light = uniforms.light[i];
-    //     var light_dist: f32 = distance(light.position, position);
+    for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
+        let light = uniforms.light[i];
+        var light_dist: f32 = distance(light.position, position);
 
-    //     if (light_dist < light.radius) {
-    //         let light_dir = normalize(light.position - position);
-    //         let half_dir = normalize(light_dir + view_dir);
-    //         let reflection = -normalize(reflect(view_dir, normal));
+        if (light_dist < light.radius) {
+            let light_dir = normalize(light.position - position);
+            let half_dir = normalize(light_dir + view_dir);
+            let reflection = -normalize(reflect(view_dir, normal));
 
-    //         pbr.n_dot_l = clamp(dot(normal, light_dir), 0.001, 1.0);
-    //         pbr.n_dot_v = clamp(abs(dot(normal, view_dir)), 0.001, 1.0);
-    //         pbr.n_dot_h = clamp(dot(normal, half_dir), 0.0, 1.0);
-    //         pbr.l_dot_h = clamp(dot(light_dir, half_dir), 0.0, 1.0);
-    //         pbr.v_dot_h = clamp(dot(view_dir, half_dir), 0.0, 1.0);
+            pbr.n_dot_l = clamp(dot(normal, light_dir), 0.001, 1.0);
+            pbr.n_dot_v = clamp(abs(dot(normal, view_dir)), 0.001, 1.0);
+            pbr.n_dot_h = clamp(dot(normal, half_dir), 0.0, 1.0);
+            pbr.l_dot_h = clamp(dot(light_dir, half_dir), 0.0, 1.0);
+            pbr.v_dot_h = clamp(dot(view_dir, half_dir), 0.0, 1.0);
 
-    //         if (pbr.n_dot_l > 0.0 || pbr.n_dot_v > 0.0) {
-    //             var F: vec3<f32> = specularReflection(pbr);
-    //             var G: f32 = geometricOcclusion(pbr);
-    //             var D: f32 = microfacetDistribution(pbr);
+            if (pbr.n_dot_l > 0.0 || pbr.n_dot_v > 0.0) {
+                var F: vec3<f32> = specularReflection(pbr);
+                var G: f32 = geometricOcclusion(pbr);
+                var D: f32 = microfacetDistribution(pbr);
 
-    //             let diffuse_contrib = (1.0 - F) * (pbr.diffuse / M_PI);
-    //             let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
+                let diffuse_contrib = (1.0 - F) * (pbr.diffuse / M_PI);
+                let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
-    //             let attenuation = clamp(1.0 - light_dist * light_dist / (light.radius * light.radius), 0.0, 1.0);
+                let attenuation = clamp(1.0 - light_dist * light_dist / (light.radius * light.radius), 0.0, 1.0);
 
-    //             var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
-    //             light_contrib = light_contrib + normal.y;
+                var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
+                light_contrib = light_contrib + normal.y;
 
-    //             let new_light = mix(total_light, attenuation * light.color * light_contrib, 0.5);
-    //             total_light = max(total_light, new_light);
-    //         }
-    //     }
-    // }
+                let new_light = mix(total_light, attenuation * light.color * light_contrib, 0.5);
+                total_light = max(total_light, new_light);
+            }
+        }
+    }
 
-    let occlusion = ssao(normal, coord.xy, depth);
-    return vec4<f32>(occlusion, occlusion, occlusion, 1.0);
-    // return vec4<f32>(total_light * color.rgb * orm.r, color.a);
+    total_light = total_light * ssao;
+
+    return vec4<f32>(total_light * color.rgb * orm.r, color.a);
 }

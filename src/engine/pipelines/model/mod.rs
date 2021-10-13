@@ -26,7 +26,7 @@ pub struct ModelPipeline {
 impl ModelPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
         let builder = builders::PipelineBuilder::new(&ctx, "model");
-        let sampler = texture::Texture::create_sampler(ctx);
+        let sampler = texture::Texture::create_sampler(ctx, wgpu::AddressMode::Repeat, wgpu::FilterMode::Linear);
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,

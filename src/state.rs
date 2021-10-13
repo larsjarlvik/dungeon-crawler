@@ -104,6 +104,9 @@ impl State {
     pub fn update(&mut self) {
         self.world.update();
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
+        self.engine
+            .ssao_pipeline
+            .update(&self.engine.ctx, &self.engine.deferred_pipeline, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
     }
 
@@ -116,10 +119,14 @@ impl State {
                 .render(&self.engine.ctx, &self.world.components, &self.engine.deferred_pipeline);
 
             self.engine
+                .ssao_pipeline
+                .render(&self.engine.ctx, &self.engine.deferred_pipeline.ssao_texture.view);
+
+            self.engine
                 .deferred_pipeline
                 .render(&self.engine.ctx, &self.engine.scaling_pipeline.texture.view);
-            self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
 
+            self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
             self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
         }
