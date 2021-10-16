@@ -67,10 +67,7 @@ impl Camera {
     }
 
     pub fn get_shadow_matrix(&self) -> Matrix4<f32> {
-        let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
-        let dist = rot.rotate_point(point3(0.0, 10.0, 0.1)).to_vec();
-        let eye = Point3::from_vec(self.target + dist);
-
+        let eye = point3(self.target.x, self.target.y + 25.0, self.target.z + 0.01);
         perspective(Deg(45.0), self.aspect, 0.1, 100.0) * Matrix4::look_at_rh(eye, Point3::from_vec(self.target), Vector3::unit_y())
     }
 }

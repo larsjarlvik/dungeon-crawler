@@ -157,6 +157,6 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
         }
     }
 
-    let s = get_shadow_factor(position);
+    let s = get_shadow_factor(position) * 0.7 + 0.3;
     return vec4<f32>(total_light * color.rgb * orm.r * s, color.a);
 }

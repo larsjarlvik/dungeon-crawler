@@ -35,8 +35,8 @@ impl DeferredPipeline {
         let orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "deferred_orm_texture");
         let shadow_texture = texture::Texture::create_depth_texture(
             &ctx,
-            config::SHADOW_MAP_SIZE,
-            config::SHADOW_MAP_SIZE,
+            (width as f32 * config::SHADOW_MAP_SCALE) as u32,
+            (height as f32 * config::SHADOW_MAP_SCALE) as u32,
             "deferred_shadow_texture",
         );
 
@@ -102,6 +102,12 @@ impl DeferredPipeline {
         self.normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "deferred_normal_texture");
         self.color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "deferred_color_texture");
         self.orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "orm_texture");
+        self.shadow_texture = texture::Texture::create_depth_texture(
+            &ctx,
+            (width as f32 * config::SHADOW_MAP_SCALE) as u32,
+            (height as f32 * config::SHADOW_MAP_SCALE) as u32,
+            "deferred_shadow_texture",
+        );
     }
 
     pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
