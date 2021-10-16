@@ -122,6 +122,8 @@ impl State {
 
             self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
+
+            frame.present();
         }
 
         Ok(())

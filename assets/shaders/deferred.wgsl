@@ -31,7 +31,7 @@ fn main([[builtin(vertex_index)]] vertex_index: u32) -> [[builtin(position)]] ve
 }
 
 // Fragment shader
-var M_PI: f32 = 3.141592653589793;
+let M_PI = 3.141592653589793;
 
 [[group(1), binding(0)]] var t_depth: texture_2d<f32>;
 [[group(1), binding(1)]] var t_normal: texture_2d<f32>;
