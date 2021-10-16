@@ -1,11 +1,12 @@
 mod model;
+mod pipeline;
+mod shadow_pipeline;
 mod uniforms;
 use crate::{
     config,
     engine::{
         self,
-        pipelines::{self, builders},
-        texture,
+        pipelines::{self},
     },
     world::*,
 };
@@ -16,61 +17,15 @@ use std::convert::TryInto;
 pub use uniforms::Uniforms;
 
 pub struct ModelPipeline {
-    render_pipeline: builders::Pipeline,
-    uniform_bind_group_layout: builders::MappedBindGroupLayout,
-    primitive_uniform_bind_group_layout: builders::MappedBindGroupLayout,
-    texture_bind_group_layout: builders::MappedBindGroupLayout,
-    sampler: wgpu::Sampler,
+    pub display: pipeline::Pipeline,
+    pub shadows: shadow_pipeline::ShadowPipeline,
 }
 
 impl ModelPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
-        let builder = builders::PipelineBuilder::new(&ctx, "model");
-        let sampler = texture::Texture::create_sampler(ctx);
-
-        let uniform_bind_group_layout = builder.create_bindgroup_layout(
-            0,
-            "model_uniform_bind_group_layout",
-            &[builder.create_uniform_entry(0, wgpu::ShaderStages::VERTEX)],
-        );
-
-        let primitive_uniform_bind_group_layout = builder.create_bindgroup_layout(
-            1,
-            "model_uniform_bind_group_layout",
-            &[builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT | wgpu::ShaderStages::VERTEX)],
-        );
-
-        let texture_bind_group_layout = builder.create_bindgroup_layout(
-            2,
-            "texture_bind_group_layout",
-            &[
-                builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
-                builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT),
-                builder.create_texture_entry(2, wgpu::ShaderStages::FRAGMENT),
-                builder.create_sampler_entry(3, wgpu::ShaderStages::FRAGMENT),
-            ],
-        );
-
-        let render_pipeline = builder
-            .with_shader("shaders/model.wgsl")
-            .with_color_targets(vec![
-                config::COLOR_TEXTURE_FORMAT,
-                config::COLOR_TEXTURE_FORMAT,
-                config::COLOR_TEXTURE_FORMAT,
-            ])
-            .with_depth_target(config::DEPTH_FORMAT)
-            .with_buffer_layouts(vec![engine::model::Vertex::desc()])
-            .with_bind_group_layout(&uniform_bind_group_layout)
-            .with_bind_group_layout(&primitive_uniform_bind_group_layout)
-            .with_bind_group_layout(&texture_bind_group_layout)
-            .build();
-
         Self {
-            render_pipeline,
-            uniform_bind_group_layout,
-            primitive_uniform_bind_group_layout,
-            texture_bind_group_layout,
-            sampler,
+            display: pipeline::Pipeline::new(ctx),
+            shadows: shadow_pipeline::ShadowPipeline::new(ctx),
         }
     }
 
@@ -82,41 +37,48 @@ impl ModelPipeline {
         let time = components.read_resource::<resources::Time>();
         let camera = components.read_resource::<resources::Camera>();
 
-        let bundles = (&models, (&animation).maybe(), &render, &transform)
-            .join()
-            .filter_map(|(model, animation, render, transform)| {
-                let model_matrix = transform.to_matrix(time.last_frame);
+        let mut bundles = vec![];
+        let mut shadow_bundles = vec![];
 
-                if render.cull_frustum
-                    && !camera
-                        .frustum
-                        .test_bounding_box(&model.model.bounding_box.transform(model_matrix.into()))
-                {
-                    return None;
+        for (model, animation, render, transform) in (&models, (&animation).maybe(), &render, &transform).join() {
+            let model_matrix = transform.to_matrix(time.last_frame);
+
+            if render.cull_frustum {
+                let transformed_bb = model.model.bounding_box.transform(model_matrix.into());
+                if !camera.frustum.test_bounding_box(&transformed_bb) {
+                    continue;
                 }
+            }
 
-                let joint_transforms = get_joint_transforms(&model, &animation);
-                ctx.queue.write_buffer(
-                    &model.model.uniform_buffer,
-                    self.uniform_bind_group_layout.index as u64,
-                    bytemuck::cast_slice(&[Uniforms {
-                        view_proj: camera.view_proj.into(),
-                        model: model_matrix.into(),
-                        joint_transforms: joint_transforms.try_into().unwrap(),
-                        is_animated: animation.is_some() as u32,
-                    }]),
-                );
+            let joint_transforms = get_joint_transforms(&model, &animation);
+            ctx.queue.write_buffer(
+                &model.model.display_uniform_buffer,
+                self.display.uniform_bind_group_layout.index as u64,
+                bytemuck::cast_slice(&[Uniforms {
+                    view_proj: camera.view_proj.into(),
+                    model: model_matrix.into(),
+                    joint_transforms: joint_transforms.clone().try_into().unwrap(),
+                    is_animated: animation.is_some() as u32,
+                }]),
+            );
 
-                Some(&model.model.render_bundle)
-            })
-            .collect();
+            ctx.queue.write_buffer(
+                &model.model.shadow_uniform_buffer,
+                self.shadows.uniform_bind_group_layout.index as u64,
+                bytemuck::cast_slice(&[Uniforms {
+                    view_proj: camera.get_shadow_matrix().into(),
+                    model: model_matrix.into(),
+                    joint_transforms: joint_transforms.clone().try_into().unwrap(),
+                    is_animated: animation.is_some() as u32,
+                }]),
+            );
 
-        builders::RenderTargetBuilder::new(ctx, "model")
-            .with_color_attachment(&target.normal_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-            .with_color_attachment(&target.color_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-            .with_color_attachment(&target.orm_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-            .with_depth_attachment(&target.depth_texture.view, wgpu::LoadOp::Clear(1.0))
-            .execute_bundles(bundles);
+            bundles.push(&model.model.display_render_bundle);
+            shadow_bundles.push(&model.model.shadow_render_bundle);
+        }
+
+        self.display.execute_bundles(ctx, bundles, target);
+        self.shadows.execute_bundles(ctx, shadow_bundles, target);
     }
 }
 

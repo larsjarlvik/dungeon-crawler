@@ -11,6 +11,7 @@ pub const UPDATES_PER_SECOND: f32 = 50.0;
 pub const ANIMATION_BLEND_SECONDS: f32 = 0.3;
 pub const JOYSTICK_RADIUS: f32 = 0.12;
 pub const CAMERA_ROTATION: f32 = 45.0;
+pub const SHADOW_MAP_SIZE: u32 = 1024;
 
 #[cfg(not(target_os = "android"))]
 pub const RENDER_SCALE: f32 = 1.0;

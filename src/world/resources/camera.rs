@@ -31,7 +31,7 @@ impl Default for Camera {
 impl Camera {
     pub fn new(aspect: f32) -> Self {
         let target = vec3(0.0, 0.0, 0.0);
-        let eye = Point3::new(0.0, 10.0, 6.0);
+        let eye = point3(0.0, 10.0, 6.0);
 
         let view = Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
         let proj = perspective(Deg(45.0), aspect, 0.1, 100.0);
@@ -63,7 +63,14 @@ impl Camera {
     }
 
     pub fn get_eye(&self) -> Point3<f32> {
-        let target = Point3::from_vec(self.target);
-        Point3::new(target.x + 0.0, target.y + 10.0, target.z + 6.0)
+        Point3::new(self.target.x + 0.0, self.target.y + 10.0, self.target.z + 6.0)
+    }
+
+    pub fn get_shadow_matrix(&self) -> Matrix4<f32> {
+        let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
+        let dist = rot.rotate_point(point3(0.0, 10.0, 0.1)).to_vec();
+        let eye = Point3::from_vec(self.target + dist);
+
+        perspective(Deg(45.0), self.aspect, 0.1, 100.0) * Matrix4::look_at_rh(eye, Point3::from_vec(self.target), Vector3::unit_y())
     }
 }

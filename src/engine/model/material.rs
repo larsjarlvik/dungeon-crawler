@@ -2,9 +2,9 @@ use crate::engine::{self, texture};
 use specs::{prelude::ParallelIterator, rayon::iter::IntoParallelIterator};
 
 pub struct Textures {
-    pub base_color_texture: texture::Texture,
-    pub normal_texture: texture::Texture,
-    pub orm_texture: texture::Texture,
+    pub base_color: texture::Texture,
+    pub normal: texture::Texture,
+    pub orm: texture::Texture,
 }
 
 pub struct Material {
@@ -28,9 +28,9 @@ impl Material {
 
             let mut textures: Vec<texture::Texture> = sources.into_par_iter().map(|t| load_image(ctx, t, images)).collect();
             Some(Textures {
-                orm_texture: textures.pop().unwrap(),
-                normal_texture: textures.pop().unwrap(),
-                base_color_texture: textures.pop().unwrap(),
+                orm: textures.pop().unwrap(),
+                normal: textures.pop().unwrap(),
+                base_color: textures.pop().unwrap(),
             })
         } else {
             None
