@@ -21,6 +21,7 @@ pub struct DeferredPipeline {
     pub color_texture: texture::Texture,
     pub orm_texture: texture::Texture,
     pub shadow_texture: texture::Texture,
+    pub mock_shadow_color: texture::Texture,
     pub shadow_sampler: wgpu::Sampler,
 }
 
@@ -38,6 +39,13 @@ impl DeferredPipeline {
             (width as f32 * config::SHADOW_MAP_SCALE) as u32,
             (height as f32 * config::SHADOW_MAP_SCALE) as u32,
             "deferred_shadow_texture",
+        );
+        let mock_shadow_color = texture::Texture::create_texture(
+            &ctx,
+            config::COLOR_TEXTURE_FORMAT,
+            (width as f32 * config::SHADOW_MAP_SCALE) as u32,
+            (height as f32 * config::SHADOW_MAP_SCALE) as u32,
+            "deferred_mock_shadow_texture",
         );
 
         let shadow_sampler = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
@@ -88,6 +96,7 @@ impl DeferredPipeline {
             color_texture,
             orm_texture,
             shadow_texture,
+            mock_shadow_color,
             shadow_sampler,
             uniform_bind_group_layout,
             texture_bind_group_layout,
@@ -104,6 +113,13 @@ impl DeferredPipeline {
         self.orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "orm_texture");
         self.shadow_texture = texture::Texture::create_depth_texture(
             &ctx,
+            (width as f32 * config::SHADOW_MAP_SCALE) as u32,
+            (height as f32 * config::SHADOW_MAP_SCALE) as u32,
+            "deferred_shadow_texture",
+        );
+        self.mock_shadow_color = texture::Texture::create_texture(
+            &ctx,
+            config::COLOR_TEXTURE_FORMAT,
             (width as f32 * config::SHADOW_MAP_SCALE) as u32,
             (height as f32 * config::SHADOW_MAP_SCALE) as u32,
             "deferred_shadow_texture",

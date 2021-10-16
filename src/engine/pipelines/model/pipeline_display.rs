@@ -7,7 +7,7 @@ use crate::{
     },
 };
 
-pub struct Pipeline {
+pub struct PipelineDisplay {
     pub render_pipeline: builders::Pipeline,
     pub uniform_bind_group_layout: builders::MappedBindGroupLayout,
     pub primitive_uniform_bind_group_layout: builders::MappedBindGroupLayout,
@@ -15,7 +15,7 @@ pub struct Pipeline {
     pub sampler: wgpu::Sampler,
 }
 
-impl Pipeline {
+impl PipelineDisplay {
     pub fn new(ctx: &engine::Context) -> Self {
         let builder = builders::PipelineBuilder::new(&ctx, "model");
         let sampler = texture::Texture::create_sampler(ctx);

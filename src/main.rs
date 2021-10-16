@@ -1,5 +1,5 @@
-use dclib;
+use dungeon_crawler;
 
 fn main() {
-    dclib::main();
+    dungeon_crawler::main();
 }

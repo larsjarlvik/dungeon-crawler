@@ -146,7 +146,7 @@ impl<'a> PipelineBuilder<'a> {
 
     pub fn with_depth_bias(mut self) -> Self {
         self.depth_bias = Some(wgpu::DepthBiasState {
-            constant: 2, // corresponds to bilinear filtering
+            constant: 6,
             slope_scale: 2.0,
             clamp: 0.0,
         });
@@ -177,7 +177,7 @@ impl<'a> PipelineBuilder<'a> {
             Some(wgpu::DepthStencilState {
                 format: config::DEPTH_FORMAT,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
+                depth_compare: wgpu::CompareFunction::LessEqual,
                 stencil: wgpu::StencilState::default(),
                 bias: if let Some(depth_bias) = self.depth_bias {
                     depth_bias
@@ -189,15 +189,11 @@ impl<'a> PipelineBuilder<'a> {
             None
         };
 
-        let fragment = if color_targets.len() > 0 {
-            Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: "main",
-                targets: color_targets.as_slice(),
-            })
-        } else {
-            None
-        };
+        let fragment = Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: "main",
+            targets: color_targets.as_slice(),
+        });
 
         let render_pipeline = self.ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some(format!("{}_render_pipeline", self.label).as_str()),
@@ -218,11 +214,7 @@ impl<'a> PipelineBuilder<'a> {
                 conservative: false,
             },
             depth_stencil,
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
+            multisample: wgpu::MultisampleState::default(),
         });
 
         Pipeline {

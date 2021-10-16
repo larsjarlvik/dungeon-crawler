@@ -1,6 +1,6 @@
 mod model;
-mod pipeline;
-mod shadow_pipeline;
+mod pipeline_display;
+mod pipeline_shadow;
 mod uniforms;
 use crate::{
     config,
@@ -17,15 +17,15 @@ use std::convert::TryInto;
 pub use uniforms::Uniforms;
 
 pub struct ModelPipeline {
-    pub display: pipeline::Pipeline,
-    pub shadows: shadow_pipeline::ShadowPipeline,
+    pub display: pipeline_display::PipelineDisplay,
+    pub shadows: pipeline_shadow::PipelineShadow,
 }
 
 impl ModelPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
         Self {
-            display: pipeline::Pipeline::new(ctx),
-            shadows: shadow_pipeline::ShadowPipeline::new(ctx),
+            shadows: pipeline_shadow::PipelineShadow::new(ctx),
+            display: pipeline_display::PipelineDisplay::new(ctx),
         }
     }
 

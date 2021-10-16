@@ -9,7 +9,6 @@ resolver = "2"
 incremental = true
 
 [lib]
-name = "dclib"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
