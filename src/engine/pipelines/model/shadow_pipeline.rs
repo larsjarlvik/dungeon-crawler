@@ -25,7 +25,7 @@ impl ShadowPipeline {
             .with_shader("shaders/model_shadow.wgsl")
             .with_depth_bias()
             .with_depth_target(config::DEPTH_FORMAT)
-            .with_buffer_layouts(vec![engine::model::Vertex::desc()])
+            .with_buffer_layouts(vec![engine::model::VertexPosition::desc()])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .build();
 

@@ -70,7 +70,7 @@ impl Model {
                 .with_length(primitive.length);
 
             let shadow_primitive_builder = builders::PrimitiveBuilder::new(ctx, mesh_name)
-                .with_vertices(bytemuck::cast_slice(primitive.vertices.as_slice()))
+                .with_vertices(bytemuck::cast_slice(primitive.vertices_position.as_slice()))
                 .with_indices(bytemuck::cast_slice(&primitive.indices.as_slice()))
                 .with_length(primitive.length);
 
