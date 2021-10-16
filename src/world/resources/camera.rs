@@ -67,7 +67,7 @@ impl Camera {
     }
 
     pub fn get_shadow_matrix(&self) -> Matrix4<f32> {
-        let eye = point3(self.target.x, self.target.y + 30.0, self.target.z + 0.01);
+        let eye = point3(self.target.x + 0.001, self.target.y + 30.0, self.target.z);
         perspective(Deg(45.0), self.aspect, 0.1, 100.0) * Matrix4::look_at_rh(eye, Point3::from_vec(self.target), Vector3::unit_y())
     }
 }

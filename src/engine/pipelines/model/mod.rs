@@ -32,6 +32,7 @@ impl ModelPipeline {
     pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &pipelines::DeferredPipeline) {
         let models = components.read_storage::<components::Model>();
         let render = components.read_storage::<components::Render>();
+        let shadow = components.read_storage::<components::Shadow>();
         let transform = components.read_storage::<components::Transform>();
         let animation = components.read_storage::<components::Animations>();
         let time = components.read_resource::<resources::Time>();
@@ -40,7 +41,8 @@ impl ModelPipeline {
         let mut bundles = vec![];
         let mut shadow_bundles = vec![];
 
-        for (model, animation, render, transform) in (&models, (&animation).maybe(), &render, &transform).join() {
+        for (model, animation, render, shadow, transform) in (&models, (&animation).maybe(), &render, (&shadow).maybe(), &transform).join()
+        {
             let model_matrix = transform.to_matrix(time.last_frame);
 
             if render.cull_frustum {
@@ -62,19 +64,21 @@ impl ModelPipeline {
                 }]),
             );
 
-            ctx.queue.write_buffer(
-                &model.model.shadow_uniform_buffer,
-                self.shadows.uniform_bind_group_layout.index as u64,
-                bytemuck::cast_slice(&[Uniforms {
-                    view_proj: camera.get_shadow_matrix().into(),
-                    model: model_matrix.into(),
-                    joint_transforms: joint_transforms.clone().try_into().unwrap(),
-                    is_animated: animation.is_some() as u32,
-                }]),
-            );
-
             bundles.push(&model.model.display_render_bundle);
-            shadow_bundles.push(&model.model.shadow_render_bundle);
+
+            if shadow.is_some() {
+                ctx.queue.write_buffer(
+                    &model.model.shadow_uniform_buffer,
+                    self.shadows.uniform_bind_group_layout.index as u64,
+                    bytemuck::cast_slice(&[Uniforms {
+                        view_proj: camera.get_shadow_matrix().into(),
+                        model: model_matrix.into(),
+                        joint_transforms: joint_transforms.clone().try_into().unwrap(),
+                        is_animated: animation.is_some() as u32,
+                    }]),
+                );
+                shadow_bundles.push(&model.model.shadow_render_bundle);
+            }
         }
 
         self.display.execute_bundles(ctx, bundles, target);

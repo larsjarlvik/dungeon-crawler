@@ -29,9 +29,6 @@ impl PipelineShadow {
             .with_buffer_layouts(vec![engine::model::VertexPosition::desc()])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .build();
-
-        println!("OKOKOKOKOKOKOKOK");
-
         Self {
             render_pipeline,
             uniform_bind_group_layout,
