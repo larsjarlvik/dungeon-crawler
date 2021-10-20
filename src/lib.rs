@@ -47,6 +47,8 @@ pub fn main() {
                         WindowEvent::KeyboardInput { input, .. } => {
                             if input.virtual_keycode == Some(VirtualKeyCode::Escape) {
                                 *control_flow = ControlFlow::Exit;
+                            } else if input.virtual_keycode == Some(VirtualKeyCode::F11) {
+                                window.set_maximized(!window.is_maximized());
                             } else {
                                 state.keyboard(input);
                             }
