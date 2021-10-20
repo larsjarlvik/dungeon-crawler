@@ -6,7 +6,7 @@ use super::bounding_box;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Frustum {
-    f: [Vector4<f32>; 6],
+    pub f: [Vector4<f32>; 6],
 }
 
 impl Frustum {

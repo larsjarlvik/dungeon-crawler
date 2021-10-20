@@ -37,6 +37,7 @@ impl Engine {
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
             })
             .await
             .expect("No suitable GPU adapters found on the system!");
@@ -121,7 +122,7 @@ impl Engine {
 
     pub fn get_output_frame(&self) -> Option<wgpu::SurfaceTexture> {
         if let Some(surface) = &self.ctx.surface {
-            return Some(surface.get_current_frame().expect("Failed to get output frame!").output);
+            return Some(surface.get_current_texture().expect("Failed to get output frame!"));
         }
 
         None

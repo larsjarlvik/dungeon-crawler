@@ -28,6 +28,7 @@ impl<'a> World {
         components.register::<components::Collider>();
         components.register::<components::Collision>();
         components.register::<components::Flicker>();
+        components.register::<components::Shadow>();
 
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Fps, "fps", &[])

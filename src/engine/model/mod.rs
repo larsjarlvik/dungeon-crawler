@@ -15,7 +15,7 @@ mod vertex;
 use super::collision;
 pub use mesh::Mesh;
 pub use primitive::Primitive;
-pub use vertex::Vertex;
+pub use vertex::*;
 
 pub struct GltfModel {
     pub meshes: Vec<mesh::Mesh>,

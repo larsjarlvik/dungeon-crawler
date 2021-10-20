@@ -21,7 +21,7 @@ impl Default for Camera {
             aspect: 1.0,
             fovy: 45.0,
             znear: 0.1,
-            zfar: 100.0,
+            zfar: config::Z_FAR,
             view_proj: Matrix4::identity(),
             frustum: frustum::Frustum::new(),
         }
@@ -31,10 +31,10 @@ impl Default for Camera {
 impl Camera {
     pub fn new(aspect: f32) -> Self {
         let target = vec3(0.0, 0.0, 0.0);
-        let eye = Point3::new(0.0, 10.0, 6.0);
+        let eye = point3(0.0, 10.0, 6.0);
 
         let view = Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
-        let proj = perspective(Deg(45.0), aspect, 0.1, 100.0);
+        let proj = perspective(Deg(45.0), aspect, 1.0, config::Z_FAR);
         let view_proj = proj * view;
 
         Self {
@@ -43,7 +43,7 @@ impl Camera {
             aspect,
             fovy: 45.0,
             znear: 0.1,
-            zfar: 100.0,
+            zfar: config::Z_FAR,
             view_proj,
             frustum: frustum::Frustum::from_matrix(view_proj),
         }
@@ -57,13 +57,56 @@ impl Camera {
         let eye = Point3::from_vec(target + dist);
 
         self.view_proj =
-            perspective(Deg(45.0), self.aspect, 0.1, 100.0) * Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
+            perspective(Deg(45.0), self.aspect, 1.0, config::Z_FAR) * Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
 
         self.frustum = frustum::Frustum::from_matrix(self.view_proj);
     }
 
     pub fn get_eye(&self) -> Point3<f32> {
-        let target = Point3::from_vec(self.target);
-        Point3::new(target.x + 0.0, target.y + 10.0, target.z + 6.0)
+        Point3::new(self.target.x + 0.0, self.target.y + 10.0, self.target.z + 6.0)
+    }
+
+    pub fn get_shadow_matrix(&self) -> Matrix4<f32> {
+        let inv_cam = (self.view_proj).inverse_transform().unwrap();
+
+        #[rustfmt::skip]
+        let mut frustum_corners = [
+            vec3(-1.0, 1.0,-1.0),
+            vec3( 1.0, 1.0,-1.0),
+            vec3( 1.0,-1.0,-1.0),
+            vec3(-1.0,-1.0,-1.0),
+            vec3(-1.0, 1.0, 1.0),
+            vec3( 1.0, 1.0, 1.0),
+            vec3( 1.0,-1.0, 1.0),
+            vec3(-1.0,-1.0, 1.0),
+        ];
+
+        let mut center = Vector3::zero();
+        for i in 0..8 {
+            let inverted = inv_cam * frustum_corners[i].extend(1.0);
+            frustum_corners[i] = inverted.truncate() / inverted.w;
+            center += frustum_corners[i];
+        }
+        center /= 8.0;
+
+        let mut radius = 0.0f32;
+        for corner in frustum_corners.iter() {
+            radius = radius.max(corner.distance(center));
+        }
+
+        let light_dir = vec3(0.1, -1.0, 0.1);
+        let light_view_matrix = Matrix4::look_at_rh(
+            Point3::from_vec(center - light_dir * radius),
+            Point3::from_vec(center),
+            Vector3::unit_y(),
+        );
+
+        let mut light_ortho_matrix = Matrix4::zero();
+        light_ortho_matrix[0][0] = 2.0 / radius;
+        light_ortho_matrix[1][1] = 2.0 / radius;
+        light_ortho_matrix[2][2] = -1.0 / radius;
+        light_ortho_matrix[3][3] = 1.0;
+
+        light_ortho_matrix * light_view_matrix
     }
 }

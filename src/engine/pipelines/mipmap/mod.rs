@@ -9,7 +9,7 @@ pub fn generate_mipmaps(ctx: &engine::Context, encoder: &mut wgpu::CommandEncode
         "texture_bind_group_layout",
         &[
             builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
-            builder.create_sampler_entry(1, wgpu::ShaderStages::FRAGMENT),
+            builder.create_sampler_entry(1, wgpu::ShaderStages::FRAGMENT, false),
         ],
     );
 

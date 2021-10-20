@@ -58,6 +58,7 @@ impl State {
             .with(world::components::Movement::new(15.0))
             .with(world::components::UserControl)
             .with(world::components::Render { cull_frustum: false })
+            .with(world::components::Shadow)
             .with(world::components::Follow)
             .build();
 
@@ -122,6 +123,8 @@ impl State {
 
             self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
+
+            frame.present();
         }
 
         Ok(())

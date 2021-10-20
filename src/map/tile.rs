@@ -62,6 +62,7 @@ impl Tile {
                     rng.gen::<f32>() * 360.0,
                 ))
                 .with(world::components::Render { cull_frustum: true })
+                .with(world::components::Shadow)
                 .build();
         }
     }

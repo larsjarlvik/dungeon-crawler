@@ -1,10 +1,11 @@
-use super::vertex::Vertex;
+use super::vertex::{Vertex, VertexPosition};
 use crate::engine::bounding_box;
 use cgmath::*;
 
 pub struct Primitive {
     pub indices: Vec<u32>,
     pub vertices: Vec<Vertex>,
+    pub vertices_position: Vec<VertexPosition>,
     pub bounding_box: bounding_box::BoundingBox,
     pub material: Option<usize>,
     pub length: u32,
@@ -47,6 +48,8 @@ impl Primitive {
 
         let material = primitive.material().index();
         let mut vertices = vec![];
+        let mut vertices_position = vec![];
+
         for i in 0..positions.len() {
             vertices.push(Vertex {
                 position: positions[i],
@@ -57,6 +60,12 @@ impl Primitive {
                     [0.0, 0.0, 0.0, 0.0]
                 },
                 tex_coord: tex_coords[i],
+                joints: joints[i],
+                weights: weights[i],
+            });
+
+            vertices_position.push(VertexPosition {
+                position: positions[i],
                 joints: joints[i],
                 weights: weights[i],
             });
@@ -71,6 +80,7 @@ impl Primitive {
         Self {
             indices,
             vertices,
+            vertices_position,
             material,
             bounding_box,
             length,
