@@ -18,7 +18,7 @@ pub struct ScalingPipeline {
 impl ScalingPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
         let builder = builders::PipelineBuilder::new(&ctx, "scaling");
-        let sampler = texture::Texture::create_sampler(ctx);
+        let sampler = texture::Texture::create_sampler(ctx, wgpu::AddressMode::Repeat, wgpu::FilterMode::Linear, None);
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,

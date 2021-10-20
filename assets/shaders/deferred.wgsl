@@ -121,7 +121,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     pbr.reflectance0 = pbr.specular.rgb;
     pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 5.0, 0.0, 1.0);
 
-    var total_light: vec3<f32> = vec3<f32>(0.1);
+    var total_light: vec3<f32> = vec3<f32>(0.05);
 
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];
@@ -157,6 +157,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
         }
     }
 
-    let s = get_shadow_factor(position) * 0.7 + 0.3;
-    return vec4<f32>(total_light * color.rgb * orm.r * s, color.a);
+    let min_shadow = 0.3;
+    let shadow = get_shadow_factor(position) * (1.0 - min_shadow) + min_shadow;
+    return vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a);
 }

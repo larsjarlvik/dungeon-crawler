@@ -95,14 +95,20 @@ impl Texture {
         Self { texture, view }
     }
 
-    pub fn create_sampler(ctx: &super::Context) -> wgpu::Sampler {
+    pub fn create_sampler(
+        ctx: &super::Context,
+        address_mode: wgpu::AddressMode,
+        filter_mode: wgpu::FilterMode,
+        compare: Option<wgpu::CompareFunction>,
+    ) -> wgpu::Sampler {
         ctx.device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::Repeat,
-            address_mode_v: wgpu::AddressMode::Repeat,
-            address_mode_w: wgpu::AddressMode::Repeat,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Linear,
+            address_mode_u: address_mode,
+            address_mode_v: address_mode,
+            address_mode_w: address_mode,
+            mag_filter: filter_mode,
+            min_filter: filter_mode,
+            mipmap_filter: filter_mode,
+            compare,
             ..Default::default()
         })
     }

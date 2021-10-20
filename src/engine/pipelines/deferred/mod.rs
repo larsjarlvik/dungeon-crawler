@@ -48,16 +48,12 @@ impl DeferredPipeline {
             "deferred_mock_shadow_texture",
         );
 
-        let shadow_sampler = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            compare: Some(wgpu::CompareFunction::LessEqual),
-            ..Default::default()
-        });
+        let shadow_sampler = texture::Texture::create_sampler(
+            ctx,
+            wgpu::AddressMode::ClampToEdge,
+            wgpu::FilterMode::Linear,
+            Some(wgpu::CompareFunction::LessEqual),
+        );
 
         let uniform_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             0,
