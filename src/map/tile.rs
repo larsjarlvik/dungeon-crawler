@@ -29,41 +29,63 @@ impl Tile {
             .with(world::components::Transform::from_translation_angle(center, -rotation))
             .build();
 
-        self.tile.lights.iter().filter(|l| l.name.contains(tile)).for_each(|l| {
-            world
-                .components
-                .create_entity()
-                .with(world::components::Light::new(
-                    l.color,
-                    l.intensity,
-                    Some(l.radius),
-                    l.translation,
-                ))
-                .with(world::components::Transform::from_translation(center))
-                .maybe_with(if let Some(flicker) = l.flicker {
-                    Some(world::components::Flicker::new(flicker))
-                } else {
-                    None
-                })
-                .build();
-        });
+        // self.tile.lights.iter().filter(|l| l.name.contains(tile)).for_each(|l| {
+        //     world
+        //         .components
+        //         .create_entity()
+        //         .with(world::components::Light::new(
+        //             l.color,
+        //             l.intensity,
+        //             Some(l.radius),
+        //             l.translation,
+        //         ))
+        //         .with(world::components::Transform::from_translation(center))
+        //         .maybe_with(if let Some(flicker) = l.flicker {
+        //             Some(world::components::Flicker::new(flicker))
+        //         } else {
+        //             None
+        //         })
+        //         .build();
+        // });
 
         let s = self.size / 2.0 - 2.0;
         let decor = vec!["barrel", "table", "torch", "crate"];
         for _ in 0..10 {
             let current = decor[rng.gen_range(0..decor.len())];
+            let pos = center + vec3(rng.gen_range(-s..s), 0.0, rng.gen_range(-s..s));
+
             world
                 .components
                 .create_entity()
                 .with(world::components::Model::new(&engine, &self.assets, current))
                 .with(world::components::Collision::new(&self.assets, current))
                 .with(world::components::Transform::from_translation_angle(
-                    center + vec3(rng.gen_range(-s..s), 0.0, rng.gen_range(-s..s)),
+                    pos,
                     rng.gen::<f32>() * 360.0,
                 ))
                 .with(world::components::Render { cull_frustum: true })
                 .with(world::components::Shadow)
                 .build();
+
+            if current == "torch" {
+                world
+                    .components
+                    .create_entity()
+                    .with(world::components::Particle::new(
+                        engine.particle_pipeline.create_emitter(&engine.ctx),
+                        vec3(1.0, 0.0, 0.0),
+                        vec3(0.0, 0.0, 1.0),
+                    ))
+                    .with(world::components::Light::new(
+                        vec3(1.0, 0.0, 1.0),
+                        0.5,
+                        Some(3.0),
+                        vec3(0.0, 0.0, 0.0),
+                    ))
+                    .with(world::components::Flicker::new(0.5))
+                    .with(world::components::Transform::from_translation(vec3(pos.x, pos.y + 1.25, pos.z)))
+                    .build();
+            }
         }
     }
 

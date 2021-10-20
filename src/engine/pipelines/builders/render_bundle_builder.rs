@@ -107,14 +107,17 @@ impl<'a> RenderBundleBuilder<'a> {
             if let Some(vertex_buffer) = &primitive.vertex_buffer {
                 encoder.set_vertex_buffer(0, vertex_buffer.slice(..));
             }
+            if let Some(instance_buffer) = &primitive.instance_buffer {
+                encoder.set_vertex_buffer(1, instance_buffer.slice(..));
+            }
             if let Some(index_buffer) = &primitive.index_buffer {
                 encoder.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
             }
 
             if primitive.index_buffer.is_some() {
-                encoder.draw_indexed(0..primitive.length, 0, 0..1);
+                encoder.draw_indexed(0..primitive.length, 0, 0..primitive.instances);
             } else {
-                encoder.draw(0..primitive.length, 0..1);
+                encoder.draw(0..primitive.length, 0..primitive.instances);
             }
         }
 

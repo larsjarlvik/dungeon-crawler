@@ -119,6 +119,14 @@ impl State {
             self.engine
                 .deferred_pipeline
                 .render(&self.engine.ctx, &self.engine.scaling_pipeline.texture.view);
+
+            self.engine.particle_pipeline.render(
+                &self.engine.ctx,
+                &self.world.components,
+                &self.engine.scaling_pipeline.texture.view,
+                &self.engine.deferred_pipeline.depth_texture.view,
+            );
+
             self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
 
             self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
