@@ -1,7 +1,11 @@
 use std::{f32::consts, mem};
 
 use super::builders;
-use crate::{config, engine, utils::Interpolate, world::{components, resources}};
+use crate::{
+    config, engine,
+    utils::Interpolate,
+    world::{components, resources},
+};
 use rand::Rng;
 use specs::{Join, WorldExt};
 mod uniforms;
@@ -73,7 +77,12 @@ impl ParticlePipeline {
                 model: transform.to_matrix(time.last_frame).into(),
                 start_color: particle.start_color.extend(1.0).into(),
                 end_color: particle.end_color.extend(1.0).into(),
-                life: [time.total_time.elapsed().as_secs_f32(), particle.strength.get(time.last_frame), particle.size, 0.0],
+                life: [
+                    time.total_time.elapsed().as_secs_f32(),
+                    particle.strength.get(time.last_frame),
+                    particle.size,
+                    0.0,
+                ],
             };
 
             ctx.queue
@@ -88,7 +97,7 @@ impl ParticlePipeline {
             .execute_bundles(bundles);
     }
 
-    pub fn create_emitter(&self, ctx: &engine::Context, count: u32, spread: f32) -> ParticleEmitter {
+    pub fn create_emitter(&self, ctx: &engine::Context, count: u32, life_time: f32, spread: f32, speed: f32) -> ParticleEmitter {
         let mut particles = vec![];
         let mut rng = rand::thread_rng();
         for _ in 0..count {
@@ -99,10 +108,10 @@ impl ParticlePipeline {
 
             particles.push(vertex::Instance {
                 data: [
-                    rng.gen::<f32>(),                        // lifetime
-                    rng.gen::<f32>() * 0.4 + 0.2,            // Speed
-                    x, // spread X
-                    z, // spread Z
+                    rng.gen::<f32>() * life_time,             // lifetime
+                    rng.gen::<f32>() * speed + (speed * 0.5), // Speed
+                    x,                                        // spread X
+                    z,                                        // spread Z
                 ],
             });
         }
