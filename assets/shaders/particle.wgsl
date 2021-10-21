@@ -1,4 +1,6 @@
 // Vertex shader
+let M_PI = 3.141592653589793;
+
 [[block]]
 struct Uniforms {
     view: mat4x4<f32>;
@@ -6,8 +8,9 @@ struct Uniforms {
     model: mat4x4<f32>;
     start_color: vec4<f32>;
     end_color: vec4<f32>;
-    speed: f32;
     time: f32;
+    strength: f32;
+    size: f32;
 };
 
 [[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
@@ -40,18 +43,20 @@ fn main(
     let z = spread_z * (y + 0.3) * speed;
 
     var m: mat4x4<f32> = uniforms.model;
-    m[3][0] = m[3][0] + x;
+    m[3][0] = m[3][0] + x * sin(y * uniforms.strength * M_PI);
     m[3][1] = m[3][1] + y;
-    m[3][2] = m[3][2] + z;
+    m[3][2] = m[3][2] + z * sin(y * uniforms.strength * M_PI);
 
     var mv: mat4x4<f32> = uniforms.view * m;
     mv[0][0] = 1.0; mv[0][1] = 0.0; mv[0][2] = 0.0;
     mv[1][0] = 0.0; mv[1][1] = 1.0; mv[1][2] = 0.0;
     mv[2][0] = 0.0; mv[2][1] = 0.0; mv[2][2] = 1.0;
 
-    out.position = model.position;
+    let position = model.position * uniforms.size;
+
+    out.position = position;
     out.elapsed = uniforms.time % life_time;
-    out.clip_position = uniforms.proj * mv * vec4<f32>(model.position.x, model.position.y, 0.0, 1.0);
+    out.clip_position = uniforms.proj * mv * vec4<f32>(position.x, position.y, 0.0, 1.0);
 
     return out;
 }
@@ -59,7 +64,7 @@ fn main(
 // Fragment shader
 [[stage(fragment)]]
 fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    let opacity = 1.0 - (distance(in.position, vec2<f32>(0.0, 0.0)) / 0.02);
+    let opacity = 1.0 - (distance(in.position, vec2<f32>(0.0, 0.0)) / uniforms.size);
     let color = mix(uniforms.start_color, uniforms.end_color, in.elapsed);
-    return vec4<f32>(color.r, color.g, color.b, color.a * opacity);
+    return vec4<f32>(color.r, color.g, color.b, color.a * opacity * uniforms.strength);
 }

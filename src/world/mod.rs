@@ -35,7 +35,7 @@ impl<'a> World {
             .with(systems::Fps, "fps", &[])
             .with(systems::UserControl, "user_control", &[])
             .with(systems::Movement, "movement", &[])
-            .with(systems::LightFlicker, "light_flicker", &[])
+            .with(systems::Flicker, "flicker", &[])
             .build();
 
         Self {

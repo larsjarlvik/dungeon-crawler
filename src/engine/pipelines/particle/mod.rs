@@ -1,10 +1,7 @@
-use std::mem;
+use std::{f32::consts, mem};
 
 use super::builders;
-use crate::{
-    config, engine,
-    world::{components, resources},
-};
+use crate::{config, engine, utils::Interpolate, world::{components, resources}};
 use rand::Rng;
 use specs::{Join, WorldExt};
 mod uniforms;
@@ -35,24 +32,24 @@ impl ParticlePipeline {
             .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
             .with_buffer_layouts(vec![vertex::Vertex::desc(), vertex::Instance::desc()])
             .with_depth_target(config::DEPTH_FORMAT)
+            .with_depth_write(false)
             .with_blend(wgpu::BlendState {
                 color: wgpu::BlendComponent {
                     operation: wgpu::BlendOperation::Add,
                     src_factor: wgpu::BlendFactor::SrcAlpha,
-                    dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                    dst_factor: wgpu::BlendFactor::One,
                 },
-                alpha: wgpu::BlendComponent::REPLACE,
+                alpha: wgpu::BlendComponent::OVER,
             })
             .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .build();
 
-        let size = 0.02;
         let vertex = vec![
-            vertex::Vertex { position: [size, -size] },
-            vertex::Vertex { position: [size, size] },
-            vertex::Vertex { position: [-size, -size] },
-            vertex::Vertex { position: [-size, size] },
+            vertex::Vertex { position: [1.0, -1.0] },
+            vertex::Vertex { position: [1.0, 1.0] },
+            vertex::Vertex { position: [-1.0, -1.0] },
+            vertex::Vertex { position: [-1.0, 1.0] },
         ];
 
         Self {
@@ -76,7 +73,7 @@ impl ParticlePipeline {
                 model: transform.to_matrix(time.last_frame).into(),
                 start_color: particle.start_color.extend(1.0).into(),
                 end_color: particle.end_color.extend(1.0).into(),
-                life: [0.001, time.total_time.elapsed().as_secs_f32(), 0.0, 0.0],
+                life: [time.total_time.elapsed().as_secs_f32(), particle.strength.get(time.last_frame), particle.size, 0.0],
             };
 
             ctx.queue
@@ -91,17 +88,21 @@ impl ParticlePipeline {
             .execute_bundles(bundles);
     }
 
-    pub fn create_emitter(&self, ctx: &engine::Context) -> ParticleEmitter {
+    pub fn create_emitter(&self, ctx: &engine::Context, count: u32, spread: f32) -> ParticleEmitter {
         let mut particles = vec![];
         let mut rng = rand::thread_rng();
-        for _ in 0..500 {
-            let spread = 0.6 - 0.3;
+        for _ in 0..count {
+            let angle = rng.gen::<f32>() * consts::PI * 2.0;
+            let dist = rng.gen::<f32>() * (spread / 2.0);
+            let x = dist * angle.sin();
+            let z = dist * angle.cos();
+
             particles.push(vertex::Instance {
                 data: [
                     rng.gen::<f32>(),                        // lifetime
                     rng.gen::<f32>() * 0.4 + 0.2,            // Speed
-                    (rng.gen::<f32>() * 2.0 - 1.0) * spread, // spread X
-                    (rng.gen::<f32>() * 2.0 - 1.0) * spread, // spread Z
+                    x, // spread X
+                    z, // spread Z
                 ],
             });
         }

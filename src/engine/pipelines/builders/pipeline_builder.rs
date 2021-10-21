@@ -16,6 +16,7 @@ pub struct PipelineBuilder<'a> {
     depth_bias: Option<wgpu::DepthBiasState>,
     buffer_layouts: Vec<wgpu::VertexBufferLayout<'a>>,
     primitve_topology: wgpu::PrimitiveTopology,
+    depth_write: bool,
     blend: Option<wgpu::BlendState>,
     label: &'a str,
 }
@@ -38,6 +39,7 @@ impl<'a> PipelineBuilder<'a> {
             buffer_layouts: vec![],
             primitve_topology: wgpu::PrimitiveTopology::TriangleList,
             blend: None,
+            depth_write: true,
             label,
         }
     }
@@ -153,6 +155,11 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
+    pub fn with_depth_write(mut self, depth_write: bool) -> Self {
+        self.depth_write = depth_write;
+        self
+    }
+
     pub fn build(self) -> Pipeline {
         let shader = self.shader.unwrap();
 
@@ -176,7 +183,7 @@ impl<'a> PipelineBuilder<'a> {
         let depth_stencil = if self.depth_target.is_some() {
             Some(wgpu::DepthStencilState {
                 format: config::DEPTH_FORMAT,
-                depth_write_enabled: true,
+                depth_write_enabled: self.depth_write,
                 depth_compare: wgpu::CompareFunction::LessEqual,
                 stencil: wgpu::StencilState::default(),
                 bias: if let Some(depth_bias) = self.depth_bias {

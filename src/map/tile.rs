@@ -72,18 +72,19 @@ impl Tile {
                     .components
                     .create_entity()
                     .with(world::components::Particle::new(
-                        engine.particle_pipeline.create_emitter(&engine.ctx),
-                        vec3(1.0, 0.0, 0.0),
-                        vec3(0.0, 0.0, 1.0),
+                        engine.particle_pipeline.create_emitter(&engine.ctx, 3000, 0.7),
+                        vec3(0.5, 0.07, 0.0),
+                        vec3(0.98, 0.75, 0.0),
+                        0.02
                     ))
                     .with(world::components::Light::new(
-                        vec3(1.0, 0.0, 1.0),
+                        vec3(1.0, 1.0, 0.72),
                         0.5,
-                        Some(3.0),
+                        Some(3.5),
                         vec3(0.0, 0.0, 0.0),
                     ))
-                    .with(world::components::Flicker::new(0.5))
-                    .with(world::components::Transform::from_translation(vec3(pos.x, pos.y + 1.25, pos.z)))
+                    .with(world::components::Flicker::new(0.1, rng.gen::<f32>() * 0.1 + 0.1))
+                    .with(world::components::Transform::from_translation(vec3(pos.x, pos.y + 1.1, pos.z)))
                     .build();
             }
         }
