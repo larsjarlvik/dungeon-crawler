@@ -102,17 +102,18 @@ impl ParticlePipeline {
         let mut rng = rand::thread_rng();
         for _ in 0..count {
             let angle = rng.gen::<f32>() * consts::PI * 2.0;
-            let dist = rng.gen::<f32>() * (spread / 2.0);
+            let dist = (rng.gen::<f32>() * (spread / 2.0)).max(rng.gen::<f32>() * (spread * 0.8 / 2.0));
             let x = dist * angle.sin();
             let z = dist * angle.cos();
 
+            let life = life_time * (1.0 - (dist / spread));
+
             particles.push(vertex::Instance {
-                data: [
-                    rng.gen::<f32>() * life_time,             // lifetime
+                life_speed: [
+                    rng.gen::<f32>() * life,                  // lifetime
                     rng.gen::<f32>() * speed + (speed * 0.5), // Speed
-                    x,                                        // spread X
-                    z,                                        // spread Z
                 ],
+                pos: [x, (rng.gen::<f32>() - 0.5) * life_time * 0.8, z],
             });
         }
 

@@ -146,7 +146,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
                 let diffuse_contrib = (1.0 - F) * (pbr.diffuse / M_PI);
                 let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
-                let attenuation = clamp(1.0 - light_dist * light_dist / (light.radius * light.radius), 0.0, 1.0);
+                let attenuation = clamp(pow(1.0 - light_dist / (light.radius * 2.0), 4.0), 0.0, 1.0);
 
                 var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
                 light_contrib = light_contrib + normal.y;

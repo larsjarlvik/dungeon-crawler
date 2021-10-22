@@ -17,7 +17,8 @@ struct Uniforms {
 
 struct VertexInput {
     [[location(0)]] position: vec2<f32>;
-    [[location(1)]] particle: vec4<f32>;
+    [[location(1)]] particle_life_speed: vec2<f32>;
+    [[location(2)]] particle_pos: vec3<f32>;
 };
 
 struct VertexOutput {
@@ -33,18 +34,17 @@ fn main(
     var out: VertexOutput;
 
 
-    let speed = model.particle.y;
-    let life_time = model.particle.x;
-    let spread = vec2<f32>(model.particle.z, model.particle.w);
+    let life_time = model.particle_life_speed.x;
+    let speed = model.particle_life_speed.y;
+    let y = (speed * uniforms.time) % life_time + model.particle_pos.y;
 
-    let y = (speed * uniforms.time) % life_time;
-    let x = spread.x * clamp(life_time - y + 0.5, 0.0, 0.5);
-    let z = spread.y * clamp(life_time - y + 0.5, 0.0, 0.5);
+    let x = model.particle_pos.x * clamp(life_time - y + 0.5, 0.0, 0.5);
+    let z = model.particle_pos.z * clamp(life_time - y + 0.5, 0.0, 0.5);
 
     var m: mat4x4<f32> = uniforms.model;
-    m[3][0] = m[3][0] + x + sin(uniforms.time % (life_time * 20.0) * y) * 0.06;
+    m[3][0] = m[3][0] + x + sin(uniforms.time % (life_time * 20.0) * y) * 0.03;
     m[3][1] = m[3][1] + y;
-    m[3][2] = m[3][2] + z + sin(uniforms.time % (life_time * 20.0) * y * 1.2) * 0.06;
+    m[3][2] = m[3][2] + z + sin(uniforms.time % (life_time * 20.0) * y * 1.2) * 0.03;
 
     var mv: mat4x4<f32> = uniforms.view * m;
     mv[0][0] = 1.0; mv[0][1] = 0.0; mv[0][2] = 0.0;
@@ -65,5 +65,5 @@ fn main(
 fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let opacity = 1.0 - pow(distance(in.position, vec2<f32>(0.0, 0.0)) / uniforms.size, 0.5);
     let color = mix(uniforms.start_color, uniforms.end_color, clamp(in.elapsed * 2.4, 0.0, 1.0));
-    return vec4<f32>(color.r, color.g, color.b, color.a * opacity * uniforms.strength * 0.5);
+    return vec4<f32>(color.r, color.g, color.b, color.a * opacity * uniforms.strength * 0.4);
 }
