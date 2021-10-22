@@ -127,33 +127,34 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
         let light = uniforms.light[i];
         var light_dist: f32 = distance(light.position, position);
 
-        if (light_dist < light.radius) {
-            let light_dir = normalize(light.position - position);
-            let half_dir = normalize(light_dir + view_dir);
-            let reflection = -normalize(reflect(view_dir, normal));
+        if (light_dist > light.radius) { continue; }
 
-            pbr.n_dot_l = clamp(dot(normal, light_dir), 0.001, 1.0);
-            pbr.n_dot_v = clamp(abs(dot(normal, view_dir)), 0.001, 1.0);
-            pbr.n_dot_h = clamp(dot(normal, half_dir), 0.0, 1.0);
-            pbr.l_dot_h = clamp(dot(light_dir, half_dir), 0.0, 1.0);
-            pbr.v_dot_h = clamp(dot(view_dir, half_dir), 0.0, 1.0);
+        let attenuation = clamp(pow(1.0 - light_dist / (light.radius * 2.0), 4.0), 0.0, 1.0);
+        if (attenuation < 0.1) { continue; }
 
-            if (pbr.n_dot_l > 0.0 || pbr.n_dot_v > 0.0) {
-                var F: vec3<f32> = specularReflection(pbr);
-                var G: f32 = geometricOcclusion(pbr);
-                var D: f32 = microfacetDistribution(pbr);
+        let light_dir = normalize(light.position - position);
+        let half_dir = normalize(light_dir + view_dir);
+        let reflection = -normalize(reflect(view_dir, normal));
 
-                let diffuse_contrib = (1.0 - F) * (pbr.diffuse / M_PI);
-                let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
+        pbr.n_dot_l = clamp(dot(normal, light_dir), 0.001, 1.0);
+        pbr.n_dot_v = clamp(abs(dot(normal, view_dir)), 0.001, 1.0);
+        pbr.n_dot_h = clamp(dot(normal, half_dir), 0.0, 1.0);
+        pbr.l_dot_h = clamp(dot(light_dir, half_dir), 0.0, 1.0);
+        pbr.v_dot_h = clamp(dot(view_dir, half_dir), 0.0, 1.0);
 
-                let attenuation = clamp(1.0 - light_dist * light_dist / (light.radius * light.radius), 0.0, 1.0);
+        if (pbr.n_dot_l > 0.0 || pbr.n_dot_v > 0.0) {
+            var F: vec3<f32> = specularReflection(pbr);
+            var G: f32 = geometricOcclusion(pbr);
+            var D: f32 = microfacetDistribution(pbr);
 
-                var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
-                light_contrib = light_contrib + normal.y;
+            let diffuse_contrib = (1.0 - F) * (pbr.diffuse / M_PI);
+            let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
-                let new_light = mix(total_light, attenuation * light.color * light_contrib, 0.5);
-                total_light = max(total_light, new_light);
-            }
+            var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
+            light_contrib = light_contrib + normal.y;
+
+            let new_light = mix(total_light, attenuation * light.color * light_contrib, 0.5);
+            total_light = max(total_light, new_light);
         }
     }
 

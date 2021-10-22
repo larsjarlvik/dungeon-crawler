@@ -4,6 +4,7 @@ use std::{
     usize,
 };
 pub mod animation;
+mod emitter;
 mod interpolation;
 mod light;
 mod material;
@@ -13,6 +14,7 @@ mod primitive;
 pub mod skin;
 mod vertex;
 use super::collision;
+pub use emitter::Emitter;
 pub use mesh::Mesh;
 pub use primitive::Primitive;
 pub use vertex::*;
@@ -22,6 +24,7 @@ pub struct GltfModel {
     pub skins: Vec<skin::Skin>,
     pub nodes: Vec<node::Node>,
     pub lights: Vec<light::Light>,
+    pub emitters: Vec<emitter::Emitter>,
     pub materials: Vec<material::Material>,
     pub collisions: HashMap<String, Vec<collision::Polygon>>,
     pub animations: HashMap<String, animation::Animation>,
@@ -37,27 +40,7 @@ impl GltfModel {
         let mut nodes = vec![];
         let mut collisions: HashMap<String, Vec<collision::Polygon>> = HashMap::new();
         let mut lights = vec![];
-
-        for mesh in gltf.meshes() {
-            if let Some(mesh_name) = mesh.name() {
-                if mesh_name.split("_").any(|w| w == "col") {
-                    let key = mesh_name.split("_").collect::<Vec<&str>>()[0].to_string();
-                    let primitives: Vec<gltf::Primitive> = mesh.primitives().collect();
-                    let mut polygons = build_collision_polygon(&primitives[0], &buffers);
-
-                    match collisions.entry(key) {
-                        Entry::Vacant(e) => {
-                            e.insert(polygons);
-                        }
-                        Entry::Occupied(mut e) => {
-                            e.get_mut().append(&mut polygons);
-                        }
-                    }
-                }
-
-                meshes.insert(mesh.index(), mesh::Mesh::new(&mesh, &buffers));
-            }
-        }
+        let mut emitters = vec![];
 
         for skin in gltf.skins() {
             skins.insert(skin.index(), skin::Skin::new(&skin, &buffers));
@@ -92,6 +75,33 @@ impl GltfModel {
             })
             .collect();
 
+        for gltf_mesh in gltf.meshes() {
+            if let Some(mesh_name) = gltf_mesh.name() {
+                let mesh = mesh::Mesh::new(&gltf_mesh, &buffers);
+
+                if mesh_name.split("_").any(|w| w == "col") {
+                    let key = mesh_name.split("_").collect::<Vec<&str>>()[0].to_string();
+                    let primitives: Vec<gltf::Primitive> = gltf_mesh.primitives().collect();
+                    let mut polygons = build_collision_polygon(&primitives[0], &buffers);
+
+                    match collisions.entry(key) {
+                        Entry::Vacant(e) => {
+                            e.insert(polygons);
+                        }
+                        Entry::Occupied(mut e) => {
+                            e.get_mut().append(&mut polygons);
+                        }
+                    }
+                }
+
+                if mesh_name.split("_").any(|w| w == "emit") {
+                    emitters.push(emitter::Emitter::new(&gltf_mesh, &mesh.primitives.first().unwrap(), &materials));
+                }
+
+                meshes.insert(gltf_mesh.index(), mesh);
+            }
+        }
+
         Self {
             meshes,
             skins,
@@ -100,6 +110,7 @@ impl GltfModel {
             collisions,
             animations,
             lights,
+            emitters,
             depth_first_taversal_indices,
         }
     }

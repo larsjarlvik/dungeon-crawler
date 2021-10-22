@@ -1,4 +1,5 @@
 use crate::engine::{self, texture};
+use cgmath::*;
 use specs::{prelude::ParallelIterator, rayon::iter::IntoParallelIterator};
 
 pub struct Textures {
@@ -10,6 +11,8 @@ pub struct Textures {
 pub struct Material {
     pub roughness_factor: f32,
     pub metallic_factor: f32,
+    pub base_color_factor: Vector4<f32>,
+    pub emissive_factor: Vector3<f32>,
     pub textures: Option<Textures>,
 }
 
@@ -40,6 +43,8 @@ impl Material {
             textures,
             roughness_factor: pbr.roughness_factor(),
             metallic_factor: pbr.metallic_factor(),
+            base_color_factor: Vector4::from(pbr.base_color_factor()),
+            emissive_factor: Vector3::from(material.emissive_factor()),
         }
     }
 }

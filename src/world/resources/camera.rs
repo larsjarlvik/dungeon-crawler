@@ -9,6 +9,8 @@ pub struct Camera {
     pub fovy: f32,
     pub znear: f32,
     pub zfar: f32,
+    pub view: Matrix4<f32>,
+    pub proj: Matrix4<f32>,
     pub view_proj: Matrix4<f32>,
     pub frustum: frustum::Frustum,
 }
@@ -22,6 +24,8 @@ impl Default for Camera {
             fovy: 45.0,
             znear: 0.1,
             zfar: config::Z_FAR,
+            view: Matrix4::identity(),
+            proj: Matrix4::identity(),
             view_proj: Matrix4::identity(),
             frustum: frustum::Frustum::new(),
         }
@@ -44,6 +48,8 @@ impl Camera {
             fovy: 45.0,
             znear: 0.1,
             zfar: config::Z_FAR,
+            view,
+            proj,
             view_proj,
             frustum: frustum::Frustum::from_matrix(view_proj),
         }
@@ -56,9 +62,9 @@ impl Camera {
         let dist = rot.rotate_point(point3(0.0, 10.0, 6.0)).to_vec();
         let eye = Point3::from_vec(target + dist);
 
-        self.view_proj =
-            perspective(Deg(45.0), self.aspect, 1.0, config::Z_FAR) * Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
-
+        self.proj = perspective(Deg(45.0), self.aspect, 1.0, config::Z_FAR);
+        self.view = Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
+        self.view_proj = self.proj * self.view;
         self.frustum = frustum::Frustum::from_matrix(self.view_proj);
     }
 

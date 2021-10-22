@@ -22,6 +22,7 @@ pub struct Engine {
     pub glyph_pipeline: pipelines::GlyphPipeline,
     pub joystick_pipeline: pipelines::JoystickPipeline,
     pub deferred_pipeline: pipelines::DeferredPipeline,
+    pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
 }
 
@@ -76,6 +77,7 @@ impl Engine {
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
         let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
         let deferred_pipeline = pipelines::DeferredPipeline::new(&ctx);
+        let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
 
@@ -84,6 +86,7 @@ impl Engine {
             model_pipeline,
             glyph_pipeline,
             deferred_pipeline,
+            particle_pipeline,
             scaling_pipeline,
             joystick_pipeline,
         }

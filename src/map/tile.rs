@@ -1,19 +1,22 @@
-use crate::{engine, world};
+use crate::{
+    engine::{self},
+    world,
+};
 use cgmath::*;
 use rand::{prelude::StdRng, Rng};
 use specs::{Builder, WorldExt};
 
 pub struct Tile {
     pub tile: engine::model::GltfModel,
-    pub assets: engine::model::GltfModel,
+    pub decor: engine::model::GltfModel,
     size: f32,
 }
 
 impl Tile {
     pub fn new(engine: &engine::Engine, size: f32) -> Self {
         let tile = engine.load_model("models/catacombs.glb");
-        let assets = engine.load_model("models/decor.glb");
-        Self { tile, assets, size }
+        let decor = engine.load_model("models/decor.glb");
+        Self { tile, decor, size }
     }
 
     pub fn build(&self, engine: &engine::Engine, world: &mut world::World, rng: &mut StdRng, x: i32, y: i32, entrances: &[bool; 4]) {
@@ -41,7 +44,7 @@ impl Tile {
                 ))
                 .with(world::components::Transform::from_translation(center))
                 .maybe_with(if let Some(flicker) = l.flicker {
-                    Some(world::components::Flicker::new(flicker))
+                    Some(world::components::Flicker::new(flicker, rng.gen::<f32>() * 0.05 + 0.02))
                 } else {
                     None
                 })
@@ -52,18 +55,61 @@ impl Tile {
         let decor = vec!["barrel", "table", "torch", "crate"];
         for _ in 0..10 {
             let current = decor[rng.gen_range(0..decor.len())];
+            let pos = center + vec3(rng.gen_range(-s..s), 0.0, rng.gen_range(-s..s));
+            let flicker_speed = rng.gen::<f32>() * 0.05 + 0.02;
+
             world
                 .components
                 .create_entity()
-                .with(world::components::Model::new(&engine, &self.assets, current))
-                .with(world::components::Collision::new(&self.assets, current))
+                .with(world::components::Model::new(&engine, &self.decor, current))
+                .with(world::components::Collision::new(&self.decor, current))
                 .with(world::components::Transform::from_translation_angle(
-                    center + vec3(rng.gen_range(-s..s), 0.0, rng.gen_range(-s..s)),
+                    pos,
                     rng.gen::<f32>() * 360.0,
                 ))
                 .with(world::components::Render { cull_frustum: true })
                 .with(world::components::Shadow)
                 .build();
+
+            self.decor.lights.iter().filter(|l| l.name.contains(current)).for_each(|l| {
+                world
+                    .components
+                    .create_entity()
+                    .with(world::components::Light::new(
+                        l.color,
+                        l.intensity,
+                        Some(l.radius),
+                        l.translation,
+                    ))
+                    .with(world::components::Transform::from_translation(pos))
+                    .maybe_with(if let Some(flicker) = l.flicker {
+                        Some(world::components::Flicker::new(flicker, flicker_speed))
+                    } else {
+                        None
+                    })
+                    .build();
+            });
+
+            self.decor.emitters.iter().filter(|e| e.name.contains(current)).for_each(|e| {
+                world
+                    .components
+                    .create_entity()
+                    .with(world::components::Particle::new(
+                        engine
+                            .particle_pipeline
+                            .create_emitter(&engine.ctx, e.particle_count, e.life_time, e.spread, e.speed),
+                        e.start_color,
+                        e.end_color,
+                        e.size,
+                    ))
+                    .maybe_with(if let Some(flicker) = e.flicker {
+                        Some(world::components::Flicker::new(flicker, flicker_speed))
+                    } else {
+                        None
+                    })
+                    .with(world::components::Transform::from_translation(pos + e.position))
+                    .build();
+            });
         }
     }
 
