@@ -21,7 +21,7 @@ impl Emitter {
     pub fn new(gltf_mesh: &gltf::Mesh, primitive: &primitive::Primitive, materials: &Vec<material::Material>) -> Self {
         let extras: HashMap<String, f32>;
 
-        let position = primitive.vertices.iter().map(|v| Vector3::from(v.position)).sum::<Vector3<f32>>() / primitive.vertices.len() as f32;
+        let position = primitive.get_center();
         let material = materials
             .get(primitive.material.expect("Emitter does not have any material!"))
             .expect("Emitter material not found!");

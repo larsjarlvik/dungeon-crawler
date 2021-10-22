@@ -10,12 +10,14 @@ mod light;
 mod material;
 mod mesh;
 pub mod node;
+mod placeholder;
 mod primitive;
 pub mod skin;
 mod vertex;
 use super::collision;
 pub use emitter::Emitter;
 pub use mesh::Mesh;
+pub use placeholder::Placeholder;
 pub use primitive::Primitive;
 pub use vertex::*;
 
@@ -25,6 +27,7 @@ pub struct GltfModel {
     pub nodes: Vec<node::Node>,
     pub lights: Vec<light::Light>,
     pub emitters: Vec<emitter::Emitter>,
+    pub placeholders: Vec<placeholder::Placeholder>,
     pub materials: Vec<material::Material>,
     pub collisions: HashMap<String, Vec<collision::Polygon>>,
     pub animations: HashMap<String, animation::Animation>,
@@ -41,6 +44,7 @@ impl GltfModel {
         let mut collisions: HashMap<String, Vec<collision::Polygon>> = HashMap::new();
         let mut lights = vec![];
         let mut emitters = vec![];
+        let mut placeholders = vec![];
 
         for skin in gltf.skins() {
             skins.insert(skin.index(), skin::Skin::new(&skin, &buffers));
@@ -79,7 +83,7 @@ impl GltfModel {
             if let Some(mesh_name) = gltf_mesh.name() {
                 let mesh = mesh::Mesh::new(&gltf_mesh, &buffers);
 
-                if mesh_name.split("_").any(|w| w == "col") {
+                if mesh.name.contains("col") {
                     let key = mesh_name.split("_").collect::<Vec<&str>>()[0].to_string();
                     let primitives: Vec<gltf::Primitive> = gltf_mesh.primitives().collect();
                     let mut polygons = build_collision_polygon(&primitives[0], &buffers);
@@ -94,8 +98,12 @@ impl GltfModel {
                     }
                 }
 
-                if mesh_name.split("_").any(|w| w == "emit") {
+                if mesh.name.contains("emit") {
                     emitters.push(emitter::Emitter::new(&gltf_mesh, &mesh.primitives.first().unwrap(), &materials));
+                }
+
+                if mesh.name.contains("place") {
+                    placeholders.push(placeholder::Placeholder::new(&gltf_mesh, &mesh.primitives.first().unwrap()))
                 }
 
                 meshes.insert(gltf_mesh.index(), mesh);
@@ -111,6 +119,7 @@ impl GltfModel {
             animations,
             lights,
             emitters,
+            placeholders,
             depth_first_taversal_indices,
         }
     }
@@ -128,6 +137,10 @@ impl GltfModel {
         }
 
         None
+    }
+
+    pub fn get_placeholders(&self, mesh_name: &str) -> Vec<&placeholder::Placeholder> {
+        self.placeholders.iter().filter(|p| p.name.contains(mesh_name)).collect()
     }
 }
 

@@ -86,4 +86,8 @@ impl Primitive {
             length,
         }
     }
+
+    pub fn get_center(&self) -> Vector3<f32> {
+        self.vertices.iter().map(|v| Vector3::from(v.position)).sum::<Vector3<f32>>() / self.vertices.len() as f32
+    }
 }

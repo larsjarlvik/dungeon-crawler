@@ -33,6 +33,12 @@ impl Tile {
             .build();
 
         self.tile.lights.iter().filter(|l| l.name.contains(tile)).for_each(|l| {
+            let flicker = if let Some(flicker) = l.flicker {
+                Some(world::components::Flicker::new(flicker, rng.gen::<f32>() * 0.05 + 0.02))
+            } else {
+                None
+            };
+
             world
                 .components
                 .create_entity()
@@ -43,19 +49,16 @@ impl Tile {
                     l.translation,
                 ))
                 .with(world::components::Transform::from_translation(center))
-                .maybe_with(if let Some(flicker) = l.flicker {
-                    Some(world::components::Flicker::new(flicker, rng.gen::<f32>() * 0.05 + 0.02))
-                } else {
-                    None
-                })
+                .maybe_with(flicker)
                 .build();
         });
 
-        let s = self.size / 2.0 - 2.0;
         let decor = vec!["barrel", "table", "torch", "crate"];
-        for _ in 0..10 {
+        let placeholders = self.tile.get_placeholders(tile);
+
+        for placeholder in placeholders {
             let current = decor[rng.gen_range(0..decor.len())];
-            let pos = center + vec3(rng.gen_range(-s..s), 0.0, rng.gen_range(-s..s));
+            let pos = center + vec3(placeholder.position.x, 0.0, placeholder.position.z);
             let flicker_speed = rng.gen::<f32>() * 0.05 + 0.02;
 
             world
@@ -72,6 +75,12 @@ impl Tile {
                 .build();
 
             self.decor.lights.iter().filter(|l| l.name.contains(current)).for_each(|l| {
+                let flicker = if let Some(flicker) = l.flicker {
+                    Some(world::components::Flicker::new(flicker, flicker_speed))
+                } else {
+                    None
+                };
+
                 world
                     .components
                     .create_entity()
@@ -82,31 +91,26 @@ impl Tile {
                         l.translation,
                     ))
                     .with(world::components::Transform::from_translation(pos))
-                    .maybe_with(if let Some(flicker) = l.flicker {
-                        Some(world::components::Flicker::new(flicker, flicker_speed))
-                    } else {
-                        None
-                    })
+                    .maybe_with(flicker)
                     .build();
             });
 
             self.decor.emitters.iter().filter(|e| e.name.contains(current)).for_each(|e| {
+                let flicker = if let Some(flicker) = e.flicker {
+                    Some(world::components::Flicker::new(flicker, flicker_speed))
+                } else {
+                    None
+                };
+
+                let emitter = engine
+                    .particle_pipeline
+                    .create_emitter(&engine.ctx, e.particle_count, e.life_time, e.spread, e.speed);
+
                 world
                     .components
                     .create_entity()
-                    .with(world::components::Particle::new(
-                        engine
-                            .particle_pipeline
-                            .create_emitter(&engine.ctx, e.particle_count, e.life_time, e.spread, e.speed),
-                        e.start_color,
-                        e.end_color,
-                        e.size,
-                    ))
-                    .maybe_with(if let Some(flicker) = e.flicker {
-                        Some(world::components::Flicker::new(flicker, flicker_speed))
-                    } else {
-                        None
-                    })
+                    .with(world::components::Particle::new(emitter, e.start_color, e.end_color, e.size))
+                    .maybe_with(flicker)
                     .with(world::components::Transform::from_translation(pos + e.position))
                     .build();
             });
