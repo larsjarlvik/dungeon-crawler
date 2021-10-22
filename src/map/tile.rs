@@ -32,24 +32,24 @@ impl Tile {
             .with(world::components::Transform::from_translation_angle(center, -rotation))
             .build();
 
-        // self.tile.lights.iter().filter(|l| l.name.contains(tile)).for_each(|l| {
-        //     world
-        //         .components
-        //         .create_entity()
-        //         .with(world::components::Light::new(
-        //             l.color,
-        //             l.intensity,
-        //             Some(l.radius),
-        //             l.translation,
-        //         ))
-        //         .with(world::components::Transform::from_translation(center))
-        //         .maybe_with(if let Some(flicker) = l.flicker {
-        //             Some(world::components::Flicker::new(flicker))
-        //         } else {
-        //             None
-        //         })
-        //         .build();
-        // });
+        self.tile.lights.iter().filter(|l| l.name.contains(tile)).for_each(|l| {
+            world
+                .components
+                .create_entity()
+                .with(world::components::Light::new(
+                    l.color,
+                    l.intensity,
+                    Some(l.radius),
+                    l.translation,
+                ))
+                .with(world::components::Transform::from_translation(center))
+                .maybe_with(if let Some(flicker) = l.flicker {
+                    Some(world::components::Flicker::new(flicker, rng.gen::<f32>() * 0.05 + 0.02))
+                } else {
+                    None
+                })
+                .build();
+        });
 
         let s = self.size / 2.0 - 2.0;
         let decor = vec!["barrel", "table", "torch", "crate"];
