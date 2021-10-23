@@ -1,7 +1,6 @@
+use super::{material, primitive};
 use cgmath::*;
 use std::collections::HashMap;
-
-use super::{material, primitive};
 
 #[derive(Debug)]
 pub struct Emitter {

@@ -1,0 +1,71 @@
+[
+    {
+        "decor": {
+            "001": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "002": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "003": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "004": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "005": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "006": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "007": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "008": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "009": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "010": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "011": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "012": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "013": {
+                "name": "barrel",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            }
+        }
+    }
+]

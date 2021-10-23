@@ -1,0 +1,26 @@
+[
+    {
+        "decor": {
+            "001": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "002": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "003": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "004": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            }
+        }
+    }
+]
