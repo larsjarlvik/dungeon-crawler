@@ -1,15 +1,13 @@
 use crate::{
     engine::{self, model::Placeholder},
+    utils,
     world::{self},
 };
 use cgmath::*;
 use rand::{prelude::StdRng, Rng};
 use serde_derive::Deserialize;
 use specs::{Builder, WorldExt};
-use std::{
-    collections::HashMap,
-    fs::{self},
-};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize)]
 struct PlaceholderDecor {
@@ -88,8 +86,8 @@ impl Tile {
         decor: &PlaceholderDecor,
         rotation: f32,
     ) {
-        let rotation = Quaternion::from_angle_y(Deg(-rotation));
-        let pos = center + rotation.rotate_vector(vec3(placeholder.position.x, 0.0, placeholder.position.z));
+        let q_rotation = Quaternion::from_angle_y(Deg(-rotation));
+        let pos = center + q_rotation.rotate_vector(vec3(placeholder.position.x, 0.0, placeholder.position.z));
         let flicker_speed = rng.gen::<f32>() * 0.05 + 0.02;
 
         world
@@ -99,7 +97,7 @@ impl Tile {
             .with(world::components::Collision::new(&self.decor, &decor.name))
             .with(world::components::Transform::from_translation_angle(
                 pos,
-                decor.rotation + (rng.gen::<f32>() * 2.0 - 1.0) * decor.rotation_rng,
+                rotation + decor.rotation + (rng.gen::<f32>() * 2.0 - 1.0) * decor.rotation_rng,
             ))
             .with(world::components::Render { cull_frustum: true })
             .with(world::components::Shadow)
@@ -168,10 +166,8 @@ impl Tile {
     }
 
     fn get_decor(&self, tile: &str) -> Vec<TileDecor> {
-        let path = format!("./assets/tiles/catacombs/{}.json", tile);
-        match fs::read_to_string(&path) {
-            Ok(file) => serde_json::from_str(&file).expect("Failed to parse tile JSON!"),
-            Err(_) => vec![],
-        }
+        let name = tile.split('-').last().unwrap();
+        let path = format!("tiles/catacombs/{}.json", name);
+        serde_json::from_str(utils::read_string(&path).as_str()).expect("Failed to parse tile JSON!")
     }
 }

@@ -107,22 +107,22 @@
             },
             "010": {
                 "name": "table",
-                "rotation": 0.0,
+                "rotation": 90.0,
                 "rotation_rng": 5.0
             },
             "009": {
                 "name": "table",
-                "rotation": 0.0,
+                "rotation": 90.0,
                 "rotation_rng": 5.0
             },
             "017": {
                 "name": "table",
-                "rotation": 0.0,
+                "rotation": 90.0,
                 "rotation_rng": 5.0
             },
             "018": {
                 "name": "table",
-                "rotation": 0.0,
+                "rotation": 90.0,
                 "rotation_rng": 5.0
             }
         }

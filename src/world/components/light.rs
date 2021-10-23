@@ -16,6 +16,7 @@ pub struct Light {
 impl Light {
     pub fn new(color: Vector3<f32>, intensity: f32, radius: Option<f32>, offset: Vector3<f32>) -> Self {
         let bounding_box = if let Some(radius) = radius {
+            let radius = radius / 4.0;
             Some(bounding_box::BoundingBox {
                 min: point3(-radius, -radius, -radius),
                 max: point3(radius, radius, radius),
