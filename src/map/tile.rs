@@ -126,7 +126,13 @@ impl Tile {
             world
                 .components
                 .create_entity()
-                .with(world::components::Particle::new(emitter, e.start_color, e.end_color, e.size))
+                .with(world::components::Particle::new(
+                    emitter,
+                    e.start_color,
+                    e.end_color,
+                    e.size,
+                    e.strength,
+                ))
                 .maybe_with(self.get_flicker(e.flicker, flicker_speed))
                 .with(world::components::Transform::from_translation(pos + e.position))
                 .build();
