@@ -2,7 +2,7 @@
     {
         "decor": {
             "001": {
-                "name": "barrel",
+                "name": "torch",
                 "rotation": 0.0,
                 "rotation_rng": 180.0
             },
@@ -124,6 +124,35 @@
                 "name": "table",
                 "rotation": 90.0,
                 "rotation_rng": 5.0
+            }
+        }
+    },
+    {
+        "decor": {
+            "017": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "018": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            "019": {
+                "name": "bookshelf",
+                "rotation": 90.0,
+                "rotation_rng": 0.0
+            },
+            "020": {
+                "name": "bookshelf-books",
+                "rotation": -90.0,
+                "rotation_rng": 0.0
+            },
+            "021": {
+                "name": "torch-wall",
+                "rotation": -90.0,
+                "rotation_rng": 0.0
             }
         }
     }

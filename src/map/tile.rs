@@ -89,15 +89,20 @@ impl Tile {
         let q_rotation = Quaternion::from_angle_y(Deg(-rotation));
         let pos = center + q_rotation.rotate_vector(vec3(placeholder.position.x, 0.0, placeholder.position.z));
         let flicker_speed = rng.gen::<f32>() * 0.05 + 0.02;
+        let r = decor.rotation - rotation;
 
         world
             .components
             .create_entity()
             .with(world::components::Model::new(&engine, &self.decor, &decor.name))
-            .with(world::components::Collision::new(&self.decor, &decor.name))
+            .maybe_with(if self.decor.collisions.contains_key(&decor.name) {
+                Some(world::components::Collision::new(&self.decor, &decor.name))
+            } else {
+                None
+            })
             .with(world::components::Transform::from_translation_angle(
                 pos,
-                rotation + decor.rotation + (rng.gen::<f32>() * 2.0 - 1.0) * decor.rotation_rng,
+                r + (rng.gen::<f32>() * 2.0 - 1.0) * decor.rotation_rng,
             ))
             .with(world::components::Render { cull_frustum: true })
             .with(world::components::Shadow)
@@ -113,12 +118,12 @@ impl Tile {
                     Some(l.radius),
                     l.translation,
                 ))
-                .with(world::components::Transform::from_translation(pos))
+                .with(world::components::Transform::from_translation_angle(pos, r))
                 .maybe_with(self.get_flicker(l.flicker, flicker_speed))
                 .build();
         });
 
-        self.decor.emitters.iter().filter(|e| e.name.contains(&decor.name)).for_each(|e| {
+        self.decor.get_emitters(&decor.name).iter().for_each(|e| {
             let emitter = engine
                 .particle_pipeline
                 .create_emitter(&engine.ctx, e.particle_count, e.life_time, e.spread, e.speed);
@@ -134,7 +139,10 @@ impl Tile {
                     e.strength,
                 ))
                 .maybe_with(self.get_flicker(e.flicker, flicker_speed))
-                .with(world::components::Transform::from_translation(pos + e.position))
+                .with(world::components::Transform::from_translation_angle(
+                    pos + Quaternion::from_angle_y(Deg(decor.rotation - rotation)).rotate_vector(e.position),
+                    decor.rotation - rotation,
+                ))
                 .build();
         });
     }
