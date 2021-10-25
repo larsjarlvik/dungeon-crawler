@@ -174,7 +174,7 @@ impl DeferredPipeline {
 
         let mut lights: [uniforms::LightUniforms; 32] = Default::default();
 
-        let visible_lights: Vec<(&components::Light, &components::Transform)> = (&light_sources, &transform)
+        let mut visible_lights: Vec<(&components::Light, &components::Transform)> = (&light_sources, &transform)
             .join()
             .filter(|(light, transform)| {
                 if let Some(bounding_box) = &light.bounding_box {
@@ -186,6 +186,14 @@ impl DeferredPipeline {
                 }
             })
             .collect();
+
+        visible_lights.sort_by(|a, b| {
+            a.1.translation
+                .get(time.last_frame)
+                .distance(camera.target)
+                .partial_cmp(&b.1.translation.get(time.last_frame).distance(camera.target))
+                .unwrap()
+        });
 
         for (i, (light, transform)) in visible_lights.iter().enumerate() {
             let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
