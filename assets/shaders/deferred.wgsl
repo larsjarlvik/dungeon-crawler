@@ -114,7 +114,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     pbr.metalness = orm.b;
     pbr.roughness_sq = pbr.roughness * pbr.roughness;
 
-    let f0 = vec3<f32>(0.02);
+    let f0 = vec3<f32>(0.05);
     pbr.diffuse = color.rgb * (vec3<f32>(1.0) - f0);
     pbr.diffuse = pbr.diffuse * (1.0 - pbr.metalness);
     pbr.specular = mix(f0, color.rgb, vec3<f32>(pbr.metalness));
