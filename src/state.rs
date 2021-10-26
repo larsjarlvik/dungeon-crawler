@@ -36,7 +36,8 @@ impl State {
             .components
             .create_entity()
             .with(world::components::Fps::new())
-            .with(world::components::Text::new("", vec2(20.0, 20.0)))
+            .with(world::components::Text::new(""))
+            .with(world::components::Transform2d::from_translation_scale(vec2(20.0, 20.0), 18.0))
             .build();
 
         let args: Vec<String> = env::args().collect();

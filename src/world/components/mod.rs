@@ -11,8 +11,8 @@ mod particle;
 mod render;
 mod shadow;
 mod text;
-mod text3d;
 mod transform;
+mod transform2d;
 mod user_control;
 
 pub use animation::Animations;
@@ -28,6 +28,6 @@ pub use particle::Particle;
 pub use render::Render;
 pub use shadow::Shadow;
 pub use text::Text;
-pub use text3d::Text3d;
 pub use transform::Transform;
+pub use transform2d::Transform2d;
 pub use user_control::UserControl;

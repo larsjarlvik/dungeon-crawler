@@ -102,7 +102,12 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     }
 
     var color: vec4<f32> = textureLoad(t_color, c, 0);
-    var normal: vec3<f32> = normalize(textureLoad(t_normal, c, 0).xyz);
+    var normal_t: vec4<f32> = textureLoad(t_normal, c, 0);
+    if (normal_t.w == 0.0) {
+        return color;
+    }
+
+    var normal: vec3<f32> = normalize(normal_t.xyz);
     var orm: vec3<f32> = textureLoad(t_orm, c, 0).xyz;
     var position: vec3<f32> = world_pos_from_depth(coord.xy / uniforms.viewport_size.xy, depth, uniforms.inv_view_proj);
 
@@ -122,6 +127,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 5.0, 0.0, 1.0);
 
     var total_light: vec3<f32> = vec3<f32>(0.05);
+
 
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];

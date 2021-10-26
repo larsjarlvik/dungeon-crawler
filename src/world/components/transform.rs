@@ -22,6 +22,14 @@ impl Transform {
         }
     }
 
+    pub fn from_translation_scale(translation: Vector3<f32>, scale: f32) -> Self {
+        Self {
+            translation: InterpolatedValue::new(translation),
+            rotation: InterpolatedValue::new(Quaternion::from_angle_y(Rad(0.0))),
+            scale: InterpolatedValue::new(vec3(scale, scale, scale)),
+        }
+    }
+
     pub fn from_translation_angle(translation: Vector3<f32>, angle: f32) -> Self {
         Self {
             translation: InterpolatedValue::new(translation),

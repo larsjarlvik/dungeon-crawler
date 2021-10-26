@@ -62,7 +62,8 @@ impl Tile {
                 world
                     .components
                     .create_entity()
-                    .with(world::components::Text3d::new(&text, p_center, 16.0))
+                    .with(world::components::Text::new(&text))
+                    .with(world::components::Transform::from_translation_scale(p_center, 16.0))
                     .build();
             });
     }
