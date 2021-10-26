@@ -130,7 +130,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
         if (light_dist > light.radius) { continue; }
 
         let attenuation = clamp(pow(1.0 - light_dist / (light.radius * 2.0), 4.0), 0.0, 1.0);
-        if (attenuation < 0.1) { continue; }
+        if (attenuation < 0.05) { continue; }
 
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(light_dir + view_dir);
@@ -160,5 +160,6 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
 
     let min_shadow = 0.3;
     let shadow = get_shadow_factor(position) * (1.0 - min_shadow) + min_shadow;
+
     return vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a);
 }

@@ -34,9 +34,44 @@ impl Tile {
         Self { tile, decor, size }
     }
 
+    pub fn add_tile(&self, engine: &engine::Engine, world: &mut world::World, tile: &str, center: Vector3<f32>, rotation: f32) {
+        world
+            .components
+            .create_entity()
+            .with(world::components::Model::new(&engine, &self.tile, tile))
+            .with(world::components::Collision::new(&self.tile, tile))
+            .with(world::components::Render { cull_frustum: true })
+            .with(world::components::Transform::from_translation_angle(center, rotation))
+            .build();
+
+        self.tile
+            .meshes
+            .iter()
+            .filter(|p| p.name.contains(tile) && p.name.contains("place"))
+            .for_each(|p| {
+                world
+                    .components
+                    .create_entity()
+                    .with(world::components::Model::new(&engine, &self.tile, &p.name))
+                    .with(world::components::Render { cull_frustum: true })
+                    .with(world::components::Transform::from_translation_angle(center, rotation))
+                    .build();
+
+                let p_center = p.primitives.first().unwrap().get_center();
+                let text = p.name.split('.').last().unwrap();
+                world
+                    .components
+                    .create_entity()
+                    .with(world::components::Text3d::new(&text, p_center, 16.0))
+                    .build();
+            });
+    }
+
     pub fn build(&self, engine: &engine::Engine, world: &mut world::World, rng: &mut StdRng, x: i32, y: i32, entrances: &[bool; 4]) {
         let center = vec3(x as f32 * self.size, 0.0, y as f32 * self.size);
         let (tile, rotation) = self.determine_tile(entrances);
+
+        self.add_tile(engine, world, tile, center, -rotation);
 
         world
             .components

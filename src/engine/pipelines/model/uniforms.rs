@@ -13,5 +13,6 @@ pub struct Uniforms {
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct PrimitiveUniforms {
     pub orm_factor: [f32; 4],
+    pub base_color_factor: [f32; 4],
     pub has_textures: u32,
 }

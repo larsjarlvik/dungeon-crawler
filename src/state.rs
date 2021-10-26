@@ -1,7 +1,7 @@
 use crate::{engine, map, world};
 use cgmath::*;
 use specs::{Builder, WorldExt};
-use std::time::Instant;
+use std::{env, time::Instant};
 use winit::{event::VirtualKeyCode, window::Window};
 
 pub struct State {
@@ -39,8 +39,19 @@ impl State {
             .with(world::components::Text::new("", vec2(20.0, 20.0)))
             .build();
 
+        let args: Vec<String> = env::args().collect();
+        let edit = args.iter().position(|a| a == "--edit");
         let map = map::Map::new(&self.engine, 42312, 20);
-        map.generate(&self.engine, &mut self.world);
+
+        if let Some(edit) = edit {
+            if let Some(tile) = args.get(edit + 1) {
+                map.single_tile(&self.engine, &mut self.world, tile);
+            } else {
+                panic!("Missing map argument!");
+            }
+        } else {
+            map.generate(&self.engine, &mut self.world);
+        }
 
         self.world
             .components

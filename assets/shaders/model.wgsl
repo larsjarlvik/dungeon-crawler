@@ -10,6 +10,7 @@ struct Uniforms {
 [[block]]
 struct PrimitiveUniforms {
     orm_factor: vec4<f32>;
+    base_color: vec4<f32>;
     has_textures: bool;
 };
 
@@ -103,9 +104,9 @@ fn main(in: VertexOutput) -> GBufferOutput {
         var normal: vec3<f32> = textureSample(t_normal, t_sampler, in.tex_coord).xyz;
         output.normal = vec4<f32>(tangent * normalize(2.0 * normal - 1.0), 1.0);
     } else {
-        output.color = vec4<f32>(0.0, 0.0, 0.0, 1.0);
-        output.orm = vec4<f32>(0.0, 0.0, 0.0, 0.0);
-        output.normal = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+        output.color = primitive_uniforms.base_color;
+        output.orm = vec4<f32>(1.0);
+        output.normal = vec4<f32>(in.normal_w, 0.0);
     }
 
     return output;

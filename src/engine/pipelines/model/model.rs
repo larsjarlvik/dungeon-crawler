@@ -46,11 +46,13 @@ impl Model {
                 display_builder.create_uniform_buffer_init(bytemuck::cast_slice(&[if let Some(material) = material {
                     PrimitiveUniforms {
                         has_textures: material.textures.is_some().into(),
+                        base_color_factor: material.base_color_factor.into(),
                         orm_factor: [1.0, material.roughness_factor, material.metallic_factor, 0.0],
                     }
                 } else {
                     PrimitiveUniforms {
                         has_textures: 0,
+                        base_color_factor: [1.0, 1.0, 1.0, 1.0],
                         orm_factor: [1.0, 0.5, 0.5, 0.0],
                     }
                 }]))

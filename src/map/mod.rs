@@ -44,6 +44,10 @@ impl Map {
         }
     }
 
+    pub fn single_tile(&self, engine: &engine::Engine, world: &mut world::World, tile: &str) {
+        self.tile.add_tile(engine, world, tile, Vector3::zero(), 0.0);
+    }
+
     fn create_tiles(&self, rng: &mut StdRng) -> Vec<Vec<Option<Tile>>> {
         let mut tiles = vec![vec![None; self.grid_size * 2]; self.grid_size * 2];
         let mut taken_positions = vec![(0, 0)];
