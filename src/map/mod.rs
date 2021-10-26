@@ -1,7 +1,6 @@
 use crate::{engine, world};
 use cgmath::*;
 use rand::{prelude::StdRng, Rng, SeedableRng};
-
 mod tile;
 
 #[derive(Clone)]
@@ -22,6 +21,7 @@ impl Map {
     pub fn new(engine: &engine::Engine, seed: u64, grid_size: usize) -> Self {
         let tile = tile::Tile::new(engine, 14.0);
         let number_of_tiles = 25;
+
         Self {
             tile,
             seed,
@@ -30,7 +30,7 @@ impl Map {
         }
     }
 
-    pub fn generate(&self, engine: &engine::Engine, world: &mut world::World) {
+    pub fn generate(&mut self, engine: &engine::Engine, world: &mut world::World) {
         let mut rng = StdRng::seed_from_u64(self.seed);
         let mut tiles = self.create_tiles(&mut rng);
         self.add_entrances(&mut tiles);
@@ -44,8 +44,21 @@ impl Map {
         }
     }
 
-    pub fn single_tile(&self, engine: &engine::Engine, world: &mut world::World, tile: &str) {
+    pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut world::World, tile: &str) {
+        let mut rng = StdRng::seed_from_u64(self.seed);
         self.tile.add_tile(engine, world, tile, Vector3::zero(), 0.0);
+        self.tile.add_placeholders(engine, world, tile, Vector3::zero(), 0.0);
+
+        match self.tile.get_decor("edit") {
+            Ok(variants) => {
+                if let Some(tile_decor) = variants.get(0) {
+                    self.tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, tile, &tile_decor);
+                }
+            },
+            Err(err) => {
+                println!("{}", err);
+            }
+        }
     }
 
     fn create_tiles(&self, rng: &mut StdRng) -> Vec<Vec<Option<Tile>>> {

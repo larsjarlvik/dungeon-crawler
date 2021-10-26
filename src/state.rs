@@ -1,4 +1,7 @@
-use crate::{engine, map, world};
+use crate::{
+    engine::{self, model::GltfModel},
+    map, world,
+};
 use cgmath::*;
 use specs::{Builder, WorldExt};
 use std::{env, time::Instant};
@@ -7,23 +10,48 @@ use winit::{event::VirtualKeyCode, window::Window};
 pub struct State {
     engine: engine::Engine,
     world: world::World,
+    edit_mode: Option<String>,
+    map: Option<map::Map>,
+    character: Option<GltfModel>,
 }
 
 impl State {
     pub async fn new(window: &Window) -> Self {
         let engine = engine::Engine::new(window).await;
         let world = world::World::new();
+        let args: Vec<String> = env::args().collect();
+        let mut edit_mode = None;
 
-        let mut state = Self { engine, world };
-        state.init();
+        if let Some(pos) = args.iter().position(|a| a == "--edit") {
+            if let Some(tile) = args.get(pos + 1) {
+                edit_mode = Some(tile.clone());
+            }
+        }
+
+        let mut state = Self {
+            engine,
+            world,
+            edit_mode,
+            map: None,
+            character: None,
+        };
+        state.init_all();
         state
     }
 
-    pub fn init(&mut self) {
+    pub fn init_all(&mut self) {
         let start = Instant::now();
-        let character = self.engine.load_model("models/character.glb");
 
         self.engine.init();
+        self.character = Some(self.engine.load_model("models/character.glb"));
+        self.map = Some(map::Map::new(&self.engine, 42312, 20));
+        self.init_world();
+
+        println!("Total {} ms", start.elapsed().as_millis());
+    }
+
+    pub fn init_world(&mut self) {
+        let start = Instant::now();
         self.world = world::World::new();
 
         self.world
@@ -40,41 +68,38 @@ impl State {
             .with(world::components::Transform2d::from_translation_scale(vec2(20.0, 20.0), 18.0))
             .build();
 
-        let args: Vec<String> = env::args().collect();
-        let edit = args.iter().position(|a| a == "--edit");
-        let map = map::Map::new(&self.engine, 42312, 20);
+        if let Some(character) = &self.character {
+            self.world
+                .components
+                .create_entity()
+                .with(world::components::Model::new(&self.engine, character, "character"))
+                .with(world::components::Collider::new(character, "character"))
+                .with(world::components::Animations::new("base", "idle"))
+                .with(world::components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
+                .with(world::components::Light::new(
+                    vec3(1.0, 1.0, 0.72),
+                    0.8,
+                    Some(10.0),
+                    vec3(0.0, 5.0, 0.0),
+                ))
+                .with(world::components::Movement::new(15.0))
+                .with(world::components::UserControl)
+                .with(world::components::Render { cull_frustum: false })
+                .with(world::components::Shadow)
+                .with(world::components::Follow)
+                .build();
 
-        if let Some(edit) = edit {
-            if let Some(tile) = args.get(edit + 1) {
-                map.single_tile(&self.engine, &mut self.world, tile);
-            } else {
-                panic!("Missing map argument!");
-            }
-        } else {
-            map.generate(&self.engine, &mut self.world);
         }
 
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Model::new(&self.engine, &character, "character"))
-            .with(world::components::Collider::new(&character, "character"))
-            .with(world::components::Animations::new("base", "idle"))
-            .with(world::components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
-            .with(world::components::Light::new(
-                vec3(1.0, 1.0, 0.72),
-                0.8,
-                Some(10.0),
-                vec3(0.0, 5.0, 0.0),
-            ))
-            .with(world::components::Movement::new(15.0))
-            .with(world::components::UserControl)
-            .with(world::components::Render { cull_frustum: false })
-            .with(world::components::Shadow)
-            .with(world::components::Follow)
-            .build();
+        if let Some(map) = &mut self.map {
+            if let Some(tile) = &self.edit_mode {
+                map.single_tile(&self.engine, &mut self.world, &tile);
+            } else {
+                map.generate(&self.engine, &mut self.world);
+            }
+        }
 
-        println!("Initialized world in: {} ms", start.elapsed().as_millis());
+        println!("World: {} ms", start.elapsed().as_millis());
     }
 
     pub fn resize(&mut self, window: &Window, active: bool) {
@@ -92,7 +117,10 @@ impl State {
     #[allow(unused)]
     pub fn keyboard(&mut self, keyboard_input: &winit::event::KeyboardInput) {
         if keyboard_input.virtual_keycode == Some(VirtualKeyCode::R) {
-            self.init();
+            self.init_all();
+        }
+        if keyboard_input.virtual_keycode == Some(VirtualKeyCode::T) {
+            self.init_world();
         }
 
         let mut input = self.world.components.write_resource::<world::resources::Input>();

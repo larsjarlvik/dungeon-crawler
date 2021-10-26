@@ -1,0 +1,11 @@
+[
+    {
+        "decor": {
+            "001": {
+                "name": "torch",
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            }
+        }
+    }
+]
