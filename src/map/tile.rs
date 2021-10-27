@@ -180,6 +180,7 @@ impl Tile {
                             e.size,
                             e.strength,
                         ))
+                        .with(world::components::Render { cull_frustum: true })
                         .maybe_with(self.get_flicker(e.flicker, flicker_speed))
                         .with(world::components::Transform::from_translation_angle(
                             pos + Quaternion::from_angle_y(Deg(decor.rotation - rotation)).rotate_vector(e.position),

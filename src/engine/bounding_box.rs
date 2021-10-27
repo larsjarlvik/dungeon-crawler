@@ -14,9 +14,9 @@ impl BoundingBox {
         }
     }
 
-    pub fn transform(&self, transform: [[f32; 4]; 4]) -> Self {
-        let b1: Point3<f32> = cgmath::Matrix4::from(transform).transform_point(self.min);
-        let b2: Point3<f32> = cgmath::Matrix4::from(transform).transform_point(self.max);
+    pub fn transform(&self, transform: Matrix4<f32>) -> Self {
+        let b1: Point3<f32> = transform.transform_point(self.min);
+        let b2: Point3<f32> = transform.transform_point(self.max);
 
         Self {
             min: Point3::new(

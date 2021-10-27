@@ -88,7 +88,6 @@ impl State {
                 .with(world::components::Shadow)
                 .with(world::components::Follow)
                 .build();
-
         }
 
         if let Some(map) = &mut self.map {
