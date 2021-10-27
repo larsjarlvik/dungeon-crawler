@@ -1,4 +1,8 @@
-use crate::{config, engine, utils, world};
+use crate::{
+    config,
+    engine::{self, bounding_box},
+    utils, world,
+};
 use cgmath::*;
 use rand::{prelude::StdRng, Rng};
 use serde_derive::Deserialize;
@@ -17,28 +21,104 @@ pub struct TileDecor {
     pub decor: Vec<Decor>,
 }
 
+pub enum TileState {
+    Active(Vec<specs::Entity>),
+    Destroyed,
+}
+
 pub struct Tile {
-    pub tile: engine::model::GltfModel,
-    pub decor: engine::model::GltfModel,
-    size: f32,
+    tile: String,
+    state: TileState,
+    center: Vector3<f32>,
+    pub bounding_box: bounding_box::BoundingBox,
+    rotation: f32,
 }
 
 impl Tile {
-    pub fn new(engine: &engine::Engine, size: f32) -> Self {
-        let tile = engine.load_model("models/catacombs.glb");
-        let decor = engine.load_model("models/decor.glb");
-        Self { tile, decor, size }
+    pub fn new(x: i32, z: i32, size: f32, entrances: &[bool; 4]) -> Self {
+        let (tile, rotation) = determine_tile(entrances);
+        Self::new_known(x, z, size, tile, rotation)
     }
 
-    pub fn add_tile(&self, engine: &engine::Engine, world: &mut world::World, tile: &str, center: Vector3<f32>, rotation: f32) {
+    pub fn new_known(x: i32, z: i32, size: f32, tile: &str, rotation: f32) -> Self {
+        let center = vec3(x as f32 * size, 0.0, z as f32 * size);
+        let h_size = size / 2.0;
+
+        Self {
+            tile: tile.to_string(),
+            state: TileState::Destroyed,
+            center,
+            bounding_box: bounding_box::BoundingBox {
+                min: point3(center.x - h_size, 0.0, center.z - h_size),
+                max: point3(center.x + h_size, 2.5, center.z + h_size),
+            },
+            rotation,
+        }
+    }
+
+    pub fn build(
+        &mut self,
+        engine: &engine::Engine,
+        world: &mut world::World,
+        rng: &mut StdRng,
+        tile_model: &engine::model::GltfModel,
+        decor_model: &engine::model::GltfModel,
+    ) {
+        match self.state {
+            TileState::Destroyed => {
+                let mut entities = vec![];
+                let tile = self.tile.as_str();
+
+                entities.push(self.add_room(engine, world, &tile_model, self.center, -self.rotation));
+                match self.get_decor(&format!("catacombs/{}", tile.split('-').last().unwrap()).as_str()) {
+                    Ok(variants) => {
+                        if variants.len() > 0 {
+                            let tile_decor = variants[rng.gen_range(0..variants.len())].clone();
+                            entities.append(&mut self.add_decor(engine, world, rng, self.center, self.rotation, &tile_decor, &decor_model));
+                        }
+                    }
+                    Err(err) => {
+                        panic!("{}", err);
+                    }
+                }
+
+                self.state = TileState::Active(entities);
+            }
+            _ => (),
+        };
+    }
+
+    pub fn destroy(&mut self, world: &mut world::World) {
+        match &mut self.state {
+            TileState::Active(entities) => {
+                world
+                    .components
+                    .delete_entities(entities.as_slice())
+                    .expect("Failed to delete tile!");
+                entities.clear();
+
+                self.state = TileState::Destroyed;
+            }
+            _ => {}
+        };
+    }
+
+    pub fn add_room(
+        &self,
+        engine: &engine::Engine,
+        world: &mut world::World,
+        tile_model: &engine::model::GltfModel,
+        center: Vector3<f32>,
+        rotation: f32,
+    ) -> Entity {
         world
             .components
             .create_entity()
-            .with(world::components::Model::new(&engine, &self.tile, tile))
-            .with(world::components::Collision::new(&self.tile, tile))
+            .with(world::components::Model::new(&engine, &tile_model, &self.tile))
+            .with(world::components::Collision::new(&tile_model, &self.tile))
             .with(world::components::Render { cull_frustum: true })
             .with(world::components::Transform::from_translation_angle(center, rotation))
-            .build();
+            .build()
     }
 
     pub fn add_grid(&self, world: &mut world::World, center: Vector3<f32>) {
@@ -56,45 +136,21 @@ impl Tile {
         }
     }
 
-    pub fn build(&mut self, engine: &engine::Engine, world: &mut world::World, rng: &mut StdRng, x: i32, y: i32, entrances: &[bool; 4]) {
-        let center = vec3(x as f32 * self.size, 0.0, y as f32 * self.size);
-        let (tile, rotation) = determine_tile(entrances);
-        self.add_tile(engine, world, tile, center, -rotation);
-
-        world
-            .components
-            .create_entity()
-            .with(world::components::Model::new(&engine, &self.tile, tile))
-            .with(world::components::Collision::new(&self.tile, tile))
-            .with(world::components::Render { cull_frustum: true })
-            .with(world::components::Transform::from_translation_angle(center, -rotation))
-            .build();
-
-        match self.get_decor(&format!("catacombs/{}", tile.split('-').last().unwrap()).as_str()) {
-            Ok(variants) => {
-                if variants.len() > 0 {
-                    let tile_decor = variants[rng.gen_range(0..variants.len())].clone();
-                    self.add_decor(engine, world, rng, center, rotation, &tile_decor);
-                }
-            }
-            Err(err) => {
-                panic!("{}", err);
-            }
-        }
-    }
-
     pub fn add_decor(
-        &mut self,
+        &self,
         engine: &engine::Engine,
         world: &mut world::World,
         rng: &mut StdRng,
         center: Vector3<f32>,
         rotation: f32,
         tile_decor: &TileDecor,
-    ) {
+        decor_model: &engine::model::GltfModel,
+    ) -> Vec<Entity> {
+        let mut entities = vec![];
         for decor in tile_decor.decor.iter() {
-            self.add_decor_item(engine, world, rng, center, &decor, rotation);
+            entities.append(&mut self.add_decor_item(engine, world, rng, center, &decor, &decor_model, rotation));
         }
+        entities
     }
 
     pub fn add_decor_item(
@@ -104,6 +160,7 @@ impl Tile {
         rng: &mut StdRng,
         center: Vector3<f32>,
         decor: &Decor,
+        decor_model: &engine::model::GltfModel,
         rotation: f32,
     ) -> Vec<Entity> {
         let q_rotation = Quaternion::from_angle_y(Deg(-rotation));
@@ -122,9 +179,9 @@ impl Tile {
             world
                 .components
                 .create_entity()
-                .with(world::components::Model::new(&engine, &self.decor, &decor.name))
-                .maybe_with(if self.decor.collisions.contains_key(&decor.name) {
-                    Some(world::components::Collision::new(&self.decor, &decor.name))
+                .with(world::components::Model::new(&engine, &decor_model, &decor.name))
+                .maybe_with(if decor_model.collisions.contains_key(&decor.name) {
+                    Some(world::components::Collision::new(&decor_model, &decor.name))
                 } else {
                     None
                 })
@@ -138,8 +195,7 @@ impl Tile {
         );
 
         entities.append(
-            &mut self
-                .decor
+            &mut decor_model
                 .lights
                 .iter()
                 .filter(|l| l.name.contains(&decor.name))
@@ -161,8 +217,7 @@ impl Tile {
         );
 
         entities.append(
-            &mut self
-                .decor
+            &mut decor_model
                 .get_emitters(&decor.name)
                 .iter()
                 .map(|e| {

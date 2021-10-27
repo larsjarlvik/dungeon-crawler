@@ -1,6 +1,10 @@
-use crate::{engine, world};
+use crate::{
+    engine,
+    world::{self, resources},
+};
 use cgmath::*;
 use rand::{prelude::StdRng, Rng, SeedableRng};
+use specs::WorldExt;
 mod tile;
 
 #[derive(Clone)]
@@ -12,25 +16,51 @@ struct Tile {
 
 pub struct Map {
     seed: u64,
-    tile: tile::Tile,
+    tile_size: f32,
+    tile: engine::model::GltfModel,
+    decor: engine::model::GltfModel,
+    placed_tiles: Vec<tile::Tile>,
     grid_size: usize,
     number_of_tiles: i32,
 }
 
 impl Map {
     pub fn new(engine: &engine::Engine, seed: u64, grid_size: usize) -> Self {
-        let tile = tile::Tile::new(engine, 14.0);
+        let tile = engine.load_model("models/catacombs.glb");
+        let decor = engine.load_model("models/decor.glb");
         let number_of_tiles = 25;
 
         Self {
             tile,
+            decor,
+            tile_size: 14.0,
+            placed_tiles: vec![],
             seed,
             grid_size,
             number_of_tiles,
         }
     }
 
-    pub fn generate(&mut self, engine: &engine::Engine, world: &mut world::World) {
+    pub fn update(&mut self, engine: &engine::Engine, world: &mut world::World) {
+        let mut rng = StdRng::seed_from_u64(self.seed);
+
+        let frustum = {
+            let camera = world.components.read_resource::<resources::Camera>();
+            camera.frustum
+        };
+
+        let tile = &self.tile;
+        let decor = &self.decor;
+        self.placed_tiles.iter_mut().for_each(|t| {
+            if frustum.test_bounding_box(&t.bounding_box) {
+                t.build(engine, world, &mut rng, &tile, &decor)
+            } else {
+                t.destroy(world);
+            }
+        });
+    }
+
+    pub fn generate(&mut self) {
         let mut rng = StdRng::seed_from_u64(self.seed);
         let mut tiles = self.create_tiles(&mut rng);
         self.add_entrances(&mut tiles);
@@ -38,21 +68,24 @@ impl Map {
         for x in 0..(self.grid_size * 2) {
             for z in 0..(self.grid_size * 2) {
                 if let Some(tile) = &mut tiles[x][z] {
-                    self.tile.build(engine, world, &mut rng, tile.x, tile.z, &tile.entrances);
+                    self.placed_tiles
+                        .push(tile::Tile::new(tile.x, tile.z, self.tile_size, &tile.entrances));
                 }
             }
         }
     }
 
-    pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut world::World, tile: &str) {
+    pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut world::World, tile_name: &str) {
         let mut rng = StdRng::seed_from_u64(self.seed);
-        self.tile.add_tile(engine, world, tile, Vector3::zero(), 0.0);
-        self.tile.add_grid(world, Vector3::zero());
+        let tile = tile::Tile::new_known(0, 0, self.tile_size, &tile_name, 0.0);
 
-        match self.tile.get_decor("edit") {
+        tile.add_room(engine, world, &self.tile, Vector3::zero(), 0.0);
+        tile.add_grid(world, Vector3::zero());
+
+        match tile.get_decor("edit") {
             Ok(variants) => {
                 if let Some(tile_decor) = variants.get(0) {
-                    self.tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, &tile_decor);
+                    tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, &tile_decor, &self.decor);
                 }
             }
             Err(err) => {

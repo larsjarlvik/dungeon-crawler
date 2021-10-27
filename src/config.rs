@@ -20,7 +20,7 @@ pub const GRID_DIST: f32 = 0.635;
 #[cfg(not(target_os = "android"))]
 pub const RENDER_SCALE: f32 = 1.0;
 #[cfg(target_os = "android")]
-pub const RENDER_SCALE: f32 = 0.75;
+pub const RENDER_SCALE: f32 = 0.5;
 
 pub const JOYSTICK_SENSITIVITY: f32 = 4.0;
 

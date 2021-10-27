@@ -94,7 +94,7 @@ impl State {
             if let Some(tile) = &self.edit_mode {
                 map.single_tile(&self.engine, &mut self.world, &tile);
             } else {
-                map.generate(&self.engine, &mut self.world);
+                map.generate();
             }
         }
 
@@ -143,6 +143,9 @@ impl State {
 
     pub fn update(&mut self) {
         self.world.update();
+        if let Some(map) = &mut self.map {
+            map.update(&self.engine, &mut self.world);
+        }
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
     }
