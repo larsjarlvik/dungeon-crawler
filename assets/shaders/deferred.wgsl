@@ -128,7 +128,6 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
 
     var total_light: vec3<f32> = vec3<f32>(0.05);
 
-
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];
         var light_dist: f32 = distance(light.position, position);

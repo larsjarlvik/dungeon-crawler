@@ -1,11 +1,78 @@
 [
     {
-        "decor": {
-            "001": {
+        "decor": [
+            {
                 "name": "torch",
+                "pos": [
+                    -8,
+                    -8
+                ],
                 "rotation": 0.0,
                 "rotation_rng": 180.0
+            },
+            {
+                "name": "torch",
+                "pos": [
+                    8,
+                    -8
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            {
+                "name": "torch",
+                "pos": [
+                    8,
+                    8
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            {
+                "name": "torch",
+                "pos": [
+                    -8,
+                    8
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 180.0
+            },
+            {
+                "name": "bookshelf",
+                "pos": [
+                    -10,
+                    -4
+                ],
+                "rotation": 90.0,
+                "rotation_rng": 0.0
+            },
+            {
+                "name": "bookshelf-books",
+                "pos": [
+                    6,
+                    -10
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 0.0
+            },
+            {
+                "name": "crate",
+                "pos": [
+                    9,
+                    -9
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 20.0
+            },
+            {
+                "name": "barrel",
+                "pos": [
+                    -9,
+                    6
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 20.0
             }
-        }
+        ]
     }
 ]

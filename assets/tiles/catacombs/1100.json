@@ -1,36 +1,78 @@
 [
     {
-        "decor": {
-            "001": {
+        "decor": [
+            {
                 "name": "torch",
+                "pos": [
+                    -4,
+                    -9
+                ],
                 "rotation": 0.0,
                 "rotation_rng": 180.0
             },
-            "002": {
+            {
                 "name": "torch",
+                "pos": [
+                    4,
+                    -9
+                ],
                 "rotation": 0.0,
                 "rotation_rng": 180.0
             },
-            "003": {
+            {
                 "name": "torch",
+                "pos": [
+                    9,
+                    -4
+                ],
                 "rotation": 0.0,
                 "rotation_rng": 180.0
             },
-            "004": {
+            {
                 "name": "torch",
+                "pos": [
+                    9,
+                    4
+                ],
                 "rotation": 0.0,
                 "rotation_rng": 180.0
             },
-            "005": {
-                "name": "torch",
+            {
+                "name": "carpet",
+                "pos": [
+                    0,
+                    0
+                ],
                 "rotation": 0.0,
-                "rotation_rng": 180.0
+                "rotation_rng": 5.0
             },
-            "006": {
-                "name": "torch",
-                "rotation": 0.0,
-                "rotation_rng": 180.0
+            {
+                "name": "bookshelf",
+                "pos": [
+                    -10,
+                    1
+                ],
+                "rotation": 90.0,
+                "rotation_rng": 0.0
+            },
+            {
+                "name": "bookshelf-books",
+                "pos": [
+                    -10,
+                    6
+                ],
+                "rotation": 90.0,
+                "rotation_rng": 0.0
+            },
+            {
+                "name": "crate",
+                "pos": [
+                    -9,
+                    -9
+                ],
+                "rotation": 45.0,
+                "rotation_rng": 10.0
             }
-        }
+        ]
     }
 ]

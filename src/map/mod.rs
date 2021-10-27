@@ -47,14 +47,14 @@ impl Map {
     pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut world::World, tile: &str) {
         let mut rng = StdRng::seed_from_u64(self.seed);
         self.tile.add_tile(engine, world, tile, Vector3::zero(), 0.0);
-        self.tile.add_placeholders(engine, world, tile, Vector3::zero(), 0.0);
+        self.tile.add_grid(world, Vector3::zero());
 
         match self.tile.get_decor("edit") {
             Ok(variants) => {
                 if let Some(tile_decor) = variants.get(0) {
-                    self.tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, tile, &tile_decor);
+                    self.tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, &tile_decor);
                 }
-            },
+            }
             Err(err) => {
                 println!("{}", err);
             }
