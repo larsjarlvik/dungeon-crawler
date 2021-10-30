@@ -3,6 +3,7 @@
 struct Uniforms {
     view_proj: mat4x4<f32>;
     model: mat4x4<f32>;
+    inv_model: mat4x4<f32>;
     joint_transforms: array<mat4x4<f32>, 64>;
     is_animated: bool;
 };
@@ -70,10 +71,9 @@ fn main(
         );
     }
 
-    var t: vec4<f32> = normalize(model.tangent);
-    out.normal_w = normalize((uniforms.model * skin_matrix * vec4<f32>(model.normal, 0.0)).xyz);
-    out.tangent_w = normalize((uniforms.model * model.tangent).xyz);
-    out.bitangent_w = cross(out.normal_w, out.tangent_w) * t.w;
+    out.normal_w = normalize((uniforms.inv_model * skin_matrix * vec4<f32>(model.normal, 0.0)).xyz);
+    out.tangent_w = normalize((uniforms.inv_model * model.tangent).xyz);
+    out.bitangent_w = cross(out.normal_w, out.tangent_w) * model.tangent.w;
 
     out.clip_position = uniforms.view_proj * uniforms.model * skin_matrix * vec4<f32>(model.position, 1.0);
     out.tex_coord = model.tex_coord;
