@@ -30,17 +30,33 @@ pub struct Tile {
     tile: String,
     state: TileState,
     center: Vector3<f32>,
-    pub bounding_box: bounding_box::BoundingBox,
     rotation: f32,
+    decor: TileDecor,
+    pub bounding_box: bounding_box::BoundingBox,
 }
 
 impl Tile {
-    pub fn new(x: i32, z: i32, size: f32, entrances: &[bool; 4]) -> Self {
+    pub fn new(x: i32, z: i32, size: f32, entrances: &[bool; 4], rng: &mut StdRng) -> Self {
         let (tile, rotation) = determine_tile(entrances);
-        Self::new_known(x, z, size, tile, rotation)
+        let name = tile.split('-').last().unwrap();
+
+        let decor = match get_decor(&format!("catacombs/{}", name).as_str()) {
+            Ok(variants) => {
+                if variants.len() > 0 {
+                    variants[rng.gen_range(0..variants.len())].clone()
+                } else {
+                    TileDecor { decor: vec![] }
+                }
+            }
+            Err(err) => {
+                panic!("{}", err);
+            }
+        };
+
+        Self::new_known(x, z, size, tile, decor, rotation)
     }
 
-    pub fn new_known(x: i32, z: i32, size: f32, tile: &str, rotation: f32) -> Self {
+    pub fn new_known(x: i32, z: i32, size: f32, tile: &str, decor: TileDecor, rotation: f32) -> Self {
         let center = vec3(x as f32 * size, 0.0, z as f32 * size);
         let h_size = size / 2.0;
 
@@ -53,6 +69,7 @@ impl Tile {
                 max: point3(center.x + h_size, 2.5, center.z + h_size),
             },
             rotation,
+            decor,
         }
     }
 
@@ -67,20 +84,9 @@ impl Tile {
         match self.state {
             TileState::Destroyed => {
                 let mut entities = vec![];
-                let tile = self.tile.as_str();
 
                 entities.push(self.add_room(engine, world, &tile_model, self.center, -self.rotation));
-                match self.get_decor(&format!("catacombs/{}", tile.split('-').last().unwrap()).as_str()) {
-                    Ok(variants) => {
-                        if variants.len() > 0 {
-                            let tile_decor = variants[rng.gen_range(0..variants.len())].clone();
-                            entities.append(&mut self.add_decor(engine, world, rng, self.center, self.rotation, &tile_decor, &decor_model));
-                        }
-                    }
-                    Err(err) => {
-                        panic!("{}", err);
-                    }
-                }
+                entities.append(&mut self.add_decor(engine, world, rng, self.center, self.rotation, &decor_model));
 
                 self.state = TileState::Active(entities);
             }
@@ -115,7 +121,7 @@ impl Tile {
             .components
             .create_entity()
             .with(world::components::Model::new(&engine, &tile_model, &self.tile))
-            .with(world::components::Collision::new(&tile_model, &self.tile))
+            .maybe_with(world::components::Collision::new(&tile_model, &self.tile))
             .with(world::components::Render { cull_frustum: true })
             .with(world::components::Transform::from_translation_angle(center, rotation))
             .build()
@@ -143,11 +149,10 @@ impl Tile {
         rng: &mut StdRng,
         center: Vector3<f32>,
         rotation: f32,
-        tile_decor: &TileDecor,
         decor_model: &engine::model::GltfModel,
     ) -> Vec<Entity> {
         let mut entities = vec![];
-        for decor in tile_decor.decor.iter() {
+        for decor in self.decor.decor.iter() {
             entities.append(&mut self.add_decor_item(engine, world, rng, center, &decor, &decor_model, rotation));
         }
         entities
@@ -180,11 +185,7 @@ impl Tile {
                 .components
                 .create_entity()
                 .with(world::components::Model::new(&engine, &decor_model, &decor.name))
-                .maybe_with(if decor_model.collisions.contains_key(&decor.name) {
-                    Some(world::components::Collision::new(&decor_model, &decor.name))
-                } else {
-                    None
-                })
+                .maybe_with(world::components::Collision::new(&decor_model, &decor.name))
                 .with(world::components::Transform::from_translation_angle(
                     pos,
                     r + (rng.gen::<f32>() * 2.0 - 1.0) * decor.rotation_rng,
@@ -256,14 +257,18 @@ impl Tile {
             None
         }
     }
+}
 
-    pub fn get_decor(&self, tile: &str) -> Result<Vec<TileDecor>, String> {
-        let path = format!("tiles/{}.json", tile);
+pub fn get_decor(tile: &str) -> Result<Vec<TileDecor>, String> {
+    if tile.contains("empty") {
+        return Ok(vec![]);
+    }
 
-        match serde_json::from_str(utils::read_string(&path).as_str()) {
-            Ok(decor) => Ok(decor),
-            Err(_) => Err(format!("Filed to parse tile: {}!", tile)),
-        }
+    let path = format!("tiles/{}.json", tile);
+
+    match serde_json::from_str(utils::read_string(&path).as_str()) {
+        Ok(decor) => Ok(decor),
+        Err(_) => Err(format!("Filed to parse tile: {}!", tile)),
     }
 }
 
@@ -287,6 +292,6 @@ fn determine_tile(entrances: &[bool; 4]) -> (&str, f32) {
         [true, false, true, true] => ("tile-catacombs-1110", 180.0),
         [true, true, false, true] => ("tile-catacombs-1110", 270.0),
 
-        _ => ("tile-catacombs-1111", 0.0),
+        _ => ("tile-empty", 0.0),
     }
 }

@@ -53,7 +53,7 @@ impl Model {
                     PrimitiveUniforms {
                         has_textures: 0,
                         base_color_factor: [1.0, 1.0, 1.0, 1.0],
-                        orm_factor: [1.0, 0.5, 0.5, 0.0],
+                        orm_factor: [1.0, 1.0, 0.5, 0.0],
                     }
                 }]))
             })
