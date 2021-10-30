@@ -119,13 +119,31 @@
                 "rotation_rng": 5.0
             },
             {
-                "name": "bench",
+                "name": "stool",
                 "pos": [
-                    8,
+                    7,
                     -3
                 ],
                 "rotation": 0.0,
-                "rotation_rng": 5.0
+                "rotation_rng": 25.0
+            },
+            {
+                "name": "stool-fallen",
+                "pos": [
+                    9,
+                    -3
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 25.0
+            },
+            {
+                "name": "stool-fallen",
+                "pos": [
+                    -9,
+                    6
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 25.0
             },
             {
                 "name": "bench",
