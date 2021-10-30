@@ -292,6 +292,8 @@ fn determine_tile(entrances: &[bool; 4]) -> (&str, f32) {
         [true, false, true, true] => ("tile-catacombs-1110", 180.0),
         [true, true, false, true] => ("tile-catacombs-1110", 270.0),
 
+        [true, true, true, true] => ("tile-catacombs-1111", 0.0),
+
         _ => ("tile-empty", 0.0),
     }
 }
