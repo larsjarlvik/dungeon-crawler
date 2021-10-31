@@ -7,6 +7,7 @@ pub struct Uniforms {
     pub viewport_size: [f32; 4],
     pub lights: [LightUniforms; 32],
     pub lights_count: i32,
+    pub contrast: f32,
 }
 
 #[repr(C)]

@@ -1,3 +1,5 @@
+use cgmath::vec3;
+
 use crate::{utils::fbm, world::*};
 
 pub struct Flicker;
@@ -18,6 +20,16 @@ impl<'a> System<'a> for Flicker {
 
             if let Some(light) = light {
                 light.intensity.set(light.base_intensity - amount);
+
+                let movement = (flicker.amount - (flicker.amount / 2.0)) * 2.0;
+                light.offset.set(
+                    light.orig_offset
+                        + vec3(
+                            fbm(flicker.last, 3) * movement,
+                            fbm(flicker.last, 3) * movement,
+                            fbm(flicker.last, 3) * movement,
+                        ),
+                );
             }
 
             if let Some(particle) = particle {

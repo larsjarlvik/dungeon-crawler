@@ -133,6 +133,7 @@ impl DeferredPipeline {
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             lights,
             lights_count,
+            contrast: config::CONTRAST,
         };
 
         ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
@@ -197,13 +198,12 @@ impl DeferredPipeline {
 
         for (i, (light, transform)) in visible_lights.iter().enumerate() {
             let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
-
             if i >= lights.len() {
                 break;
             }
 
             lights[i] = uniforms::LightUniforms {
-                position: (transform.translation.get(time.last_frame) + light.offset).into(),
+                position: (transform.translation.get(time.last_frame) + light.offset.get(time.last_frame)).into(),
                 radius,
                 color: (light.color * light.intensity.get(time.last_frame)).extend(0.0).into(),
             };

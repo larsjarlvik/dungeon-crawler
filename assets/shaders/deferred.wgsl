@@ -13,6 +13,7 @@ struct Uniforms {
     viewport_size: vec4<f32>;
     light: array<Light, 32>;
     light_count: i32;
+    contrast: f32;
 };
 
 [[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
@@ -88,8 +89,18 @@ fn get_shadow_factor(position: vec3<f32>) -> f32 {
     let flip_correction = vec2<f32>(0.5, -0.5);
     let proj_correction = 1.0 / shadow_coords.w;
     let light_local = shadow_coords.xy * flip_correction * proj_correction + vec2<f32>(0.5, 0.5);
-
     return textureSampleCompareLevel(t_shadow, t_shadow_sampler, light_local, shadow_coords.z * proj_correction);
+}
+
+fn contrast_matrix(contrast: f32) -> mat4x4<f32> {
+    let t = (1.0 - contrast) / 2.0;
+
+    return mat4x4<f32>(
+        vec4<f32>(contrast, 0.0, 0.0, 0.0),
+        vec4<f32>(0.0, contrast, 0.0, 0.0),
+        vec4<f32>(0.0, 0.0, contrast, 0.0),
+        vec4<f32>(t, t, t, 1.0)
+    );
 }
 
 [[stage(fragment)]]
@@ -163,8 +174,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
         }
     }
 
-    let min_shadow = 0.3;
+    let min_shadow = 0.3 * uniforms.contrast;
     let shadow = get_shadow_factor(position) * (1.0 - min_shadow) + min_shadow;
-
-    return vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a);
+    return contrast_matrix(uniforms.contrast) * vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a);
 }

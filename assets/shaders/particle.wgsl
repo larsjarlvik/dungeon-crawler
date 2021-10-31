@@ -64,6 +64,6 @@ fn main(
 [[stage(fragment)]]
 fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let opacity = 1.0 - pow(distance(in.position, vec2<f32>(0.0, 0.0)) / uniforms.size, 0.5);
-    let color = mix(uniforms.start_color, uniforms.end_color, clamp(in.elapsed * 3.0, 0.0, 1.0));
+    let color = mix(uniforms.start_color, uniforms.end_color, clamp(in.elapsed * 4.0, 0.0, 1.0));
     return vec4<f32>(color.r, color.g, color.b, color.a * opacity * uniforms.strength);
 }

@@ -10,7 +10,8 @@ pub struct Light {
     pub intensity: InterpolatedValue<f32>,
     pub radius: Option<f32>,
     pub bounding_box: Option<bounding_box::BoundingBox>,
-    pub offset: Vector3<f32>,
+    pub offset: InterpolatedValue<Vector3<f32>>,
+    pub orig_offset: Vector3<f32>,
 }
 
 impl Light {
@@ -31,7 +32,8 @@ impl Light {
             intensity: InterpolatedValue::new(intensity),
             radius,
             bounding_box,
-            offset,
+            offset: InterpolatedValue::new(offset),
+            orig_offset: offset,
         }
     }
 }

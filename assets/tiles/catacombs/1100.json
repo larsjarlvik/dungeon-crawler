@@ -38,22 +38,22 @@
                 "rotation_rng": 180.0
             },
             {
-                "name": "carpet",
-                "pos": [
-                    0,
-                    0
-                ],
-                "rotation": 0.0,
-                "rotation_rng": 5.0
-            },
-            {
                 "name": "bookshelf",
                 "pos": [
                     -10,
-                    1
+                    0
                 ],
                 "rotation": 90.0,
                 "rotation_rng": 0.0
+            },
+            {
+                "name": "torch-wall",
+                "pos": [
+                    -10,
+                    3
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 180.0
             },
             {
                 "name": "bookshelf-books",
@@ -63,6 +63,15 @@
                 ],
                 "rotation": 90.0,
                 "rotation_rng": 0.0
+            },
+            {
+                "name": "barrel-broken",
+                "pos": [
+                    -9,
+                    9
+                ],
+                "rotation": 0.0,
+                "rotation_rng": 180.0
             },
             {
                 "name": "crate",
