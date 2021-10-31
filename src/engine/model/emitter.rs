@@ -1,7 +1,6 @@
+use super::{material, primitive};
 use cgmath::*;
 use std::collections::HashMap;
-
-use super::{material, primitive};
 
 #[derive(Debug)]
 pub struct Emitter {
@@ -9,6 +8,7 @@ pub struct Emitter {
     pub spread: f32,
     pub speed: f32,
     pub size: f32,
+    pub strength: f32,
     pub life_time: f32,
     pub particle_count: u32,
     pub start_color: Vector3<f32>,
@@ -21,7 +21,7 @@ impl Emitter {
     pub fn new(gltf_mesh: &gltf::Mesh, primitive: &primitive::Primitive, materials: &Vec<material::Material>) -> Self {
         let extras: HashMap<String, f32>;
 
-        let position = primitive.vertices.iter().map(|v| Vector3::from(v.position)).sum::<Vector3<f32>>() / primitive.vertices.len() as f32;
+        let position = primitive.get_center();
         let material = materials
             .get(primitive.material.expect("Emitter does not have any material!"))
             .expect("Emitter material not found!");
@@ -40,6 +40,7 @@ impl Emitter {
                 spread: *extras.get("spread").expect("Missing spread!"),
                 speed: *extras.get("speed").expect("Missing speed!"),
                 size: *extras.get("size").expect("Missing size!"),
+                strength: *extras.get("strength").expect("Missing strength!"),
                 life_time: *extras.get("life_time").expect("Missing life_time!"),
                 particle_count: *extras.get("particle_count").expect("Missing particle_count!") as u32,
                 start_color: material.base_color_factor.truncate(),

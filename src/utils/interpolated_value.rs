@@ -43,6 +43,17 @@ impl Interpolate<f32> for InterpolatedValue<f32> {
     }
 }
 
+impl Interpolate<Vector2<f32>> for InterpolatedValue<Vector2<f32>> {
+    fn get(&self, frame_time: f32) -> Vector2<f32> {
+        if let Some(prev_value) = self.previous {
+            let factor = frame_time / config::time_step().as_secs_f32();
+            return prev_value.lerp(self.current, factor);
+        }
+
+        self.current
+    }
+}
+
 impl Interpolate<Vector3<f32>> for InterpolatedValue<Vector3<f32>> {
     fn get(&self, frame_time: f32) -> Vector3<f32> {
         if let Some(prev_value) = self.previous {

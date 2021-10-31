@@ -78,8 +78,9 @@ impl GltfModel {
         for gltf_mesh in gltf.meshes() {
             if let Some(mesh_name) = gltf_mesh.name() {
                 let mesh = mesh::Mesh::new(&gltf_mesh, &buffers);
+                let words: Vec<&str> = mesh.name.split(|c| c == '_' || c == '.').collect();
 
-                if mesh_name.split("_").any(|w| w == "col") {
+                if words.iter().any(|w| w == &"col") {
                     let key = mesh_name.split("_").collect::<Vec<&str>>()[0].to_string();
                     let primitives: Vec<gltf::Primitive> = gltf_mesh.primitives().collect();
                     let mut polygons = build_collision_polygon(&primitives[0], &buffers);
@@ -94,7 +95,7 @@ impl GltfModel {
                     }
                 }
 
-                if mesh_name.split("_").any(|w| w == "emit") {
+                if words.iter().any(|w| w == &"emit") {
                     emitters.push(emitter::Emitter::new(&gltf_mesh, &mesh.primitives.first().unwrap(), &materials));
                 }
 
@@ -128,6 +129,16 @@ impl GltfModel {
         }
 
         None
+    }
+
+    pub fn get_emitters(&self, name: &str) -> Vec<&emitter::Emitter> {
+        self.emitters
+            .iter()
+            .filter(|e| {
+                let words: Vec<&str> = e.name.split(|c| c == '_' || c == '.').collect();
+                words.contains(&name)
+            })
+            .collect()
     }
 }
 

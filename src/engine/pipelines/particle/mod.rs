@@ -66,11 +66,19 @@ impl ParticlePipeline {
     pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &wgpu::TextureView, depth_target: &wgpu::TextureView) {
         let camera = components.read_resource::<resources::Camera>();
         let time = components.read_resource::<resources::Time>();
+        let render = components.read_storage::<components::Render>();
         let particle = components.read_storage::<components::Particle>();
         let transform = components.read_storage::<components::Transform>();
         let mut bundles = vec![];
 
-        for (particle, transform) in (&particle, &transform).join() {
+        for (particle, transform, render) in (&particle, &transform, &render).join() {
+            if render.cull_frustum {
+                let transformed_bb = particle.bounding_box.transform(transform.to_matrix(time.last_frame).into());
+                if !camera.frustum.test_bounding_box(&transformed_bb) {
+                    continue;
+                }
+            }
+
             let uniforms = uniforms::Uniforms {
                 view: camera.view.into(),
                 proj: camera.proj.into(),

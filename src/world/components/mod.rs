@@ -12,6 +12,7 @@ mod render;
 mod shadow;
 mod text;
 mod transform;
+mod transform2d;
 mod user_control;
 
 pub use animation::Animations;
@@ -28,4 +29,5 @@ pub use render::Render;
 pub use shadow::Shadow;
 pub use text::Text;
 pub use transform::Transform;
+pub use transform2d::Transform2d;
 pub use user_control::UserControl;

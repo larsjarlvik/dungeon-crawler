@@ -3,7 +3,11 @@ use crate::{utils::fbm, world::*};
 pub struct Flicker;
 
 impl<'a> System<'a> for Flicker {
-    type SystemData = (WriteStorage<'a, components::Flicker>, WriteStorage<'a, components::Light>, WriteStorage<'a, components::Particle>);
+    type SystemData = (
+        WriteStorage<'a, components::Flicker>,
+        WriteStorage<'a, components::Light>,
+        WriteStorage<'a, components::Particle>,
+    );
 
     fn run(&mut self, (mut flicker, mut light, mut particle): Self::SystemData) {
         for (flicker, light, particle) in (&mut flicker, (&mut light).maybe(), (&mut particle).maybe()).join() {
@@ -17,7 +21,7 @@ impl<'a> System<'a> for Flicker {
             }
 
             if let Some(particle) = particle {
-                particle.strength.set(1.0 - amount);
+                particle.strength.set(particle.base_strength - (amount * particle.base_strength));
             }
         }
     }

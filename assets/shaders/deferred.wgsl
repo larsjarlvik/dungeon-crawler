@@ -102,7 +102,12 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     }
 
     var color: vec4<f32> = textureLoad(t_color, c, 0);
-    var normal: vec3<f32> = normalize(textureLoad(t_normal, c, 0).xyz);
+    var normal_t: vec4<f32> = textureLoad(t_normal, c, 0);
+    if (normal_t.w == 0.0) {
+        return color;
+    }
+
+    var normal: vec3<f32> = normalize(normal_t.xyz);
     var orm: vec3<f32> = textureLoad(t_orm, c, 0).xyz;
     var position: vec3<f32> = world_pos_from_depth(coord.xy / uniforms.viewport_size.xy, depth, uniforms.inv_view_proj);
 
@@ -114,7 +119,7 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     pbr.metalness = orm.b;
     pbr.roughness_sq = pbr.roughness * pbr.roughness;
 
-    let f0 = vec3<f32>(0.02);
+    let f0 = vec3<f32>(0.05);
     pbr.diffuse = color.rgb * (vec3<f32>(1.0) - f0);
     pbr.diffuse = pbr.diffuse * (1.0 - pbr.metalness);
     pbr.specular = mix(f0, color.rgb, vec3<f32>(pbr.metalness));
@@ -129,8 +134,8 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
 
         if (light_dist > light.radius) { continue; }
 
-        let attenuation = clamp(pow(1.0 - light_dist / (light.radius * 2.0), 4.0), 0.0, 1.0);
-        if (attenuation < 0.1) { continue; }
+        let attenuation = clamp(pow(1.0 - light_dist / light.radius, 2.0), 0.0, 1.0);
+        if (attenuation < 0.05) { continue; }
 
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(light_dir + view_dir);
@@ -151,14 +156,15 @@ fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
             let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
             var light_contrib: vec3<f32> = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
-            light_contrib = light_contrib + normal.y;
+            light_contrib = light_contrib + normal.y * 0.1;
 
-            let new_light = mix(total_light, attenuation * light.color * light_contrib, 0.5);
-            total_light = max(total_light, new_light);
+            let new_light = attenuation * light.color * light_contrib;
+            total_light = total_light + new_light;
         }
     }
 
     let min_shadow = 0.3;
     let shadow = get_shadow_factor(position) * (1.0 - min_shadow) + min_shadow;
+
     return vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a);
 }

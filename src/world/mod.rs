@@ -18,6 +18,7 @@ impl<'a> World {
         components.register::<components::Render>();
         components.register::<components::Model>();
         components.register::<components::Transform>();
+        components.register::<components::Transform2d>();
         components.register::<components::Text>();
         components.register::<components::Fps>();
         components.register::<components::Light>();

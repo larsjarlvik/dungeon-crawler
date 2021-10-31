@@ -53,12 +53,15 @@ impl ModelPipeline {
             }
 
             let joint_transforms = get_joint_transforms(&model, &animation);
+            let inv_model = model_matrix.invert().unwrap().transpose().into();
+
             ctx.queue.write_buffer(
                 &model.model.display_uniform_buffer,
                 self.display.uniform_bind_group_layout.index as u64,
                 bytemuck::cast_slice(&[Uniforms {
                     view_proj: camera.view_proj.into(),
                     model: model_matrix.into(),
+                    inv_model,
                     joint_transforms: joint_transforms.clone().try_into().unwrap(),
                     is_animated: animation.is_some() as u32,
                 }]),
@@ -73,6 +76,7 @@ impl ModelPipeline {
                     bytemuck::cast_slice(&[Uniforms {
                         view_proj: camera.get_shadow_matrix().into(),
                         model: model_matrix.into(),
+                        inv_model,
                         joint_transforms: joint_transforms.clone().try_into().unwrap(),
                         is_animated: animation.is_some() as u32,
                     }]),
