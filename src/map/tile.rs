@@ -76,7 +76,7 @@ impl Tile {
     pub fn build(
         &mut self,
         engine: &engine::Engine,
-        world: &mut world::World,
+        world: &mut specs::World,
         rng: &mut StdRng,
         tile_model: &engine::model::GltfModel,
         decor_model: &engine::model::GltfModel,
@@ -94,15 +94,11 @@ impl Tile {
         };
     }
 
-    pub fn destroy(&mut self, world: &mut world::World) {
+    pub fn destroy(&mut self, world: &mut specs::World) {
         match &mut self.state {
             TileState::Active(entities) => {
-                world
-                    .components
-                    .delete_entities(entities.as_slice())
-                    .expect("Failed to delete tile!");
+                world.delete_entities(entities.as_slice()).expect("Failed to delete tile!");
                 entities.clear();
-
                 self.state = TileState::Destroyed;
             }
             _ => {}
@@ -112,13 +108,12 @@ impl Tile {
     pub fn add_room(
         &self,
         engine: &engine::Engine,
-        world: &mut world::World,
+        world: &mut specs::World,
         tile_model: &engine::model::GltfModel,
         center: Vector3<f32>,
         rotation: f32,
     ) -> Entity {
         world
-            .components
             .create_entity()
             .with(world::components::Model::new(&engine, &tile_model, &self.tile))
             .maybe_with(world::components::Collision::new(&tile_model, &self.tile))
@@ -127,13 +122,12 @@ impl Tile {
             .build()
     }
 
-    pub fn add_grid(&self, world: &mut world::World, center: Vector3<f32>) {
+    pub fn add_grid(&self, world: &mut specs::World, center: Vector3<f32>) {
         for x in -config::GRID_COUNT..=config::GRID_COUNT {
             for z in -config::GRID_COUNT..=config::GRID_COUNT {
                 let off = vec3(x as f32 * config::GRID_DIST, 0.0, z as f32 * config::GRID_DIST);
                 let text = format!("{},{}", x, z);
                 world
-                    .components
                     .create_entity()
                     .with(world::components::Text::new(&text))
                     .with(world::components::Transform::from_translation_scale(center + off, 16.0))
@@ -145,7 +139,7 @@ impl Tile {
     pub fn add_decor(
         &self,
         engine: &engine::Engine,
-        world: &mut world::World,
+        world: &mut specs::World,
         rng: &mut StdRng,
         center: Vector3<f32>,
         rotation: f32,
@@ -161,7 +155,7 @@ impl Tile {
     pub fn add_decor_item(
         &self,
         engine: &engine::Engine,
-        world: &mut world::World,
+        world: &mut specs::World,
         rng: &mut StdRng,
         center: Vector3<f32>,
         decor: &Decor,
@@ -182,7 +176,6 @@ impl Tile {
 
         entities.push(
             world
-                .components
                 .create_entity()
                 .with(world::components::Model::new(&engine, &decor_model, &decor.name))
                 .maybe_with(world::components::Collision::new(&decor_model, &decor.name))
@@ -202,7 +195,6 @@ impl Tile {
                 .filter(|l| l.name.contains(&decor.name))
                 .map(|l| {
                     world
-                        .components
                         .create_entity()
                         .with(world::components::Light::new(
                             l.color,
@@ -227,7 +219,6 @@ impl Tile {
                         .create_emitter(&engine.ctx, e.particle_count, e.life_time, e.spread, e.speed);
 
                     world
-                        .components
                         .create_entity()
                         .with(world::components::Particle::new(
                             emitter,

@@ -1,8 +1,14 @@
 use cgmath::*;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use winit::event::VirtualKeyCode;
 
 use crate::config;
+
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Ord, PartialOrd, Hash)]
+pub enum KeyState {
+    Released,
+    Pressed(bool),
+}
 
 pub struct Joystick {
     pub id: u64,
@@ -20,7 +26,7 @@ pub struct Mouse {
 }
 
 pub struct Input {
-    pub keys: HashSet<VirtualKeyCode>,
+    pub keys: HashMap<VirtualKeyCode, KeyState>,
     pub mouse: Mouse,
     pub joystick: Option<Joystick>,
 }
@@ -28,7 +34,7 @@ pub struct Input {
 impl Default for Input {
     fn default() -> Self {
         Self {
-            keys: HashSet::new(),
+            keys: HashMap::new(),
             mouse: Mouse {
                 id: 0,
                 position: Point2::new(0.0, 0.0),
@@ -44,8 +50,9 @@ impl Input {
     pub fn keyboard(&mut self, input: &winit::event::KeyboardInput) {
         if let Some(key_code) = input.virtual_keycode {
             if input.state == winit::event::ElementState::Pressed {
-                self.keys.insert(key_code);
+                self.keys.insert(key_code, KeyState::Pressed(self.keys.contains_key(&key_code)));
             }
+
             if input.state == winit::event::ElementState::Released {
                 self.keys.remove(&key_code);
             }
@@ -97,6 +104,22 @@ impl Input {
             }
 
             self.mouse.pressed = false;
+        }
+    }
+
+    pub fn key_state(&self, key: VirtualKeyCode) -> KeyState {
+        if let Some(state) = self.keys.get(&key) {
+            *state
+        } else {
+            KeyState::Released
+        }
+    }
+
+    pub fn is_pressed(&self, key: VirtualKeyCode) -> bool {
+        if let Some(state) = self.keys.get(&key) {
+            *state != KeyState::Released
+        } else {
+            false
         }
     }
 }

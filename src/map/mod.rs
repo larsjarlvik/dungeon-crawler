@@ -1,7 +1,6 @@
-use crate::{
-    engine,
-    world::{self, resources},
-};
+use std::env;
+
+use crate::{engine, world::resources};
 use cgmath::*;
 use rand::{prelude::StdRng, SeedableRng};
 use specs::WorldExt;
@@ -35,11 +34,11 @@ impl Map {
         }
     }
 
-    pub fn update(&mut self, engine: &engine::Engine, world: &mut world::World) {
+    pub fn update(&mut self, engine: &engine::Engine, world: &mut specs::World) {
         let mut rng = StdRng::seed_from_u64(self.seed);
 
         let frustum = {
-            let camera = world.components.read_resource::<resources::Camera>();
+            let camera = world.read_resource::<resources::Camera>();
             camera.frustum
         };
 
@@ -72,7 +71,7 @@ impl Map {
         }
     }
 
-    pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut world::World, tile_name: &str) {
+    pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut specs::World, tile_name: &str) {
         let mut rng = StdRng::seed_from_u64(self.seed);
         let decor = match tile::get_decor("edit") {
             Ok(variants) => variants[0].clone(),
@@ -87,4 +86,23 @@ impl Map {
         tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, &self.decor);
         tile.add_grid(world, Vector3::zero());
     }
+
+    pub fn reset(&mut self) {
+        self.placed_tiles.clear();
+    }
 }
+
+pub fn edit_mode() -> Option<String> {
+    let args: Vec<String> = env::args().collect();
+
+    if let Some(pos) = args.iter().position(|a| a == "--edit") {
+        if let Some(tile) = args.get(pos + 1) {
+            Some(tile.clone())
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+

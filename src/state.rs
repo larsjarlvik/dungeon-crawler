@@ -1,40 +1,23 @@
 use crate::{
-    engine::{self, model::GltfModel},
-    map, world,
+    engine::{self},
+    world::{self, resources::input::KeyState},
 };
 use cgmath::*;
-use specs::{Builder, WorldExt};
-use std::{env, time::Instant};
+use specs::WorldExt;
+use std::time::Instant;
 use winit::{event::VirtualKeyCode, window::Window};
 
 pub struct State {
     engine: engine::Engine,
-    world: world::World,
-    edit_mode: Option<String>,
-    map: Option<map::Map>,
-    character: Option<GltfModel>,
+    pub world: world::World,
 }
 
 impl State {
     pub async fn new(window: &Window) -> Self {
         let engine = engine::Engine::new(window).await;
-        let world = world::World::new();
-        let args: Vec<String> = env::args().collect();
-        let mut edit_mode = None;
+        let world = world::World::new(&engine);
 
-        if let Some(pos) = args.iter().position(|a| a == "--edit") {
-            if let Some(tile) = args.get(pos + 1) {
-                edit_mode = Some(tile.clone());
-            }
-        }
-
-        let mut state = Self {
-            engine,
-            world,
-            edit_mode,
-            map: None,
-            character: None,
-        };
+        let mut state = Self { engine, world };
         state.init_all();
         state
     }
@@ -43,62 +26,10 @@ impl State {
         let start = Instant::now();
 
         self.engine.init();
-        self.character = Some(self.engine.load_model("models/character.glb"));
-        self.map = Some(map::Map::new(&self.engine, 42312, 20));
-        self.init_world();
+        self.world = world::World::new(&self.engine);
+        self.world.init(&self.engine);
 
         println!("Total {} ms", start.elapsed().as_millis());
-    }
-
-    pub fn init_world(&mut self) {
-        let start = Instant::now();
-        self.world = world::World::new();
-
-        self.world
-            .components
-            .insert(world::resources::Camera::new(self.engine.ctx.viewport.get_aspect()));
-        self.world.components.insert(world::resources::Input::default());
-        self.world.components.insert(world::resources::Time::default());
-
-        self.world
-            .components
-            .create_entity()
-            .with(world::components::Fps::new())
-            .with(world::components::Text::new(""))
-            .with(world::components::Transform2d::from_translation_scale(vec2(20.0, 20.0), 18.0))
-            .build();
-
-        if let Some(character) = &self.character {
-            self.world
-                .components
-                .create_entity()
-                .with(world::components::Model::new(&self.engine, character, "character"))
-                .with(world::components::Collider::new(character, "character"))
-                .with(world::components::Animations::new("base", "idle"))
-                .with(world::components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
-                .with(world::components::Light::new(
-                    vec3(1.0, 1.0, 0.72),
-                    0.6,
-                    Some(10.0),
-                    vec3(0.0, 2.5, 0.0),
-                ))
-                .with(world::components::Movement::new(15.0))
-                .with(world::components::UserControl)
-                .with(world::components::Render { cull_frustum: false })
-                .with(world::components::Shadow)
-                .with(world::components::Follow)
-                .build();
-        }
-
-        if let Some(map) = &mut self.map {
-            if let Some(tile) = &self.edit_mode {
-                map.single_tile(&self.engine, &mut self.world, &tile);
-            } else {
-                map.generate();
-            }
-        }
-
-        println!("World: {} ms", start.elapsed().as_millis());
     }
 
     pub fn resize(&mut self, window: &Window, active: bool) {
@@ -113,17 +44,20 @@ impl State {
         }
     }
 
-    #[allow(unused)]
     pub fn keyboard(&mut self, keyboard_input: &winit::event::KeyboardInput) {
-        if keyboard_input.virtual_keycode == Some(VirtualKeyCode::R) {
+        let (r, t) = {
+            let mut input = self.world.components.write_resource::<world::resources::Input>();
+            input.keyboard(keyboard_input);
+            (input.key_state(VirtualKeyCode::R), input.key_state(VirtualKeyCode::T))
+        };
+
+        if r == KeyState::Pressed(false) {
             self.init_all();
         }
-        if keyboard_input.virtual_keycode == Some(VirtualKeyCode::T) {
-            self.init_world();
-        }
 
-        let mut input = self.world.components.write_resource::<world::resources::Input>();
-        input.keyboard(keyboard_input);
+        if t == KeyState::Pressed(false) {
+            self.world.init(&self.engine);
+        }
     }
 
     pub fn mouse_move(&mut self, id: u64, x: f32, y: f32) {
@@ -142,10 +76,7 @@ impl State {
     }
 
     pub fn update(&mut self) {
-        self.world.update();
-        if let Some(map) = &mut self.map {
-            map.update(&self.engine, &mut self.world);
-        }
+        self.world.update(&self.engine);
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
     }

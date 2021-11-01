@@ -1,8 +1,10 @@
+use specs::WorldExt;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
+    window::{Fullscreen, WindowBuilder},
 };
+use world::resources::input::KeyState;
 
 mod config;
 mod engine;
@@ -45,12 +47,21 @@ pub fn main() {
                             state.resize(&window, true);
                         }
                         WindowEvent::KeyboardInput { input, .. } => {
-                            if input.virtual_keycode == Some(VirtualKeyCode::Escape) {
+                            state.keyboard(input);
+
+                            let input = state.world.components.read_resource::<world::resources::Input>();
+
+                            if input.is_pressed(VirtualKeyCode::Escape) {
                                 *control_flow = ControlFlow::Exit;
-                            } else if input.virtual_keycode == Some(VirtualKeyCode::F11) {
-                                window.set_maximized(!window.is_maximized());
-                            } else {
-                                state.keyboard(input);
+                            }
+
+                            if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::F) == KeyState::Pressed(false)
+                            {
+                                if window.fullscreen().is_some() {
+                                    window.set_fullscreen(None);
+                                } else {
+                                    window.set_fullscreen(Some(Fullscreen::Borderless(None)));
+                                }
                             }
                         }
                         WindowEvent::CursorMoved { position, .. } => {
