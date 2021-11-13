@@ -8,7 +8,7 @@ use specs::{Join, WorldExt};
 use wgpu_glyph::{ab_glyph, GlyphBrush, GlyphBrushBuilder, Section, Text};
 
 pub struct GlyphPipeline {
-    brush: GlyphBrush<()>,
+    pub brush: GlyphBrush<()>,
     staging_belt: wgpu::util::StagingBelt,
 }
 
@@ -31,6 +31,25 @@ impl GlyphPipeline {
 
         self.staging_belt.finish();
         ctx.queue.submit(Some(encoder.finish()));
+    }
+
+    pub fn queue(&mut self, section: Section) {
+        self.brush.queue(section);
+    }
+
+    pub fn render_queued(&mut self, ctx: &engine::Context, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
+        self.brush
+            .draw_queued(
+                &ctx.device,
+                &mut self.staging_belt,
+                encoder,
+                target,
+                ctx.viewport.width,
+                ctx.viewport.height,
+            )
+            .expect("Draw queued");
+
+        self.staging_belt.finish();
     }
 
     fn draw_2d(

@@ -6,6 +6,7 @@ pub mod mipmap;
 pub mod model;
 mod particle;
 mod scaling;
+pub mod ui;
 
 pub use deferred::DeferredPipeline;
 pub use glyph::GlyphPipeline;
@@ -14,3 +15,4 @@ pub use model::ModelPipeline;
 pub use particle::ParticleEmitter;
 pub use particle::ParticlePipeline;
 pub use scaling::ScalingPipeline;
+pub use ui::UiPipeline;

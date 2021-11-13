@@ -6,6 +6,7 @@ pub mod frustum;
 pub mod model;
 pub mod pipelines;
 mod texture;
+mod ui;
 mod viewport;
 
 pub struct Context {
@@ -24,6 +25,8 @@ pub struct Engine {
     pub deferred_pipeline: pipelines::DeferredPipeline,
     pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
+    pub ui_pipeline: pipelines::UiPipeline,
+    pub ui: ui::Ui,
 }
 
 impl Engine {
@@ -80,6 +83,9 @@ impl Engine {
         let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
+        let ui_pipeline = pipelines::UiPipeline::new(&ctx);
+
+        let ui = ui::Ui::new();
 
         Self {
             ctx,
@@ -89,6 +95,8 @@ impl Engine {
             particle_pipeline,
             scaling_pipeline,
             joystick_pipeline,
+            ui_pipeline,
+            ui,
         }
     }
 

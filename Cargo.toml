@@ -25,6 +25,8 @@ gltf = { version = "0.16.0", features = [ "extras", "KHR_lights_punctual" ]}
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = { features = ["raw_value"], version = "1.0" }
+raui-core = "0.38.3"
+raui = "0.38.3"
 
 [target.'cfg(target_os = "android")'.dependencies]
 jni = "0.18.0"
