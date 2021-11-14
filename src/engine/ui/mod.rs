@@ -1,13 +1,16 @@
+use super::texture::Texture;
 use raui::prelude::*;
+use std::collections::HashMap;
 mod renderer;
 
 pub struct Ui {
     application: Application,
     interactions: DefaultInteractionsEngine,
+    resources: HashMap<String, Texture>,
 }
 
 impl Ui {
-    pub fn new() -> Self {
+    pub fn new(ctx: &super::Context) -> Self {
         let mut application = Application::new();
 
         let tree = make_widget!(content_box).listed_slot(
@@ -20,7 +23,7 @@ impl Ui {
                     r: 0.25,
                     g: 0.25,
                     b: 0.25,
-                    a: 0.5,
+                    a: 1.0,
                 })))
                 .listed_slot(
                     make_widget!(flex_box)
@@ -100,6 +103,26 @@ impl Ui {
                                     grow: 0.0,
                                     ..Default::default()
                                 }),
+                        )
+                        .listed_slot(
+                            make_widget!(image_box)
+                                .with_props(FlexBoxProps {
+                                    direction: FlexBoxDirection::VerticalTopToBottom,
+                                    separation: 10.0,
+                                    ..Default::default()
+                                })
+                                .with_props(ImageBoxProps {
+                                    material: ImageBoxMaterial::Image(ImageBoxImage {
+                                        id: "test".to_owned(),
+                                        ..Default::default()
+                                    }),
+                                    content_keep_aspect_ratio: Some(ImageBoxAspectRatio {
+                                        horizontal_alignment: 1.0,
+                                        vertical_alignment: 1.0,
+                                        outside: false,
+                                    }),
+                                    ..Default::default()
+                                }),
                         ),
                 ),
         );
@@ -109,7 +132,17 @@ impl Ui {
 
         let app = WidgetNode::Component(tree);
         application.apply(app);
-        Self { application, interactions }
+
+        let mut resources = HashMap::new();
+
+        let texture = Texture::from_resource(ctx, "textures/test.png", false);
+        resources.insert("test".to_owned(), texture);
+
+        Self {
+            application,
+            interactions,
+            resources,
+        }
     }
 
     pub fn render(
@@ -135,7 +168,7 @@ impl Ui {
         self.application.layout(&mapping, &mut DefaultLayoutEngine).unwrap();
         self.application.interact(&mut self.interactions).unwrap();
 
-        let mut renderer = renderer::WgpuRenderer::new(&ctx, &ui_pipeline, glyph_pipeline, &target);
+        let mut renderer = renderer::WgpuRenderer::new(&ctx, &ui_pipeline, glyph_pipeline, &self.resources, &target);
         self.application.render(&mapping, &mut renderer).unwrap();
     }
 }

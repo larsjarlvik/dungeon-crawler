@@ -1,22 +1,24 @@
-use crate::config;
-use wgpu::util::DeviceExt;
-
 use super::pipelines;
+use crate::{config, utils};
+use wgpu::util::DeviceExt;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
+    pub size: wgpu::Extent3d,
 }
 
 impl Texture {
     pub fn create_depth_texture(ctx: &super::Context, width: u32, height: u32, label: &str) -> Self {
+        let size = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
         let texture = ctx.device.create_texture(&wgpu::TextureDescriptor {
             label: Some(label),
-            size: wgpu::Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
-            },
+            size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -25,17 +27,19 @@ impl Texture {
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        Self { texture, view }
+        Self { texture, view, size }
     }
 
     pub fn create_texture(ctx: &super::Context, format: wgpu::TextureFormat, width: u32, height: u32, label: &str) -> Self {
+        let size = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
         let texture = ctx.device.create_texture(&wgpu::TextureDescriptor {
             label: Some(label),
-            size: wgpu::Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
-            },
+            size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -44,11 +48,26 @@ impl Texture {
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        Self { texture, view }
+        Self { texture, view, size }
     }
 
-    pub fn create_mipmapped_view(ctx: &super::Context, pixels: &[u8], width: u32, height: u32) -> Self {
-        let mip_level_count = (1f32 + ((width as f32).max(height as f32)).log2().floor()) as u32;
+    pub fn from_resource(ctx: &super::Context, path: &str, mipmap: bool) -> Self {
+        let data = image::load_from_memory(utils::read_bytes(path).as_slice()).expect("Failed to load image!");
+        let img = data.as_rgba8().expect("Failed to read Rgba8!");
+
+        let width = img.dimensions().0;
+        let height = img.dimensions().1;
+
+        Self::from_pixels(ctx, img.as_raw(), width, height, mipmap)
+    }
+
+    pub fn from_pixels(ctx: &super::Context, pixels: &[u8], width: u32, height: u32, mipmap: bool) -> Self {
+        let mip_level_count = if mipmap {
+            (1f32 + ((width as f32).max(height as f32)).log2().floor()) as u32
+        } else {
+            1
+        };
+
         let size = wgpu::Extent3d {
             width,
             height,
@@ -89,10 +108,12 @@ impl Texture {
             size,
         );
 
-        pipelines::mipmap::generate_mipmaps(ctx, &mut encoder, &texture, mip_level_count);
-        ctx.queue.submit(std::iter::once(encoder.finish()));
+        if mipmap {
+            pipelines::mipmap::generate_mipmaps(ctx, &mut encoder, &texture, mip_level_count);
+        }
 
-        Self { texture, view }
+        ctx.queue.submit(std::iter::once(encoder.finish()));
+        Self { texture, view, size }
     }
 
     pub fn create_sampler(

@@ -3,4 +3,5 @@
 pub struct Uniforms {
     pub viewport_width: f32,
     pub viewport_height: f32,
+    pub has_texture: u32,
 }

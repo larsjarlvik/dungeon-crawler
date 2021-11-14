@@ -68,5 +68,5 @@ fn load_image(ctx: &engine::Context, texture: gltf::Texture, images: &Vec<gltf::
         image.pixels.clone()
     };
 
-    texture::Texture::create_mipmapped_view(&ctx, pixels.as_slice(), image.width, image.height)
+    texture::Texture::from_pixels(&ctx, pixels.as_slice(), image.width, image.height, true)
 }

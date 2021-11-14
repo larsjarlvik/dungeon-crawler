@@ -85,7 +85,7 @@ impl Engine {
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
         let ui_pipeline = pipelines::UiPipeline::new(&ctx);
 
-        let ui = ui::Ui::new();
+        let ui = ui::Ui::new(&ctx);
 
         Self {
             ctx,

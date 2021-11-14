@@ -3,6 +3,7 @@
 struct Uniforms {
     viewport_width: f32;
     viewport_height: f32;
+    has_texture: bool;
 };
 
 // Vertex shader
@@ -38,7 +39,16 @@ fn main(model: VertexInput) -> VertexOutput {
 }
 
 // Fragment shader
+[[group(1), binding(0)]] var t_texture: texture_2d<f32>;
+[[group(1), binding(1)]] var t_sampler: sampler;
+
 [[stage(fragment)]]
 fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    return in.color;
+    var color: vec4<f32> = in.color;
+
+    if (uniforms.has_texture) {
+        color = color * textureSample(t_texture, t_sampler, vec2<f32>(in.tex_coord.x, 1.0 - in.tex_coord.y));
+    }
+
+    return color;
 }
