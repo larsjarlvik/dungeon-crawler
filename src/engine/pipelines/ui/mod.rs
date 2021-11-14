@@ -25,6 +25,14 @@ impl UiPipeline {
         let render_pipeline = builder
             .with_shader("shaders/ui.wgsl")
             .with_primitve_topology(wgpu::PrimitiveTopology::TriangleList)
+            .with_blend(wgpu::BlendState {
+                color: wgpu::BlendComponent {
+                    operation: wgpu::BlendOperation::Add,
+                    src_factor: wgpu::BlendFactor::SrcAlpha,
+                    dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                },
+                alpha: wgpu::BlendComponent::REPLACE,
+            })
             .with_buffer_layouts(vec![vertex::Vertex::desc()])
             .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
             .with_bind_group_layout(&uniform_bind_group_layout)
@@ -39,8 +47,8 @@ impl UiPipeline {
     pub fn render(&self, ctx: &engine::Context, vertices: Vec<Vertex>, indices: Vec<u32>, target: &wgpu::TextureView) {
         let render_bundle_builder = builders::RenderBundleBuilder::new(ctx, "ui");
         let uniform_buffer = render_bundle_builder.create_uniform_buffer_init(bytemuck::cast_slice(&[Uniforms {
-            viewport_width: ctx.viewport.width as f32,
-            viewport_height: ctx.viewport.height as f32,
+            viewport_width: ctx.viewport.width as f32 / ctx.viewport.ui_scale,
+            viewport_height: ctx.viewport.height as f32 / ctx.viewport.ui_scale,
         }]));
 
         let render_bundle = render_bundle_builder

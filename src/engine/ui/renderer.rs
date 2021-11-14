@@ -34,7 +34,7 @@ impl<'a> WgpuRenderer<'a> {
         }
     }
 
-    fn transform_rect(rect: Rect, transform: &Transform) -> (Vec2, Scalar, Vec2, Rect) {
+    fn transform_rect(&self, rect: Rect, transform: &Transform) -> (Vec2, Scalar, Vec2, Rect) {
         let offset = Vec2 {
             x: lerp(rect.left, rect.right, transform.pivot.x),
             y: lerp(rect.top, rect.bottom, transform.pivot.y),
@@ -282,26 +282,32 @@ impl<'a> WgpuRenderer<'a> {
             WidgetUnit::TextBox(unit) => {
                 if let Some(item) = layout.items.get(&unit.id) {
                     let rect = mapping.virtual_to_real_rect(item.ui_space, false);
-                    let (offset, _, _, rect) = Self::transform_rect(rect, &unit.transform);
+                    let (offset, _, _, rect) = self.transform_rect(rect, &unit.transform);
                     let color = [unit.color.r, unit.color.g, unit.color.b, unit.color.a];
 
-                    let h_align = match unit.horizontal_align {
-                        TextBoxHorizontalAlign::Left => wgpu_glyph::HorizontalAlign::Left,
-                        TextBoxHorizontalAlign::Center => wgpu_glyph::HorizontalAlign::Center,
-                        TextBoxHorizontalAlign::Right => wgpu_glyph::HorizontalAlign::Right,
+                    let (ox, h_align) = match unit.horizontal_align {
+                        TextBoxHorizontalAlign::Left => (0.0, wgpu_glyph::HorizontalAlign::Left),
+                        TextBoxHorizontalAlign::Center => (rect.width() / 2.0, wgpu_glyph::HorizontalAlign::Center),
+                        TextBoxHorizontalAlign::Right => (rect.width(), wgpu_glyph::HorizontalAlign::Right),
                     };
-                    let v_align = match unit.vertical_align {
-                        TextBoxVerticalAlign::Bottom => wgpu_glyph::VerticalAlign::Bottom,
-                        TextBoxVerticalAlign::Middle => wgpu_glyph::VerticalAlign::Center,
-                        TextBoxVerticalAlign::Top => wgpu_glyph::VerticalAlign::Top,
+                    let (oy, v_align) = match unit.vertical_align {
+                        TextBoxVerticalAlign::Top => (0.0, wgpu_glyph::VerticalAlign::Top),
+                        TextBoxVerticalAlign::Middle => (rect.height() / 2.0, wgpu_glyph::VerticalAlign::Center),
+                        TextBoxVerticalAlign::Bottom => (rect.height(), wgpu_glyph::VerticalAlign::Bottom),
                     };
 
                     self.glyph_pipeline.queue(wgpu_glyph::Section {
-                        screen_position: (offset.x, offset.y),
-                        bounds: (rect.width() as f32, rect.height() as f32),
+                        screen_position: (
+                            (offset.x + ox) * self.ctx.viewport.ui_scale,
+                            (offset.y + oy) * self.ctx.viewport.ui_scale,
+                        ),
+                        bounds: (
+                            rect.width() as f32 * self.ctx.viewport.ui_scale,
+                            rect.height() as f32 * self.ctx.viewport.ui_scale,
+                        ),
                         text: vec![wgpu_glyph::Text::new(unit.text.as_str())
                             .with_color(color)
-                            .with_scale(unit.font.size)],
+                            .with_scale(unit.font.size * self.ctx.viewport.ui_scale)],
                         layout: wgpu_glyph::Layout::default_wrap().h_align(h_align).v_align(v_align),
                     });
 
