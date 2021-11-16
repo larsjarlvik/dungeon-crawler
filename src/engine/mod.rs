@@ -22,6 +22,7 @@ pub struct Engine {
     pub glyph_pipeline: pipelines::GlyphPipeline,
     pub joystick_pipeline: pipelines::JoystickPipeline,
     pub deferred_pipeline: pipelines::DeferredPipeline,
+    pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
 }
 
@@ -37,6 +38,7 @@ impl Engine {
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
             })
             .await
             .expect("No suitable GPU adapters found on the system!");
@@ -75,6 +77,7 @@ impl Engine {
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
         let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
         let deferred_pipeline = pipelines::DeferredPipeline::new(&ctx);
+        let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
 
@@ -83,6 +86,7 @@ impl Engine {
             model_pipeline,
             glyph_pipeline,
             deferred_pipeline,
+            particle_pipeline,
             scaling_pipeline,
             joystick_pipeline,
         }
@@ -121,7 +125,7 @@ impl Engine {
 
     pub fn get_output_frame(&self) -> Option<wgpu::SurfaceTexture> {
         if let Some(surface) = &self.ctx.surface {
-            return Some(surface.get_current_frame().expect("Failed to get output frame!").output);
+            return Some(surface.get_current_texture().expect("Failed to get output frame!"));
         }
 
         None

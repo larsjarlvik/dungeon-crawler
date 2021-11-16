@@ -13,8 +13,10 @@ pub struct PipelineBuilder<'a> {
     bind_group_layouts: Vec<&'a wgpu::BindGroupLayout>,
     color_targets: Vec<wgpu::TextureFormat>,
     depth_target: Option<wgpu::RenderBundleDepthStencil>,
+    depth_bias: Option<wgpu::DepthBiasState>,
     buffer_layouts: Vec<wgpu::VertexBufferLayout<'a>>,
     primitve_topology: wgpu::PrimitiveTopology,
+    depth_write: bool,
     blend: Option<wgpu::BlendState>,
     label: &'a str,
 }
@@ -33,9 +35,11 @@ impl<'a> PipelineBuilder<'a> {
             bind_group_layouts: vec![],
             color_targets: vec![],
             depth_target: None,
+            depth_bias: None,
             buffer_layouts: vec![],
             primitve_topology: wgpu::PrimitiveTopology::TriangleList,
             blend: None,
+            depth_write: true,
             label,
         }
     }
@@ -88,12 +92,25 @@ impl<'a> PipelineBuilder<'a> {
         }
     }
 
-    pub fn create_sampler_entry(&self, binding: u32, visibility: wgpu::ShaderStages) -> wgpu::BindGroupLayoutEntry {
+    pub fn create_shadow_texture_entry(&self, binding: u32, visibility: wgpu::ShaderStages) -> wgpu::BindGroupLayoutEntry {
+        wgpu::BindGroupLayoutEntry {
+            binding,
+            visibility,
+            ty: wgpu::BindingType::Texture {
+                multisampled: false,
+                sample_type: wgpu::TextureSampleType::Depth,
+                view_dimension: wgpu::TextureViewDimension::D2,
+            },
+            count: None,
+        }
+    }
+
+    pub fn create_sampler_entry(&self, binding: u32, visibility: wgpu::ShaderStages, comparison: bool) -> wgpu::BindGroupLayoutEntry {
         wgpu::BindGroupLayoutEntry {
             binding,
             visibility,
             ty: wgpu::BindingType::Sampler {
-                comparison: false,
+                comparison,
                 filtering: true,
             },
             count: None,
@@ -129,6 +146,20 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
+    pub fn with_depth_bias(mut self) -> Self {
+        self.depth_bias = Some(wgpu::DepthBiasState {
+            constant: 6,
+            slope_scale: 2.0,
+            clamp: 0.0,
+        });
+        self
+    }
+
+    pub fn with_depth_write(mut self, depth_write: bool) -> Self {
+        self.depth_write = depth_write;
+        self
+    }
+
     pub fn build(self) -> Pipeline {
         let shader = self.shader.unwrap();
 
@@ -152,14 +183,24 @@ impl<'a> PipelineBuilder<'a> {
         let depth_stencil = if self.depth_target.is_some() {
             Some(wgpu::DepthStencilState {
                 format: config::DEPTH_FORMAT,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
+                depth_write_enabled: self.depth_write,
+                depth_compare: wgpu::CompareFunction::LessEqual,
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                bias: if let Some(depth_bias) = self.depth_bias {
+                    depth_bias
+                } else {
+                    wgpu::DepthBiasState::default()
+                },
             })
         } else {
             None
         };
+
+        let fragment = Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: "main",
+            targets: color_targets.as_slice(),
+        });
 
         let render_pipeline = self.ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some(format!("{}_render_pipeline", self.label).as_str()),
@@ -169,26 +210,18 @@ impl<'a> PipelineBuilder<'a> {
                 entry_point: "main",
                 buffers: &self.buffer_layouts,
             },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: "main",
-                targets: color_targets.as_slice(),
-            }),
+            fragment,
             primitive: wgpu::PrimitiveState {
                 topology: self.primitve_topology,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
+                cull_mode: Some(wgpu::Face::Back),
                 polygon_mode: wgpu::PolygonMode::Fill,
                 clamp_depth: false,
                 conservative: false,
             },
             depth_stencil,
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
+            multisample: wgpu::MultisampleState::default(),
         });
 
         Pipeline {

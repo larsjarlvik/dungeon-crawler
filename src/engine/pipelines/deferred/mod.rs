@@ -20,16 +20,40 @@ pub struct DeferredPipeline {
     pub normal_texture: texture::Texture,
     pub color_texture: texture::Texture,
     pub orm_texture: texture::Texture,
+    pub shadow_texture: texture::Texture,
+    pub mock_shadow_color: texture::Texture,
+    pub shadow_sampler: wgpu::Sampler,
 }
 
 impl DeferredPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
         let pipeline_builder = builders::PipelineBuilder::new(ctx, "deferred");
 
-        let depth_texture = texture::Texture::create_depth_texture(&ctx, "deferred_depth_texture");
-        let normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
-        let color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
-        let orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "orm_texture");
+        let (width, height) = ctx.viewport.get_render_size();
+        let depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "deferred_depth_texture");
+        let normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "deferred_normal_texture");
+        let color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "deferred_color_texture");
+        let orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "deferred_orm_texture");
+        let shadow_texture = texture::Texture::create_depth_texture(
+            &ctx,
+            (width as f32 * config::SHADOW_MAP_SCALE) as u32,
+            (height as f32 * config::SHADOW_MAP_SCALE) as u32,
+            "deferred_shadow_texture",
+        );
+        let mock_shadow_color = texture::Texture::create_texture(
+            &ctx,
+            config::COLOR_TEXTURE_FORMAT,
+            (width as f32 * config::SHADOW_MAP_SCALE) as u32,
+            (height as f32 * config::SHADOW_MAP_SCALE) as u32,
+            "deferred_mock_shadow_texture",
+        );
+
+        let shadow_sampler = texture::Texture::create_sampler(
+            ctx,
+            wgpu::AddressMode::ClampToEdge,
+            wgpu::FilterMode::Linear,
+            Some(wgpu::CompareFunction::LessEqual),
+        );
 
         let uniform_bind_group_layout = pipeline_builder.create_bindgroup_layout(
             0,
@@ -45,6 +69,8 @@ impl DeferredPipeline {
                 pipeline_builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT),
                 pipeline_builder.create_texture_entry(2, wgpu::ShaderStages::FRAGMENT),
                 pipeline_builder.create_texture_entry(3, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_shadow_texture_entry(4, wgpu::ShaderStages::FRAGMENT),
+                pipeline_builder.create_sampler_entry(5, wgpu::ShaderStages::FRAGMENT, true),
             ],
         );
 
@@ -65,6 +91,9 @@ impl DeferredPipeline {
             normal_texture,
             color_texture,
             orm_texture,
+            shadow_texture,
+            mock_shadow_color,
+            shadow_sampler,
             uniform_bind_group_layout,
             texture_bind_group_layout,
             uniform_buffer,
@@ -73,10 +102,24 @@ impl DeferredPipeline {
     }
 
     pub fn resize(&mut self, ctx: &engine::Context) {
-        self.depth_texture = texture::Texture::create_depth_texture(&ctx, "deferred_depth_texture");
-        self.normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_normal_texture");
-        self.color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "deferred_color_texture");
-        self.orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "orm_texture");
+        let (width, height) = ctx.viewport.get_render_size();
+        self.depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "deferred_depth_texture");
+        self.normal_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "deferred_normal_texture");
+        self.color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "deferred_color_texture");
+        self.orm_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "orm_texture");
+        self.shadow_texture = texture::Texture::create_depth_texture(
+            &ctx,
+            (width as f32 * config::SHADOW_MAP_SCALE) as u32,
+            (height as f32 * config::SHADOW_MAP_SCALE) as u32,
+            "deferred_shadow_texture",
+        );
+        self.mock_shadow_color = texture::Texture::create_texture(
+            &ctx,
+            config::COLOR_TEXTURE_FORMAT,
+            (width as f32 * config::SHADOW_MAP_SCALE) as u32,
+            (height as f32 * config::SHADOW_MAP_SCALE) as u32,
+            "deferred_shadow_texture",
+        );
     }
 
     pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
@@ -85,10 +128,12 @@ impl DeferredPipeline {
 
         let uniforms = uniforms::Uniforms {
             inv_view_proj: camera.view_proj.invert().unwrap().into(),
-            eye_pos: camera.get_eye().to_vec().extend(0.0).into(),
+            shadow_matrix: camera.get_shadow_matrix().into(),
+            eye_pos: camera.eye.to_vec().extend(0.0).into(),
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             lights,
             lights_count,
+            contrast: config::CONTRAST,
         };
 
         ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
@@ -98,6 +143,8 @@ impl DeferredPipeline {
             builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::TextureView(&self.normal_texture.view)),
             builders::RenderBundleBuilder::create_entry(2, wgpu::BindingResource::TextureView(&self.color_texture.view)),
             builders::RenderBundleBuilder::create_entry(3, wgpu::BindingResource::TextureView(&self.orm_texture.view)),
+            builders::RenderBundleBuilder::create_entry(4, wgpu::BindingResource::TextureView(&self.shadow_texture.view)),
+            builders::RenderBundleBuilder::create_entry(5, wgpu::BindingResource::Sampler(&self.shadow_sampler)),
         ];
 
         self.render_bundle = Some(
@@ -128,7 +175,7 @@ impl DeferredPipeline {
 
         let mut lights: [uniforms::LightUniforms; 32] = Default::default();
 
-        let visible_lights: Vec<(&components::Light, &components::Transform)> = (&light_sources, &transform)
+        let mut visible_lights: Vec<(&components::Light, &components::Transform)> = (&light_sources, &transform)
             .join()
             .filter(|(light, transform)| {
                 if let Some(bounding_box) = &light.bounding_box {
@@ -141,15 +188,22 @@ impl DeferredPipeline {
             })
             .collect();
 
+        visible_lights.sort_by(|a, b| {
+            a.1.translation
+                .get(time.last_frame)
+                .distance(camera.target)
+                .partial_cmp(&b.1.translation.get(time.last_frame).distance(camera.target))
+                .unwrap()
+        });
+
         for (i, (light, transform)) in visible_lights.iter().enumerate() {
             let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
-
             if i >= lights.len() {
                 break;
             }
 
             lights[i] = uniforms::LightUniforms {
-                position: (transform.translation.get(time.last_frame) + light.offset).into(),
+                position: (transform.translation.get(time.last_frame) + light.offset.get(time.last_frame)).into(),
                 radius,
                 color: (light.color * light.intensity.get(time.last_frame)).extend(0.0).into(),
             };

@@ -10,13 +10,11 @@ impl Component for Collision {
 }
 
 impl Collision {
-    pub fn new(gltf: &model::GltfModel, name: &str) -> Self {
-        Self {
-            polygons: gltf
-                .collisions
-                .get(name)
-                .expect(format!("Could not find collision for: {}!", name).as_str())
-                .clone(),
+    pub fn new(gltf: &model::GltfModel, name: &str) -> Option<Self> {
+        if let Some(col) = gltf.collisions.get(name) {
+            Some(Self { polygons: col.clone() })
+        } else {
+            None
         }
     }
 }

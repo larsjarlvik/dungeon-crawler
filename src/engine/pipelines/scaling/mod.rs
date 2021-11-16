@@ -18,7 +18,7 @@ pub struct ScalingPipeline {
 impl ScalingPipeline {
     pub fn new(ctx: &engine::Context) -> Self {
         let builder = builders::PipelineBuilder::new(&ctx, "scaling");
-        let sampler = texture::Texture::create_sampler(ctx);
+        let sampler = texture::Texture::create_sampler(ctx, wgpu::AddressMode::Repeat, wgpu::FilterMode::Linear, None);
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,
@@ -31,7 +31,7 @@ impl ScalingPipeline {
             "texture_bind_group_layout",
             &[
                 builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
-                builder.create_sampler_entry(1, wgpu::ShaderStages::FRAGMENT),
+                builder.create_sampler_entry(1, wgpu::ShaderStages::FRAGMENT, false),
             ],
         );
 
@@ -43,7 +43,9 @@ impl ScalingPipeline {
             .build();
 
         let render_bundle_builder = builders::RenderBundleBuilder::new(ctx, "scaling");
-        let texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "texture");
+
+        let (width, height) = ctx.viewport.get_render_size();
+        let texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "texture");
         let uniform_buffer = render_bundle_builder.create_uniform_buffer_init(bytemuck::cast_slice(&[Uniforms {
             viewport_width: ctx.viewport.width as f32,
             viewport_height: ctx.viewport.height as f32,
@@ -77,11 +79,16 @@ impl ScalingPipeline {
     }
 
     pub fn resize(&mut self, ctx: &engine::Context) {
-        self.texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, "texture");
-        ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[Uniforms {
-            viewport_width: ctx.viewport.width as f32,
-            viewport_height: ctx.viewport.height as f32,
-        }]));
+        let (width, height) = ctx.viewport.get_render_size();
+        self.texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "texture");
+        ctx.queue.write_buffer(
+            &self.uniform_buffer,
+            0,
+            bytemuck::cast_slice(&[Uniforms {
+                viewport_width: ctx.viewport.width as f32,
+                viewport_height: ctx.viewport.height as f32,
+            }]),
+        );
 
         let render_bundle_builder = builders::RenderBundleBuilder::new(ctx, "scaling");
         self.render_bundle = render_bundle_builder

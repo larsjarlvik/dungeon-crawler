@@ -2,10 +2,12 @@
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Uniforms {
     pub inv_view_proj: [[f32; 4]; 4],
+    pub shadow_matrix: [[f32; 4]; 4],
     pub eye_pos: [f32; 4],
     pub viewport_size: [f32; 4],
     pub lights: [LightUniforms; 32],
     pub lights_count: i32,
+    pub contrast: f32,
 }
 
 #[repr(C)]

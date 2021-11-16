@@ -29,4 +29,11 @@ impl Viewport {
     pub fn get_render_height(&self) -> f32 {
         self.height as f32 * self.render_scale
     }
+
+    pub fn get_render_size(&self) -> (u32, u32) {
+        (
+            (self.width as f32 * self.render_scale) as u32,
+            (self.height as f32 * self.render_scale) as u32,
+        )
+    }
 }

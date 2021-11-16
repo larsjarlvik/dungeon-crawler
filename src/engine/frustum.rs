@@ -1,12 +1,10 @@
 extern crate cgmath;
-use cgmath::*;
-use std::mem;
-
 use super::bounding_box;
+use cgmath::*;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Frustum {
-    f: [Vector4<f32>; 6],
+    pub f: [Vector4<f32>; 6],
 }
 
 impl Frustum {
@@ -15,15 +13,16 @@ impl Frustum {
     }
 
     pub fn from_matrix(m: Matrix4<f32>) -> Self {
-        let mut culler: Self = unsafe { mem::zeroed() };
-
-        culler.f[0] = vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x).normalize();
-        culler.f[1] = vec4(m.x.w - m.x.x, m.y.w - m.y.x, m.z.w - m.z.x, m.w.w - m.w.x).normalize();
-        culler.f[2] = vec4(m.x.w + m.x.y, m.y.w + m.y.y, m.z.w + m.z.y, m.w.w + m.w.y).normalize();
-        culler.f[3] = vec4(m.x.w - m.x.y, m.y.w - m.y.y, m.z.w - m.z.y, m.w.w - m.w.y).normalize();
-        culler.f[4] = vec4(m.x.w + m.x.z, m.y.w + m.y.z, m.z.w + m.z.z, m.w.w + m.w.z).normalize();
-        culler.f[5] = vec4(m.x.w - m.x.z, m.y.w - m.y.z, m.z.w - m.z.z, m.w.w - m.w.z).normalize();
-        culler
+        Self {
+            f: [
+                vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x).normalize(),
+                vec4(m.x.w - m.x.x, m.y.w - m.y.x, m.z.w - m.z.x, m.w.w - m.w.x).normalize(),
+                vec4(m.x.w + m.x.y, m.y.w + m.y.y, m.z.w + m.z.y, m.w.w + m.w.y).normalize(),
+                vec4(m.x.w - m.x.y, m.y.w - m.y.y, m.z.w - m.z.y, m.w.w - m.w.y).normalize(),
+                vec4(m.x.w + m.x.z, m.y.w + m.y.z, m.z.w + m.z.z, m.w.w + m.w.z).normalize(),
+                vec4(m.x.w - m.x.z, m.y.w - m.y.z, m.z.w - m.z.z, m.w.w - m.w.z).normalize(),
+            ],
+        }
     }
 
     pub fn test_bounding_box(&self, aab: &bounding_box::BoundingBox) -> bool {

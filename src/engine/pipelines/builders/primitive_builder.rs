@@ -6,9 +6,11 @@ pub struct PrimitiveBuilder<'a> {
     ctx: &'a engine::Context,
     pub vertex_buffer: Option<wgpu::Buffer>,
     pub index_buffer: Option<wgpu::Buffer>,
+    pub instance_buffer: Option<wgpu::Buffer>,
     pub bind_groups: Vec<render_bundle_builder::MappedBindGroup>,
     pub buffers: Vec<&'a wgpu::Buffer>,
     pub length: u32,
+    pub instances: u32,
     label: &'a str,
 }
 
@@ -18,11 +20,22 @@ impl<'a> PrimitiveBuilder<'a> {
             ctx,
             vertex_buffer: None,
             index_buffer: None,
+            instance_buffer: None,
             bind_groups: vec![],
             buffers: vec![],
             length: 0,
+            instances: 1,
             label,
         }
+    }
+
+    pub fn with_instances(mut self, contents: &[u8]) -> Self {
+        self.instance_buffer = Some(self.ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some(format!("{}_instance_buffer", self.label).as_str()),
+            contents,
+            usage: wgpu::BufferUsages::VERTEX,
+        }));
+        self
     }
 
     pub fn with_vertices(mut self, contents: &[u8]) -> Self {
@@ -86,7 +99,12 @@ impl<'a> PrimitiveBuilder<'a> {
     }
 
     pub fn with_length(mut self, length: u32) -> Self {
-        self.length = length as u32;
+        self.length = length;
+        self
+    }
+
+    pub fn with_instance_count(mut self, instances: u32) -> Self {
+        self.instances = instances;
         self
     }
 }

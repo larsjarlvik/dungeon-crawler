@@ -9,12 +9,12 @@ pub struct Flicker {
 }
 
 impl Flicker {
-    pub fn new(amount: f32) -> Self {
+    pub fn new(amount: f32, speed: f32) -> Self {
         let mut rng = rand::thread_rng();
         Self {
             amount,
             last: rng.gen::<f32>(),
-            speed: rng.gen::<f32>() * 0.01 + 0.01,
+            speed,
         }
     }
 }

@@ -10,12 +10,14 @@ pub struct Light {
     pub intensity: InterpolatedValue<f32>,
     pub radius: Option<f32>,
     pub bounding_box: Option<bounding_box::BoundingBox>,
-    pub offset: Vector3<f32>,
+    pub offset: InterpolatedValue<Vector3<f32>>,
+    pub orig_offset: Vector3<f32>,
 }
 
 impl Light {
     pub fn new(color: Vector3<f32>, intensity: f32, radius: Option<f32>, offset: Vector3<f32>) -> Self {
         let bounding_box = if let Some(radius) = radius {
+            let radius = radius / 2.0;
             Some(bounding_box::BoundingBox {
                 min: point3(-radius, -radius, -radius),
                 max: point3(radius, radius, radius),
@@ -30,7 +32,8 @@ impl Light {
             intensity: InterpolatedValue::new(intensity),
             radius,
             bounding_box,
-            offset,
+            offset: InterpolatedValue::new(offset),
+            orig_offset: offset,
         }
     }
 }
