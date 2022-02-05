@@ -109,10 +109,11 @@ impl<'a> PipelineBuilder<'a> {
         wgpu::BindGroupLayoutEntry {
             binding,
             visibility,
-            ty: wgpu::BindingType::Sampler {
-                comparison,
-                filtering: true,
-            },
+            ty: wgpu::BindingType::Sampler(if comparison {
+                wgpu::SamplerBindingType::Comparison
+            } else {
+                wgpu::SamplerBindingType::Filtering
+            }),
             count: None,
         }
     }
@@ -198,7 +199,7 @@ impl<'a> PipelineBuilder<'a> {
 
         let fragment = Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "main",
+            entry_point: "frag_main",
             targets: color_targets.as_slice(),
         });
 
@@ -207,7 +208,7 @@ impl<'a> PipelineBuilder<'a> {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
-                entry_point: "main",
+                entry_point: "vert_main",
                 buffers: &self.buffer_layouts,
             },
             fragment,
@@ -217,11 +218,12 @@ impl<'a> PipelineBuilder<'a> {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
                 polygon_mode: wgpu::PolygonMode::Fill,
-                clamp_depth: false,
+                unclipped_depth: false,
                 conservative: false,
             },
             depth_stencil,
             multisample: wgpu::MultisampleState::default(),
+            multiview: None,
         });
 
         Pipeline {

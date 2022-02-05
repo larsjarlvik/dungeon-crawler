@@ -1,7 +1,6 @@
 // Vertex shader
 let M_PI = 3.141592653589793;
 
-[[block]]
 struct Uniforms {
     view: mat4x4<f32>;
     proj: mat4x4<f32>;
@@ -28,11 +27,8 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
-    model: VertexInput,
-) -> VertexOutput {
+fn vert_main(model: VertexInput) -> VertexOutput {
     var out: VertexOutput;
-
 
     let life_time = model.particle_life_speed.x;
     let speed = model.particle_life_speed.y;
@@ -62,7 +58,7 @@ fn main(
 
 // Fragment shader
 [[stage(fragment)]]
-fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let opacity = 1.0 - pow(distance(in.position, vec2<f32>(0.0, 0.0)) / uniforms.size, 0.5);
     let color = mix(uniforms.start_color, uniforms.end_color, clamp(in.elapsed * 4.0, 0.0, 1.0));
     return vec4<f32>(color.r, color.g, color.b, color.a * opacity * uniforms.strength);

@@ -1,5 +1,4 @@
 // Vertex shader
-[[block]]
 struct Uniforms {
     view_proj: mat4x4<f32>;
     model: mat4x4<f32>;
@@ -17,7 +16,7 @@ struct VertexInput {
 };
 
 [[stage(vertex)]]
-fn main(model: VertexInput) -> [[builtin(position)]] vec4<f32> {
+fn vert_main(model: VertexInput) -> [[builtin(position)]] vec4<f32> {
     var skin_matrix: mat4x4<f32> = mat4x4<f32>(
         vec4<f32>(0.0, 0.0, 0.0, 0.0),
         vec4<f32>(0.0, 0.0, 0.0, 0.0),
@@ -54,6 +53,6 @@ fn main(model: VertexInput) -> [[builtin(position)]] vec4<f32> {
 // Fragment
 // Crashes on android if missing
 [[stage(fragment)]]
-fn main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
+fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     return vec4<f32>(1.0, 1.0, 1.0, 1.0);
 }

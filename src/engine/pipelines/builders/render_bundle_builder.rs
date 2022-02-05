@@ -91,6 +91,7 @@ impl<'a> RenderBundleBuilder<'a> {
             color_formats: self.color_targets.expect("Missing color target!").as_slice(),
             depth_stencil: *self.depth_target,
             sample_count: 1,
+            multiview: None,
         });
 
         encoder.set_pipeline(&self.pipeline.expect("No pipeline set!"));
