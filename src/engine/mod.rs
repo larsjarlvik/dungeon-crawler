@@ -32,7 +32,7 @@ impl Engine {
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
 
-        let viewport = viewport::Viewport::new(size.width, size.height, utils::get_scale_factor(&window));
+        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32);
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -102,7 +102,7 @@ impl Engine {
 
     pub fn set_viewport(&mut self, window: &winit::window::Window) {
         let size = window.inner_size();
-        self.ctx.viewport = viewport::Viewport::new(size.width, size.height, utils::get_scale_factor(window));
+        self.ctx.viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32);
         self.scaling_pipeline.resize(&mut self.ctx);
 
         if self.ctx.surface.is_none() {
