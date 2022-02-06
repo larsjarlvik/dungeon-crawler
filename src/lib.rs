@@ -42,10 +42,9 @@ pub fn main() {
     utils::aquire_wakelock();
 
     event_loop.run(move |event, _, control_flow| {
+        let mut block_input = false;
         if let Some(state) = &mut state {
-            if state.ui.handle_event(&event) {
-                return;
-            }
+            block_input = state.ui.handle_event(&event);
         }
 
         match event {
@@ -80,12 +79,27 @@ pub fn main() {
                             state.mouse_move(0, position.x as f32, position.y as f32);
                         }
                         WindowEvent::MouseInput { state: mouse_state, .. } => {
-                            state.mouse_press(0, false, mouse_state == &winit::event::ElementState::Pressed);
+                            state.mouse_press(
+                                0,
+                                false,
+                                if !block_input {
+                                    mouse_state == &winit::event::ElementState::Pressed
+                                } else {
+                                    false
+                                },
+                            );
                         }
                         WindowEvent::Touch(touch) => {
-                            state.mouse_move(touch.id, touch.location.x as f32, touch.location.y as f32);
+                            if !block_input {
+                                state.mouse_move(touch.id, touch.location.x as f32, touch.location.y as f32);
+                            }
+
                             match touch.phase {
-                                TouchPhase::Started => state.mouse_press(touch.id, true, true),
+                                TouchPhase::Started => {
+                                    if !block_input {
+                                        state.mouse_press(touch.id, true, true)
+                                    }
+                                }
                                 TouchPhase::Ended | TouchPhase::Cancelled => state.mouse_press(touch.id, true, false),
                                 _ => {}
                             }

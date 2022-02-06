@@ -44,7 +44,7 @@ impl Ui {
 
     pub fn handle_event(&mut self, winit_event: &event::Event<repaint_signal::Event>) -> bool {
         self.platform.handle_event(&winit_event);
-        self.platform.captures_event(&winit_event)
+        self.app.blocking
     }
 
     pub fn render(
