@@ -78,13 +78,14 @@ impl State {
         input.mouse_set_pressed(id, touch, pressed);
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, window: &Window, repaint_signal: &Arc<RepaintSignal>) {
         self.world.update(&self.engine);
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
+        self.ui.update(window, repaint_signal, &self.world.components)
     }
 
-    pub fn render(&mut self, window: &Window, repaint_signal: &Arc<RepaintSignal>) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(&mut self, window: &Window) -> Result<(), wgpu::SurfaceError> {
         if let Some(frame) = self.engine.get_output_frame() {
             let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
@@ -104,11 +105,9 @@ impl State {
             );
 
             self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
-
-            self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
 
-            self.ui.render(&self.engine.ctx, &window, &repaint_signal, &view);
+            self.ui.render(&self.engine.ctx, &window, &view);
             frame.present();
         }
 

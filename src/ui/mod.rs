@@ -4,11 +4,12 @@ use egui::FontDefinitions;
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
 mod egui_winit_platform;
 use egui_winit_platform::*;
-use epi::App;
 use std::{iter, sync::Arc, time::Instant};
 use winit::*;
 mod app;
 pub mod repaint_signal;
+mod theme;
+mod views;
 
 pub struct Ui {
     pub platform: Platform,
@@ -29,7 +30,6 @@ impl Ui {
         });
 
         let app = app::App::default();
-
         let start_time = Instant::now();
         let render_pass = RenderPass::new(&ctx.device, config::COLOR_TEXTURE_FORMAT, 1);
 
@@ -47,18 +47,8 @@ impl Ui {
         self.app.blocking
     }
 
-    pub fn render(
-        &mut self,
-        ctx: &engine::Context,
-        window: &window::Window,
-        repaint_signal: &Arc<RepaintSignal>,
-        target: &wgpu::TextureView,
-    ) {
-        self.platform.update_time(self.start_time.elapsed().as_secs_f64());
-        let egui_start = Instant::now();
-        self.platform.begin_frame();
+    pub fn update(&mut self, window: &window::Window, repaint_signal: &Arc<RepaintSignal>, components: &specs::World) {
         let app_output = epi::backend::AppOutput::default();
-
         let mut frame = epi::Frame::new(epi::backend::FrameData {
             info: epi::IntegrationInfo {
                 name: "egui_example",
@@ -71,7 +61,20 @@ impl Ui {
             repaint_signal: repaint_signal.clone(),
         });
 
-        self.app.update(&self.platform.context(), &mut frame);
+        self.platform.begin_frame();
+        let ctx = self.platform.context();
+
+        if self.previous_frame_time.is_none() {
+            self.app.setup(&ctx, &mut frame, None);
+        }
+
+        self.app.update(&ctx, &mut frame, components);
+    }
+
+    pub fn render(&mut self, ctx: &engine::Context, window: &window::Window, target: &wgpu::TextureView) {
+        self.platform.update_time(self.start_time.elapsed().as_secs_f64());
+        let egui_start = Instant::now();
+        self.platform.begin_frame();
 
         let (_output, paint_commands) = self.platform.end_frame(Some(&window));
         let paint_jobs = self.platform.context().tessellate(paint_commands);
@@ -99,5 +102,6 @@ impl Ui {
             .unwrap();
 
         ctx.queue.submit(iter::once(encoder.finish()));
+        self.platform.end_frame(Some(window));
     }
 }

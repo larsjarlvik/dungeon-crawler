@@ -1,62 +1,48 @@
+use super::views;
 use egui::*;
 
+enum Views {
+    InGame(views::InGame),
+}
+
 pub struct App {
-    counter: i32,
+    view: Views,
     pub blocking: bool,
 }
 
 impl Default for App {
     fn default() -> Self {
         Self {
-            counter: 0,
             blocking: false,
+            view: Views::InGame(views::InGame::new()),
         }
     }
 }
 
-impl epi::App for App {
-    fn setup(&mut self, ctx: &egui::CtxRef, _frame: &epi::Frame, _storage: Option<&dyn epi::Storage>) {
-        let font_definitions = {
-            use egui::paint::fonts::{FontFamily, TextStyle};
-            let family = FontFamily::Mononoki;
+impl App {
+    pub fn setup(&mut self, ctx: &egui::CtxRef, _frame: &epi::Frame, _storage: Option<&dyn epi::Storage>) {
+        println!("setup");
+        let mut fonts = FontDefinitions::default();
+        fonts.font_data.insert(
+            "font".to_owned(),
+            FontData::from_owned(include_bytes!("./exo2-medium.ttf").to_vec()),
+        );
+        fonts
+            .fonts_for_family
+            .get_mut(&FontFamily::Proportional)
+            .unwrap()
+            .insert(0, "font".to_owned());
 
-            let mut def = egui::paint::FontDefinitions::default();
-            def.fonts.insert(TextStyle::Body, (family, 32));
-            def.fonts.insert(TextStyle::Button, (family, 32));
-            def.fonts.insert(TextStyle::Heading, (family, 32));
-            def.fonts.insert(TextStyle::Monospace, (family, 32));
-            def
+        fonts.family_and_size.insert(TextStyle::Button, (FontFamily::Proportional, 18.0));
+        fonts.family_and_size.insert(TextStyle::Body, (FontFamily::Proportional, 18.0));
+        ctx.set_fonts(fonts);
+    }
+
+    pub fn update(&mut self, ctx: &egui::CtxRef, frame: &epi::Frame, components: &specs::World) {
+        self.blocking = match &mut self.view {
+            Views::InGame(in_game) => in_game.update(ctx, components),
         };
-        ctx.set_fonts(font_definitions);
-    }
 
-    fn update(&mut self, ctx: &egui::CtxRef, frame: &epi::Frame) {
-        let panel = egui::TopBottomPanel::bottom("bottom_panel")
-            .frame(egui::Frame {
-                margin: vec2(32.0, 32.0),
-                fill: Color32::TRANSPARENT,
-                ..Default::default()
-            })
-            .show(ctx, |ui| {
-                let style = ui.style_mut();
-                style.spacing.button_padding = vec2(16.0, 16.0);
-
-                ui.with_layout(egui::Layout::right_to_left(), |ui| {
-                    if ui.button("+").clicked() {
-                        self.counter += 1;
-                    }
-                    ui.label(format!("COUNT: {}", self.counter).to_string());
-                    if ui.button("-").clicked() {
-                        self.counter -= 1;
-                    }
-                });
-            });
-
-        self.blocking = panel.response.hovered();
         frame.set_window_size(ctx.used_size());
-    }
-
-    fn name(&self) -> &str {
-        "Dungeon Crawler"
     }
 }

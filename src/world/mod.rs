@@ -26,7 +26,6 @@ impl<'a> World {
         components.register::<components::Transform>();
         components.register::<components::Transform2d>();
         components.register::<components::Text>();
-        components.register::<components::Fps>();
         components.register::<components::Light>();
         components.register::<components::Animations>();
         components.register::<components::UserControl>();
@@ -41,9 +40,9 @@ impl<'a> World {
         components.insert(resources::Camera::new(engine.ctx.viewport.get_aspect()));
         components.insert(resources::Input::default());
         components.insert(resources::Time::default());
+        components.insert(resources::Fps::default());
 
         let dispatcher = DispatcherBuilder::new()
-            .with(systems::Fps, "fps", &[])
             .with(systems::UserControl, "user_control", &[])
             .with(systems::Movement, "movement", &[])
             .with(systems::Flicker, "flicker", &[])
@@ -66,7 +65,6 @@ impl<'a> World {
 
         self.components
             .create_entity()
-            .with(components::Fps::new())
             .with(components::Text::new(""))
             .with(components::Transform2d::from_translation_scale(vec2(20.0, 20.0), 18.0))
             .build();
@@ -118,10 +116,8 @@ impl<'a> World {
         }
 
         {
-            let mut fps = self.components.write_storage::<components::Fps>();
-            for fps in (&mut fps).join() {
-                fps.fps += 1;
-            }
+            let mut fps = self.components.write_resource::<resources::Fps>();
+            fps.update();
         }
 
         {

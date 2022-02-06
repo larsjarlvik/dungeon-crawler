@@ -122,8 +122,8 @@ pub fn main() {
             }
             Event::MainEventsCleared => {
                 if let Some(state) = &mut state {
-                    state.update();
-                    match state.render(&window, &repaint_signal) {
+                    state.update(&window, &repaint_signal);
+                    match state.render(&window) {
                         Ok(_) => {}
                         Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
                         Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

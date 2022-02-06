@@ -19,7 +19,6 @@ pub struct Context {
 pub struct Engine {
     pub ctx: Context,
     pub model_pipeline: pipelines::ModelPipeline,
-    pub glyph_pipeline: pipelines::GlyphPipeline,
     pub joystick_pipeline: pipelines::JoystickPipeline,
     pub deferred_pipeline: pipelines::DeferredPipeline,
     pub particle_pipeline: pipelines::ParticlePipeline,
@@ -75,7 +74,6 @@ impl Engine {
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
-        let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
         let deferred_pipeline = pipelines::DeferredPipeline::new(&ctx);
         let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
@@ -84,7 +82,6 @@ impl Engine {
         Self {
             ctx,
             model_pipeline,
-            glyph_pipeline,
             deferred_pipeline,
             particle_pipeline,
             scaling_pipeline,
@@ -94,7 +91,6 @@ impl Engine {
 
     pub fn init(&mut self) {
         self.model_pipeline = pipelines::ModelPipeline::new(&self.ctx);
-        self.glyph_pipeline = pipelines::GlyphPipeline::new(&self.ctx);
         self.deferred_pipeline = pipelines::DeferredPipeline::new(&self.ctx);
         self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);
         self.joystick_pipeline = pipelines::JoystickPipeline::new(&self.ctx);

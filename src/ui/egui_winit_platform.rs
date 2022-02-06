@@ -59,7 +59,7 @@ fn handle_clipboard(output: &egui::Output, clipboard: Option<&mut ClipboardConte
 pub struct Platform {
     scale_factor: f64,
     context: CtxRef,
-    raw_input: egui::RawInput,
+    pub raw_input: egui::RawInput,
     modifier_state: ModifiersState,
     pointer_pos: Option<egui::Pos2>,
 
