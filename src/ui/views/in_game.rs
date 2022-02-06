@@ -1,45 +1,42 @@
-use crate::{ui::theme::*, world::resources};
+use crate::{
+    ui::theme::*,
+    world::{resources, GameState, World},
+};
 use egui::*;
 use specs::WorldExt;
 
-pub struct InGame {
-    counter: i32,
-}
+pub struct InGame {}
 
 impl InGame {
     pub fn new() -> Self {
-        Self { counter: 0 }
+        Self {}
     }
 
-    pub fn update(&mut self, ctx: &CtxRef, components: &specs::World) -> bool {
-        let fps = components.read_resource::<resources::Fps>();
+    pub fn update(&mut self, ctx: &CtxRef, world: &mut World) -> bool {
+        let fps = { world.components.read_resource::<resources::Fps>().fps };
 
-        egui::TopBottomPanel::top("in_game_top").frame(default_frame(32.0)).show(ctx, |ui| {
+        let top = TopBottomPanel::top("in_game_top").frame(default_frame(16.0)).show(ctx, |ui| {
             apply_theme(ui);
 
-            ui.with_layout(egui::Layout::left_to_right(), |ui| {
-                ui.label(format!("FPS: {}", fps.fps).to_string());
-            });
-        });
+            ui.horizontal(|ui| {
+                ui.label(format!("FPS: {}", fps).to_string());
 
-        let bottom = egui::TopBottomPanel::bottom("in_game_bottom")
-            .frame(default_frame(32.0))
-            .show(ctx, |ui| {
-                apply_theme(ui);
-
-                ui.with_layout(egui::Layout::right_to_left(), |ui| {
-                    if ui.add_sized([50.0, 50.0], Button::new("+")).clicked() {
-                        self.counter += 1;
-                    }
-
-                    ui.label(format!("COUNT: {}", self.counter).to_string());
-
-                    if ui.add_sized([50.0, 50.0], Button::new("-")).clicked() {
-                        self.counter -= 1;
+                ui.with_layout(Layout::right_to_left(), |ui| {
+                    if ui.add_sized([50.0, 50.0], Button::new("\u{2630}")).clicked() {
+                        world.game_state = GameState::MainMenu;
                     }
                 });
             });
+        });
 
-        bottom.response.hovered()
+        let bottom = TopBottomPanel::bottom("in_game_bottom").frame(default_frame(32.0)).show(ctx, |ui| {
+            apply_theme(ui);
+
+            ui.with_layout(Layout::right_to_left(), |_ui| {
+                // TODO: Action buttons
+            });
+        });
+
+        bottom.response.hovered() || top.response.hovered()
     }
 }

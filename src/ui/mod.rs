@@ -1,5 +1,5 @@
 use self::repaint_signal::RepaintSignal;
-use crate::{config, engine};
+use crate::{config, engine, world::World};
 use egui::FontDefinitions;
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
 mod egui_winit_platform;
@@ -47,7 +47,7 @@ impl Ui {
         self.app.blocking
     }
 
-    pub fn update(&mut self, window: &window::Window, repaint_signal: &Arc<RepaintSignal>, components: &specs::World) {
+    pub fn update(&mut self, window: &window::Window, repaint_signal: &Arc<RepaintSignal>, world: &mut World) {
         let app_output = epi::backend::AppOutput::default();
         let mut frame = epi::Frame::new(epi::backend::FrameData {
             info: epi::IntegrationInfo {
@@ -68,7 +68,7 @@ impl Ui {
             self.app.setup(&ctx, &mut frame, None);
         }
 
-        self.app.update(&ctx, &mut frame, components);
+        self.app.update(&ctx, &mut frame, world);
     }
 
     pub fn render(&mut self, ctx: &engine::Context, window: &window::Window, target: &wgpu::TextureView) {

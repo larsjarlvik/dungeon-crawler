@@ -82,7 +82,7 @@ impl State {
         self.world.update(&self.engine);
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
-        self.ui.update(window, repaint_signal, &self.world.components)
+        self.ui.update(window, repaint_signal, &mut self.world)
     }
 
     pub fn render(&mut self, window: &Window) -> Result<(), wgpu::SurfaceError> {

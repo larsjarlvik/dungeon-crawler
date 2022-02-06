@@ -6,9 +6,16 @@ pub mod resources;
 pub mod systems;
 use cgmath::*;
 
+pub enum GameState {
+    Running,
+    MainMenu,
+    Terminated,
+}
+
 pub struct World {
     pub components: specs::World,
     pub dispatcher: specs::Dispatcher<'static, 'static>,
+    pub game_state: GameState,
     update_time: f32,
     last_frame: std::time::Instant,
     map: map::Map,
@@ -55,6 +62,7 @@ impl<'a> World {
             last_frame: Instant::now(),
             character,
             map,
+            game_state: GameState::Running,
         }
     }
 
@@ -120,27 +128,31 @@ impl<'a> World {
             fps.update();
         }
 
-        {
-            let mut camera = self.components.write_resource::<resources::Camera>();
-            let mut time = self.components.write_resource::<resources::Time>();
-            time.freeze();
+        match self.game_state {
+            GameState::Running => {
+                let mut camera = self.components.write_resource::<resources::Camera>();
+                let mut time = self.components.write_resource::<resources::Time>();
+                time.freeze();
 
-            let follow = self.components.read_storage::<components::Follow>();
-            let transform = self.components.read_storage::<components::Transform>();
+                let follow = self.components.read_storage::<components::Follow>();
+                let transform = self.components.read_storage::<components::Transform>();
 
-            for (transform, _) in (&transform, &follow).join() {
-                camera.set(transform.translation.get(time.last_frame));
-            }
+                for (transform, _) in (&transform, &follow).join() {
+                    camera.set(transform.translation.get(time.last_frame));
+                }
 
-            let mut animations = self.components.write_storage::<components::Animations>();
-            for animation in (&mut animations).join() {
-                for (_, channel) in animation.channels.iter_mut() {
-                    channel.current.elapsed += self.last_frame.elapsed().as_secs_f32() * channel.current.speed;
-                    if let Some(previous) = &mut channel.prev {
-                        previous.elapsed += self.last_frame.elapsed().as_secs_f32() * previous.speed;
+                let mut animations = self.components.write_storage::<components::Animations>();
+                for animation in (&mut animations).join() {
+                    for (_, channel) in animation.channels.iter_mut() {
+                        channel.current.elapsed += self.last_frame.elapsed().as_secs_f32() * channel.current.speed;
+                        if let Some(previous) = &mut channel.prev {
+                            previous.elapsed += self.last_frame.elapsed().as_secs_f32() * previous.speed;
+                        }
                     }
                 }
             }
+            GameState::MainMenu => {}
+            GameState::Terminated => {}
         }
 
         self.map.update(&engine, &mut self.components);

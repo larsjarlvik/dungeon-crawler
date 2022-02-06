@@ -7,7 +7,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{Fullscreen, WindowBuilder},
 };
-use world::resources::input::KeyState;
+use world::{resources::input::KeyState, GameState};
 
 mod config;
 mod engine;
@@ -44,6 +44,13 @@ pub fn main() {
     event_loop.run(move |event, _, control_flow| {
         let mut block_input = false;
         if let Some(state) = &mut state {
+            match state.world.game_state {
+                GameState::Terminated => {
+                    *control_flow = ControlFlow::Exit;
+                }
+                _ => {}
+            }
+
             block_input = state.ui.handle_event(&event);
         }
 
@@ -51,6 +58,9 @@ pub fn main() {
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 if let Some(state) = &mut state {
                     match event {
+                        WindowEvent::CloseRequested => {
+                            *control_flow = ControlFlow::Exit;
+                        }
                         WindowEvent::Resized(..) => {
                             state.resize(&window, true);
                         }
