@@ -18,7 +18,7 @@ impl State {
     pub async fn new(window: &Window) -> Self {
         let engine = engine::Engine::new(window).await;
         let world = world::World::new(&engine);
-        let ui = ui::Ui::new(&engine.ctx);
+        let ui = ui::Ui::new(&engine.ctx, &window);
 
         let mut state = Self { engine, world, ui };
         state.init_all();

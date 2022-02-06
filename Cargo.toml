@@ -28,8 +28,6 @@ serde_json = { features = ["raw_value"], version = "1.0" }
 egui_wgpu_backend = "0.16"
 egui = "0.16"
 epi = "0.16"
-egui_winit_platform = "0.13"
-egui_demo_lib = "0.16"
 
 [target.'cfg(target_os = "android")'.dependencies]
 jni = "0.19.0"

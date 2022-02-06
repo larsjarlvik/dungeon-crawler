@@ -2,32 +2,34 @@ use self::repaint_signal::RepaintSignal;
 use crate::{config, engine};
 use egui::FontDefinitions;
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
+mod egui_winit_platform;
 use egui_winit_platform::*;
 use epi::App;
 use std::{iter, sync::Arc, time::Instant};
 use winit::*;
+mod app;
 pub mod repaint_signal;
 
 pub struct Ui {
     pub platform: Platform,
-    app: egui_demo_lib::WrapApp,
+    app: app::App,
     start_time: Instant,
     render_pass: RenderPass,
     previous_frame_time: Option<f32>,
 }
 
 impl Ui {
-    pub fn new(ctx: &engine::Context) -> Self {
-        // We use the egui_winit_platform crate as the platform.
+    pub fn new(ctx: &engine::Context, window: &winit::window::Window) -> Self {
         let platform = Platform::new(PlatformDescriptor {
-            physical_width: 800,
-            physical_height: 600,
-            scale_factor: 1.0,
+            physical_width: ctx.viewport.width,
+            physical_height: ctx.viewport.height,
+            scale_factor: window.scale_factor(),
             font_definitions: FontDefinitions::default(),
             style: Default::default(),
         });
 
-        let app = egui_demo_lib::WrapApp::default();
+        let app = app::App::default();
+
         let start_time = Instant::now();
         let render_pass = RenderPass::new(&ctx.device, config::COLOR_TEXTURE_FORMAT, 1);
 
@@ -38,6 +40,11 @@ impl Ui {
             render_pass,
             previous_frame_time: None,
         }
+    }
+
+    pub fn handle_event(&mut self, winit_event: &event::Event<repaint_signal::Event>) -> bool {
+        self.platform.handle_event(&winit_event);
+        self.platform.captures_event(&winit_event)
     }
 
     pub fn render(
@@ -64,10 +71,8 @@ impl Ui {
             repaint_signal: repaint_signal.clone(),
         });
 
-        // Draw the demo application.
         self.app.update(&self.platform.context(), &mut frame);
 
-        // End the UI frame. We could now handle the output and draw the UI with the backend.
         let (_output, paint_commands) = self.platform.end_frame(Some(&window));
         let paint_jobs = self.platform.context().tessellate(paint_commands);
 
@@ -78,7 +83,6 @@ impl Ui {
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("UI") });
 
-        // Upload all resources for the GPU.
         let screen_descriptor = ScreenDescriptor {
             physical_width: ctx.viewport.width,
             physical_height: ctx.viewport.height,
@@ -91,7 +95,7 @@ impl Ui {
         self.render_pass
             .update_buffers(&ctx.device, &ctx.queue, &paint_jobs, &screen_descriptor);
         self.render_pass
-            .execute(&mut encoder, &target, &paint_jobs, &screen_descriptor, Some(wgpu::Color::BLACK))
+            .execute(&mut encoder, &target, &paint_jobs, &screen_descriptor, None)
             .unwrap();
 
         ctx.queue.submit(iter::once(encoder.finish()));

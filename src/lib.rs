@@ -43,7 +43,9 @@ pub fn main() {
 
     event_loop.run(move |event, _, control_flow| {
         if let Some(state) = &mut state {
-            state.ui.platform.handle_event(&event);
+            if state.ui.handle_event(&event) {
+                return;
+            }
         }
 
         match event {
