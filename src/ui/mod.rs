@@ -1,4 +1,4 @@
-use self::repaint_signal::ExampleRepaintSignal;
+use self::repaint_signal::RepaintSignal;
 use crate::{config, engine};
 use egui::FontDefinitions;
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
@@ -10,19 +10,14 @@ pub mod repaint_signal;
 
 pub struct Ui {
     pub platform: Platform,
-    demo_app: egui_demo_lib::WrapApp,
+    app: egui_demo_lib::WrapApp,
     start_time: Instant,
-    repaint_signal: Arc<ExampleRepaintSignal>,
     render_pass: RenderPass,
     previous_frame_time: Option<f32>,
 }
 
 impl Ui {
-    pub fn new(event_loop: &event_loop::EventLoop<repaint_signal::Event>, ctx: &engine::Context) -> Self {
-        let repaint_signal = Arc::new(repaint_signal::ExampleRepaintSignal(std::sync::Mutex::new(
-            event_loop.create_proxy(),
-        )));
-
+    pub fn new(ctx: &engine::Context) -> Self {
         // We use the egui_winit_platform crate as the platform.
         let platform = Platform::new(PlatformDescriptor {
             physical_width: 800,
@@ -32,21 +27,26 @@ impl Ui {
             style: Default::default(),
         });
 
-        let demo_app = egui_demo_lib::WrapApp::default();
+        let app = egui_demo_lib::WrapApp::default();
         let start_time = Instant::now();
         let render_pass = RenderPass::new(&ctx.device, config::COLOR_TEXTURE_FORMAT, 1);
 
         Self {
             platform,
-            demo_app,
+            app,
             start_time,
-            repaint_signal,
             render_pass,
             previous_frame_time: None,
         }
     }
 
-    pub fn render(&mut self, ctx: &engine::Context, window: &window::Window, target: &wgpu::TextureView) {
+    pub fn render(
+        &mut self,
+        ctx: &engine::Context,
+        window: &window::Window,
+        repaint_signal: &Arc<RepaintSignal>,
+        target: &wgpu::TextureView,
+    ) {
         self.platform.update_time(self.start_time.elapsed().as_secs_f64());
         let egui_start = Instant::now();
         self.platform.begin_frame();
@@ -61,11 +61,11 @@ impl Ui {
                 prefer_dark_mode: None,
             },
             output: app_output,
-            repaint_signal: self.repaint_signal.clone(),
+            repaint_signal: repaint_signal.clone(),
         });
 
         // Draw the demo application.
-        self.demo_app.update(&self.platform.context(), &mut frame);
+        self.app.update(&self.platform.context(), &mut frame);
 
         // End the UI frame. We could now handle the output and draw the UI with the backend.
         let (_output, paint_commands) = self.platform.end_frame(Some(&window));

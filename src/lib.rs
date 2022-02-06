@@ -1,4 +1,7 @@
+use std::sync::Arc;
+
 use specs::WorldExt;
+use ui::repaint_signal;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -23,6 +26,8 @@ pub fn main() {
     env_logger::init();
 
     let event_loop = EventLoop::with_user_event();
+    let repaint_signal = Arc::new(repaint_signal::RepaintSignal(std::sync::Mutex::new(event_loop.create_proxy())));
+
     let window = WindowBuilder::new().with_title("Dungeon Crawler").build(&event_loop).unwrap();
 
     #[allow(unused_assignments)]
@@ -30,7 +35,7 @@ pub fn main() {
 
     #[cfg(not(target_os = "android"))]
     {
-        state = Some(pollster::block_on(state::State::new(&window, &event_loop)));
+        state = Some(pollster::block_on(state::State::new(&window)));
     }
 
     #[cfg(target_os = "android")]
@@ -91,7 +96,7 @@ pub fn main() {
                 if let Some(state) = &mut state {
                     state.resize(&window, true);
                 } else {
-                    // state = Some(pollster::block_on(state::State::new(&window, &event_loop)));
+                    state = Some(pollster::block_on(state::State::new(&window)));
                 }
             }
             Event::Suspended => {
@@ -102,7 +107,7 @@ pub fn main() {
             Event::MainEventsCleared => {
                 if let Some(state) = &mut state {
                     state.update();
-                    match state.render(&window) {
+                    match state.render(&window, &repaint_signal) {
                         Ok(_) => {}
                         Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
                         Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
