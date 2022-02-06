@@ -10,6 +10,7 @@ mod config;
 mod engine;
 mod map;
 mod state;
+mod ui;
 mod utils;
 mod world;
 
@@ -21,7 +22,7 @@ pub fn main() {
     #[cfg(not(target_os = "android"))]
     env_logger::init();
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::with_user_event();
     let window = WindowBuilder::new().with_title("Dungeon Crawler").build(&event_loop).unwrap();
 
     #[allow(unused_assignments)]
@@ -29,13 +30,17 @@ pub fn main() {
 
     #[cfg(not(target_os = "android"))]
     {
-        state = Some(pollster::block_on(state::State::new(&window)));
+        state = Some(pollster::block_on(state::State::new(&window, &event_loop)));
     }
 
     #[cfg(target_os = "android")]
     utils::aquire_wakelock();
 
     event_loop.run(move |event, _, control_flow| {
+        if let Some(state) = &mut state {
+            state.ui.platform.handle_event(&event);
+        }
+
         match event {
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 if let Some(state) = &mut state {
@@ -86,7 +91,7 @@ pub fn main() {
                 if let Some(state) = &mut state {
                     state.resize(&window, true);
                 } else {
-                    state = Some(pollster::block_on(state::State::new(&window)));
+                    // state = Some(pollster::block_on(state::State::new(&window, &event_loop)));
                 }
             }
             Event::Suspended => {
@@ -97,7 +102,7 @@ pub fn main() {
             Event::MainEventsCleared => {
                 if let Some(state) = &mut state {
                     state.update();
-                    match state.render() {
+                    match state.render(&window) {
                         Ok(_) => {}
                         Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
                         Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

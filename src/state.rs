@@ -1,23 +1,26 @@
 use crate::{
     engine::{self},
+    ui::{self, repaint_signal},
     world::{self, resources::input::KeyState},
 };
 use cgmath::*;
 use specs::WorldExt;
 use std::time::Instant;
-use winit::{event::VirtualKeyCode, window::Window};
+use winit::{event::VirtualKeyCode, event_loop::EventLoop, window::Window};
 
 pub struct State {
     engine: engine::Engine,
     pub world: world::World,
+    pub ui: ui::Ui,
 }
 
 impl State {
-    pub async fn new(window: &Window) -> Self {
+    pub async fn new(window: &Window, event_loop: &EventLoop<repaint_signal::Event>) -> Self {
         let engine = engine::Engine::new(window).await;
         let world = world::World::new(&engine);
+        let ui = ui::Ui::new(&event_loop, &engine.ctx);
 
-        let mut state = Self { engine, world };
+        let mut state = Self { engine, world, ui };
         state.init_all();
         state
     }
@@ -81,7 +84,7 @@ impl State {
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(&mut self, window: &Window) -> Result<(), wgpu::SurfaceError> {
         if let Some(frame) = self.engine.get_output_frame() {
             let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
@@ -105,6 +108,7 @@ impl State {
             self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
 
+            self.ui.render(&self.engine.ctx, &window, &view);
             frame.present();
         }
 
