@@ -11,11 +11,15 @@ impl MainMenu {
         Self {}
     }
 
-    pub fn update(&mut self, ctx: &CtxRef, world: &mut World) -> bool {
+    pub fn update(&mut self, ctx: &CtxRef, world: &mut World, opacity: f32) -> bool {
         let menu = CentralPanel::default()
-            .frame(default_frame_colored(96.0, Color32::from_rgba_premultiplied(0, 0, 0, 150)))
+            .frame(default_frame_colored(
+                96.0,
+                Color32::from_rgba_premultiplied(0, 0, 0, 150),
+                opacity,
+            ))
             .show(ctx, |ui| {
-                apply_theme(ui);
+                apply_theme(ui, opacity);
 
                 ui.vertical_centered_justified(|ui| {
                     ui.heading("Menu");

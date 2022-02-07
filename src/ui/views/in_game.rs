@@ -12,12 +12,12 @@ impl InGame {
         Self {}
     }
 
-    pub fn update(&mut self, ctx: &CtxRef, world: &mut World) -> bool {
+    pub fn update(&mut self, ctx: &CtxRef, world: &mut World, opacity: f32) -> bool {
         let fps = { world.components.read_resource::<resources::Fps>().fps };
         let mut blocking = false;
 
         TopBottomPanel::top("in_game_top").frame(default_frame(16.0)).show(ctx, |ui| {
-            apply_theme(ui);
+            apply_theme(ui, opacity);
 
             ui.horizontal(|ui| {
                 ui.label(format!("FPS: {}", fps).to_string());
@@ -33,7 +33,7 @@ impl InGame {
         });
 
         TopBottomPanel::bottom("in_game_bottom").frame(default_frame(32.0)).show(ctx, |ui| {
-            apply_theme(ui);
+            apply_theme(ui, opacity);
 
             ui.with_layout(Layout::right_to_left(), |_ui| {
                 // TODO: Action buttons

@@ -6,6 +6,7 @@ pub mod resources;
 pub mod systems;
 use cgmath::*;
 
+#[derive(PartialEq, Clone)]
 pub enum GameState {
     Running,
     MainMenu,

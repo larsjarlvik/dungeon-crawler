@@ -17,6 +17,8 @@ pub const SHADOW_MAP_SCALE: f32 = 2.0;
 pub const GRID_COUNT: i32 = 10;
 pub const GRID_DIST: f32 = 0.635;
 
+pub const UI_TRANSITION_TIME: f32 = 0.25;
+
 #[cfg(not(target_os = "android"))]
 pub const RENDER_SCALE: f32 = 1.0;
 #[cfg(target_os = "android")]

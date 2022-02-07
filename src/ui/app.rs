@@ -1,10 +1,9 @@
-use super::views;
-use crate::world::{GameState, World};
+use super::views::{self, Views};
+use crate::world::World;
 use egui::*;
 
 pub struct App {
-    in_game: views::InGame,
-    main_menu: views::MainMenu,
+    pub views: Views,
     pub blocking: bool,
 }
 
@@ -12,8 +11,7 @@ impl Default for App {
     fn default() -> Self {
         Self {
             blocking: false,
-            in_game: views::InGame::new(),
-            main_menu: views::MainMenu::new(),
+            views: views::Views::new(),
         }
     }
 }
@@ -34,14 +32,11 @@ impl App {
         fonts.family_and_size.insert(TextStyle::Heading, (FontFamily::Proportional, 28.0));
         fonts.family_and_size.insert(TextStyle::Button, (FontFamily::Proportional, 18.0));
         fonts.family_and_size.insert(TextStyle::Body, (FontFamily::Proportional, 18.0));
+
         ctx.set_fonts(fonts);
     }
 
     pub fn update(&mut self, ctx: &egui::CtxRef, world: &mut World) {
-        self.blocking = match world.game_state {
-            GameState::Running => self.in_game.update(ctx, world),
-            GameState::MainMenu => self.main_menu.update(ctx, world),
-            GameState::Terminated => false,
-        };
+        self.blocking = self.views.update(ctx, world);
     }
 }
