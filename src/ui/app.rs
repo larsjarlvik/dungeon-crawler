@@ -19,7 +19,7 @@ impl Default for App {
 }
 
 impl App {
-    pub fn setup(&mut self, ctx: &egui::CtxRef, _frame: &epi::Frame, _storage: Option<&dyn epi::Storage>) {
+    pub fn setup(&mut self, ctx: &egui::CtxRef) {
         let mut fonts = FontDefinitions::default();
         fonts.font_data.insert(
             "font".to_owned(),
@@ -37,13 +37,11 @@ impl App {
         ctx.set_fonts(fonts);
     }
 
-    pub fn update(&mut self, ctx: &egui::CtxRef, frame: &epi::Frame, world: &mut World) {
+    pub fn update(&mut self, ctx: &egui::CtxRef, world: &mut World) {
         self.blocking = match world.game_state {
             GameState::Running => self.in_game.update(ctx, world),
             GameState::MainMenu => self.main_menu.update(ctx, world),
             GameState::Terminated => false,
         };
-
-        frame.set_window_size(ctx.used_size());
     }
 }

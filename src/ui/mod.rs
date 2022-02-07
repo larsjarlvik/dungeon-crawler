@@ -1,11 +1,9 @@
-use self::repaint_signal::RepaintSignal;
 use crate::{config, engine, world::World};
 use egui::*;
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
-use std::{iter, sync::Arc, time::Instant};
+use std::{iter, time::Instant};
 use winit::*;
 mod app;
-pub mod repaint_signal;
 mod theme;
 mod views;
 
@@ -38,28 +36,15 @@ impl Ui {
         self.app.blocking
     }
 
-    pub fn update(&mut self, window: &window::Window, repaint_signal: &Arc<RepaintSignal>, world: &mut World) {
-        let app_output = epi::backend::AppOutput::default();
+    pub fn update(&mut self, window: &window::Window, world: &mut World) {
         let mut raw_input = self.platform.take_egui_input(window);
         self.context.begin_frame(raw_input.take());
 
-        let mut frame = epi::Frame::new(epi::backend::FrameData {
-            info: epi::IntegrationInfo {
-                name: "egui",
-                web_info: None,
-                cpu_usage: self.previous_frame_time,
-                native_pixels_per_point: Some(window.scale_factor() as f32),
-                prefer_dark_mode: None,
-            },
-            output: app_output,
-            repaint_signal: repaint_signal.clone(),
-        });
-
         if self.previous_frame_time.is_none() {
-            self.app.setup(&self.context, &mut frame, None);
+            self.app.setup(&self.context);
         }
 
-        self.app.update(&self.context, &mut frame, world);
+        self.app.update(&self.context, world);
     }
 
     pub fn render(&mut self, ctx: &engine::Context, window: &window::Window, target: &wgpu::TextureView) {

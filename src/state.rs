@@ -1,11 +1,11 @@
 use crate::{
     engine::{self},
-    ui::{self, repaint_signal::RepaintSignal},
+    ui::{self},
     world::{self, resources::input::KeyState},
 };
 use cgmath::*;
 use specs::WorldExt;
-use std::{sync::Arc, time::Instant};
+use std::time::Instant;
 use winit::{event::VirtualKeyCode, window::Window};
 
 pub struct State {
@@ -78,11 +78,11 @@ impl State {
         input.mouse_set_pressed(id, touch, pressed);
     }
 
-    pub fn update(&mut self, window: &Window, repaint_signal: &Arc<RepaintSignal>) {
+    pub fn update(&mut self, window: &Window) {
         self.world.update(&self.engine);
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
-        self.ui.update(window, repaint_signal, &mut self.world)
+        self.ui.update(window, &mut self.world)
     }
 
     pub fn render(&mut self, window: &Window) -> Result<(), wgpu::SurfaceError> {

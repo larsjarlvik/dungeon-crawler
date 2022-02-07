@@ -1,7 +1,4 @@
-use std::sync::Arc;
-
 use specs::WorldExt;
-use ui::repaint_signal;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -25,8 +22,7 @@ pub fn main() {
     #[cfg(not(target_os = "android"))]
     env_logger::init();
 
-    let event_loop = EventLoop::with_user_event();
-    let repaint_signal = Arc::new(repaint_signal::RepaintSignal(std::sync::Mutex::new(event_loop.create_proxy())));
+    let event_loop = EventLoop::new();
 
     let window = WindowBuilder::new()
         .with_title("Dungeon Crawler")
@@ -135,7 +131,7 @@ pub fn main() {
             }
             Event::MainEventsCleared => {
                 if let Some(state) = &mut state {
-                    state.update(&window, &repaint_signal);
+                    state.update(&window);
                     match state.render(&window) {
                         Ok(_) => {}
                         Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
