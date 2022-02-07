@@ -46,7 +46,6 @@ pub fn main() {
     utils::aquire_wakelock();
 
     event_loop.run(move |event, _, control_flow| {
-        let mut block_input = false;
         if let Some(state) = &mut state {
             match state.world.game_state {
                 GameState::Terminated => {
@@ -54,13 +53,13 @@ pub fn main() {
                 }
                 _ => {}
             }
-
-            block_input = state.ui.handle_event(&event);
         }
 
         match event {
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 if let Some(state) = &mut state {
+                    let block_input = state.ui.handle_event(&event);
+
                     match event {
                         WindowEvent::CloseRequested => {
                             *control_flow = ControlFlow::Exit;
