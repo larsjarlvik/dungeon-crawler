@@ -28,7 +28,11 @@ pub fn main() {
     let event_loop = EventLoop::with_user_event();
     let repaint_signal = Arc::new(repaint_signal::RepaintSignal(std::sync::Mutex::new(event_loop.create_proxy())));
 
-    let window = WindowBuilder::new().with_title("Dungeon Crawler").build(&event_loop).unwrap();
+    let window = WindowBuilder::new()
+        .with_title("Dungeon Crawler")
+        .with_decorations(true)
+        .build(&event_loop)
+        .unwrap();
 
     #[allow(unused_assignments)]
     let mut state: Option<state::State> = None;

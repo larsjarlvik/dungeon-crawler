@@ -111,18 +111,6 @@ impl<'a> World {
         self.update_time += self.last_frame.elapsed().as_secs_f32();
         self.update_time = self.update_time.min(5.0);
 
-        while self.update_time >= 0.0 {
-            self.dispatcher.setup(&mut self.components);
-            self.dispatcher.dispatch_par(&mut self.components);
-            self.components.maintain();
-            self.update_time -= config::time_step().as_secs_f32();
-
-            {
-                let mut time = self.components.write_resource::<resources::Time>();
-                time.reset();
-            }
-        }
-
         {
             let mut fps = self.components.write_resource::<resources::Fps>();
             fps.update();
@@ -130,6 +118,18 @@ impl<'a> World {
 
         match self.game_state {
             GameState::Running => {
+                while self.update_time >= 0.0 {
+                    self.dispatcher.setup(&mut self.components);
+                    self.dispatcher.dispatch_par(&mut self.components);
+                    self.components.maintain();
+                    self.update_time -= config::time_step().as_secs_f32();
+
+                    {
+                        let mut time = self.components.write_resource::<resources::Time>();
+                        time.reset();
+                    }
+                }
+
                 let mut camera = self.components.write_resource::<resources::Camera>();
                 let mut time = self.components.write_resource::<resources::Time>();
                 time.freeze();
@@ -151,8 +151,9 @@ impl<'a> World {
                     }
                 }
             }
-            GameState::MainMenu => {}
-            GameState::Terminated => {}
+            _ => {
+                self.update_time = 0.0;
+            }
         }
 
         self.map.update(&engine, &mut self.components);
