@@ -20,7 +20,7 @@ impl Ui {
     pub fn new(ctx: &engine::Context, window: &winit::window::Window) -> Self {
         let context = CtxRef::default();
         let platform = egui_winit::State::new(window);
-        let app = app::App::default();
+        let app = app::App::new(&context);
         let render_pass = RenderPass::new(&ctx.device, config::COLOR_TEXTURE_FORMAT, 1);
 
         Self {
@@ -40,10 +40,6 @@ impl Ui {
     pub fn update(&mut self, window: &window::Window, world: &mut World) {
         let mut raw_input = self.platform.take_egui_input(window);
         self.context.begin_frame(raw_input.take());
-
-        if self.previous_frame_time.is_none() {
-            self.app.setup(&self.context);
-        }
 
         self.app.update(&self.context, world);
     }

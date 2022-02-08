@@ -7,17 +7,8 @@ pub struct App {
     pub blocking_elements: Vec<Rect>,
 }
 
-impl Default for App {
-    fn default() -> Self {
-        Self {
-            views: views::Views::new(),
-            blocking_elements: vec![],
-        }
-    }
-}
-
 impl App {
-    pub fn setup(&mut self, ctx: &egui::CtxRef) {
+    pub fn new(ctx: &egui::CtxRef) -> Self {
         let mut fonts = FontDefinitions::default();
         fonts.font_data.insert(
             "font".to_owned(),
@@ -34,6 +25,11 @@ impl App {
         fonts.family_and_size.insert(TextStyle::Body, (FontFamily::Proportional, 18.0));
 
         ctx.set_fonts(fonts);
+
+        Self {
+            views: views::Views::new(),
+            blocking_elements: vec![],
+        }
     }
 
     pub fn update(&mut self, ctx: &egui::CtxRef, world: &mut World) {
