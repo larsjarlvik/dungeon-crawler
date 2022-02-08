@@ -75,7 +75,7 @@ impl State {
     pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
         let mut input = self.world.components.write_resource::<world::resources::Input>();
 
-        if !self.ui.is_blocking(input.mouse.position) {
+        if !pressed || !self.ui.is_blocking(input.mouse.position) {
             input.mouse_set_pressed(id, touch, pressed);
         }
     }
