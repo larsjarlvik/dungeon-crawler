@@ -28,7 +28,27 @@ impl<'a> World {
         let character = engine.load_model("models/character.glb");
         let map = map::Map::new(&engine, 42312, 20);
 
+        let components = specs::World::new();
+        let dispatcher = DispatcherBuilder::new()
+            .with(systems::UserControl, "user_control", &[])
+            .with(systems::Movement, "movement", &[])
+            .with(systems::Flicker, "flicker", &[])
+            .build();
+
+        Self {
+            components,
+            dispatcher,
+            update_time: 0.0,
+            last_frame: Instant::now(),
+            character,
+            map,
+            game_state: GameState::Running,
+        }
+    }
+
+    pub fn init(&mut self, engine: &engine::Engine) {
         let mut components = specs::World::new();
+
         components.register::<components::Render>();
         components.register::<components::Model>();
         components.register::<components::Transform>();
@@ -50,35 +70,13 @@ impl<'a> World {
         components.insert(resources::Time::default());
         components.insert(resources::Fps::default());
 
-        let dispatcher = DispatcherBuilder::new()
-            .with(systems::UserControl, "user_control", &[])
-            .with(systems::Movement, "movement", &[])
-            .with(systems::Flicker, "flicker", &[])
-            .build();
-
-        Self {
-            components,
-            dispatcher,
-            update_time: 0.0,
-            last_frame: Instant::now(),
-            character,
-            map,
-            game_state: GameState::Running,
-        }
-    }
-
-    pub fn init(&mut self, engine: &engine::Engine) {
-        let start = Instant::now();
-
-        self.components.delete_all();
-
-        self.components
+        components
             .create_entity()
             .with(components::Text::new(""))
             .with(components::Transform2d::from_translation_scale(vec2(20.0, 20.0), 18.0))
             .build();
 
-        self.components
+        components
             .create_entity()
             .with(components::Model::new(&engine, &self.character, "character"))
             .with(components::Collider::new(&self.character, "character"))
@@ -105,7 +103,7 @@ impl<'a> World {
             self.map.generate();
         }
 
-        println!("World: {} ms", start.elapsed().as_millis());
+        self.components = components;
     }
 
     pub fn update(&mut self, engine: &engine::Engine) {

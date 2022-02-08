@@ -16,23 +16,26 @@ pub struct State {
 
 impl State {
     pub async fn new(window: &Window) -> Self {
+        let start = Instant::now();
+
         let engine = engine::Engine::new(window).await;
         let world = world::World::new(&engine);
         let ui = ui::Ui::new(&engine.ctx, &window);
 
         let mut state = Self { engine, world, ui };
-        state.init_all();
+        println!("Startup {} ms", start.elapsed().as_millis());
+
+        state.reset();
         state
     }
 
-    pub fn init_all(&mut self) {
+    pub fn reset(&mut self) {
         let start = Instant::now();
 
         self.engine.init();
-        self.world = world::World::new(&self.engine);
         self.world.init(&self.engine);
 
-        println!("Total {} ms", start.elapsed().as_millis());
+        println!("Init {} ms", start.elapsed().as_millis());
     }
 
     pub fn resize(&mut self, window: &Window, active: bool) {
@@ -48,18 +51,14 @@ impl State {
     }
 
     pub fn keyboard(&mut self, keyboard_input: &winit::event::KeyboardInput) {
-        let (r, t) = {
+        let r = {
             let mut input = self.world.components.write_resource::<world::resources::Input>();
             input.keyboard(keyboard_input);
-            (input.key_state(VirtualKeyCode::R), input.key_state(VirtualKeyCode::T))
+            input.key_state(VirtualKeyCode::R)
         };
 
         if r == KeyState::Pressed(false) {
-            self.init_all();
-        }
-
-        if t == KeyState::Pressed(false) {
-            self.world.init(&self.engine);
+            self.reset();
         }
     }
 
