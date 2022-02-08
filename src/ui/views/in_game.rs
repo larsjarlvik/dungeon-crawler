@@ -12,9 +12,9 @@ impl InGame {
         Self {}
     }
 
-    pub fn update(&mut self, ctx: &CtxRef, world: &mut World, opacity: f32) -> bool {
+    pub fn update(&mut self, ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
         let fps = { world.components.read_resource::<resources::Fps>().fps };
-        let mut blocking = false;
+        let mut blocking_elements = vec![];
 
         TopBottomPanel::top("in_game_top").frame(default_frame(16.0)).show(ctx, |ui| {
             apply_theme(ui, opacity);
@@ -27,7 +27,8 @@ impl InGame {
                     if menu_button.clicked() {
                         world.game_state = GameState::MainMenu;
                     }
-                    blocking = menu_button.hovered();
+
+                    blocking_elements.push(menu_button.rect);
                 });
             });
         });
@@ -40,6 +41,6 @@ impl InGame {
             });
         });
 
-        blocking
+        blocking_elements
     }
 }

@@ -1,13 +1,13 @@
 mod in_game;
 mod main_menu;
-use std::time::Instant;
-
 use crate::{
     config,
     world::{GameState, World},
 };
+use egui::Rect;
 pub use in_game::InGame;
 pub use main_menu::MainMenu;
+use std::time::Instant;
 
 pub struct Views {
     in_game: InGame,
@@ -26,7 +26,7 @@ impl Views {
         }
     }
 
-    pub fn update(&mut self, ctx: &egui::CtxRef, world: &mut World) -> bool {
+    pub fn update(&mut self, ctx: &egui::CtxRef, world: &mut World) -> Vec<Rect> {
         if world.game_state != self.current_ui_state {
             match self.last_ui_state_change {
                 Some(ui) => {
@@ -55,7 +55,7 @@ impl Views {
         match self.current_ui_state {
             GameState::Running => self.in_game.update(ctx, world, opacity),
             GameState::MainMenu => self.main_menu.update(ctx, world, opacity),
-            GameState::Terminated => false,
+            GameState::Terminated => vec![],
         }
     }
 }

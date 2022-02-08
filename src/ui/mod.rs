@@ -13,6 +13,7 @@ pub struct Ui {
     app: app::App,
     render_pass: RenderPass,
     previous_frame_time: Option<f32>,
+    scale_factor: f32,
 }
 
 impl Ui {
@@ -28,12 +29,12 @@ impl Ui {
             app,
             render_pass,
             previous_frame_time: None,
+            scale_factor: window.scale_factor() as f32,
         }
     }
 
-    pub fn handle_event(&mut self, winit_event: &winit::event::WindowEvent) -> bool {
+    pub fn handle_event(&mut self, winit_event: &winit::event::WindowEvent) {
         self.platform.on_event(&self.context, winit_event);
-        self.app.blocking
     }
 
     pub fn update(&mut self, window: &window::Window, world: &mut World) {
@@ -75,5 +76,13 @@ impl Ui {
             .unwrap();
 
         ctx.queue.submit(iter::once(encoder.finish()));
+    }
+
+    pub fn is_blocking(&self, position: cgmath::Point2<f32>) -> bool {
+        let p = position / self.scale_factor;
+        self.app
+            .blocking_elements
+            .iter()
+            .any(|b| b.min.x <= p.x && b.max.x >= p.x && b.min.y <= p.y && b.max.y >= p.y)
     }
 }

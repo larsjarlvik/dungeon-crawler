@@ -4,14 +4,14 @@ use egui::*;
 
 pub struct App {
     pub views: Views,
-    pub blocking: bool,
+    pub blocking_elements: Vec<Rect>,
 }
 
 impl Default for App {
     fn default() -> Self {
         Self {
-            blocking: false,
             views: views::Views::new(),
+            blocking_elements: vec![],
         }
     }
 }
@@ -37,6 +37,6 @@ impl App {
     }
 
     pub fn update(&mut self, ctx: &egui::CtxRef, world: &mut World) {
-        self.blocking = self.views.update(ctx, world);
+        self.blocking_elements = self.views.update(ctx, world);
     }
 }

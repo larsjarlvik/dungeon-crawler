@@ -11,7 +11,7 @@ impl MainMenu {
         Self {}
     }
 
-    pub fn update(&mut self, ctx: &CtxRef, world: &mut World, opacity: f32) -> bool {
+    pub fn update(&mut self, ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
         let menu = CentralPanel::default()
             .frame(default_frame_colored(
                 96.0,
@@ -33,6 +33,6 @@ impl MainMenu {
                 });
             });
 
-        menu.response.hovered()
+        vec![menu.response.rect]
     }
 }
