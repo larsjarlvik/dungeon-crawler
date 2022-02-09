@@ -54,8 +54,6 @@ pub fn main() {
         match event {
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 if let Some(state) = &mut state {
-                    state.ui.handle_event(&event);
-
                     match event {
                         WindowEvent::CloseRequested => {
                             *control_flow = ControlFlow::Exit;
@@ -92,7 +90,6 @@ pub fn main() {
                         }
                         WindowEvent::Touch(touch) => {
                             state.mouse_move(touch.id, touch.location.x as f32, touch.location.y as f32);
-
                             match touch.phase {
                                 TouchPhase::Started => state.mouse_press(touch.id, true, true),
                                 TouchPhase::Ended | TouchPhase::Cancelled => state.mouse_press(touch.id, true, false),
@@ -100,6 +97,12 @@ pub fn main() {
                             }
                         }
                         _ => {}
+                    }
+                }
+
+                if let Some(state) = &mut state {
+                    if state.is_ui_blocking() {
+                        state.ui.handle_event(&event);
                     }
                 }
             }

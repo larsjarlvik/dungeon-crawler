@@ -80,6 +80,11 @@ impl State {
         }
     }
 
+    pub fn is_ui_blocking(&self) -> bool {
+        let input = self.world.components.read_resource::<world::resources::Input>();
+        self.ui.is_blocking(input.mouse.position)
+    }
+
     pub fn update(&mut self, window: &Window) {
         self.world.update(&self.engine);
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
