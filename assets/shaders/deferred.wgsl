@@ -101,6 +101,27 @@ fn contrast_matrix(contrast: f32) -> mat4x4<f32> {
     );
 }
 
+fn attenuation_strength_real(rpos: vec3<f32>) -> f32 {
+    let d2 = rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z;
+    return 1.0 / (0.025 + d2);
+}
+
+fn apply_point_glow(wpos: vec3<f32>, dir: vec3<f32>, max_dist: f32, factor: f32, light: Light) -> vec3<f32> {
+    let t = max(dot(light.position - wpos, dir), 0.0);
+    let nearest = wpos + dir * min(t, max_dist);
+
+    let difference = light.position - nearest;
+    let distance_2 = dot(difference, difference);
+    if (distance_2 > 100000.0) {
+        return vec3<f32>(0.0);
+    }
+
+    let spread = 1.0;
+    let strength = pow(attenuation_strength_real(difference), spread); // TODO
+    return light.color * strength * 0.025 * pow(factor, 0.65);
+}
+
+
 [[stage(fragment)]]
 fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
     var c: vec2<i32> = vec2<i32>(coord.xy);
@@ -168,7 +189,13 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
             light_contrib = light_contrib + normal.y * 0.1;
 
             let new_light = attenuation * light.color * light_contrib;
-            total_light = total_light + new_light;
+
+            let dist = distance(position, uniforms.eye_pos.xyz);
+            let dir = (position - uniforms.eye_pos.xyz) / dist;
+
+
+
+            total_light = total_light + new_light + apply_point_glow(uniforms.eye_pos, dir, dist, 10.0, light);
         }
     }
 
