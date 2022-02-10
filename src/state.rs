@@ -9,7 +9,7 @@ use std::time::Instant;
 use winit::{event::VirtualKeyCode, window::Window};
 
 pub struct State {
-    engine: engine::Engine,
+    pub engine: engine::Engine,
     pub world: world::World,
     pub ui: ui::Ui,
 }
@@ -33,7 +33,6 @@ impl State {
         let start = Instant::now();
 
         self.engine.init();
-        self.world.init(&self.engine);
 
         println!("Init {} ms", start.elapsed().as_millis());
     }

@@ -129,6 +129,14 @@ pub fn main() {
                     }
                 }
                 window.request_redraw();
+
+                if let Some(state) = &mut state {
+                    if state.world.resources.is_none() {
+                        state.world.load_resources(&state.engine);
+                        state.world.init(&state.engine);
+                        state.world.game_state = GameState::Running;
+                    }
+                }
             }
             _ => {}
         };

@@ -1,17 +1,17 @@
 mod in_game;
+mod loading;
 mod main_menu;
 use crate::{
     config,
     world::{GameState, World},
 };
 use egui::Rect;
-pub use in_game::InGame;
-pub use main_menu::MainMenu;
 use std::time::Instant;
 
 pub struct Views {
-    in_game: InGame,
-    main_menu: MainMenu,
+    loading: loading::Loading,
+    in_game: in_game::InGame,
+    main_menu: main_menu::MainMenu,
     current_ui_state: GameState,
     last_ui_state_change: Option<Instant>,
 }
@@ -19,9 +19,10 @@ pub struct Views {
 impl Views {
     pub fn new() -> Self {
         Self {
-            in_game: InGame::new(),
-            main_menu: MainMenu::new(),
-            current_ui_state: GameState::Running,
+            loading: loading::Loading::new(),
+            in_game: in_game::InGame::new(),
+            main_menu: main_menu::MainMenu::new(),
+            current_ui_state: GameState::Loading,
             last_ui_state_change: None,
         }
     }
@@ -53,6 +54,7 @@ impl Views {
         };
 
         match self.current_ui_state {
+            GameState::Loading => self.loading.update(ctx, opacity),
             GameState::Running => self.in_game.update(ctx, world, opacity),
             GameState::MainMenu => self.main_menu.update(ctx, world, opacity),
             GameState::Terminated => vec![],
