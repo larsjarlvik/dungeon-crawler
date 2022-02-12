@@ -174,5 +174,5 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
 
     let min_shadow = 0.3 * uniforms.contrast;
     let shadow = get_shadow_factor(position) * (1.0 - min_shadow) + min_shadow;
-    return contrast_matrix(uniforms.contrast) * vec4<f32>(total_light * color.rgb * orm.r * shadow * 5.0, color.a);
+    return contrast_matrix(uniforms.contrast) * vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a);
 }

@@ -27,6 +27,7 @@ pub fn main() {
     let window = WindowBuilder::new()
         .with_title("Dungeon Crawler")
         .with_decorations(true)
+        .with_visible(false)
         .build(&event_loop)
         .unwrap();
 
@@ -132,6 +133,7 @@ pub fn main() {
 
                 if let Some(state) = &mut state {
                     if state.world.resources.is_none() {
+                        window.set_visible(true);
                         state.world.load_resources(&state.engine);
                         state.world.init(&state.engine);
                         state.world.game_state = GameState::Running;

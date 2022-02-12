@@ -19,6 +19,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9fe5e32de01730eb1f6b7f5b51c17e03e2325bf40a74f754f04f130043affff"
 
 [[package]]
+name = "adler"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
+
+[[package]]
 name = "adler32"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -552,6 +558,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "deflate"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f95bf05dffba6e6cce8dfbb30def788154949ccd9aed761b472119c21e01c70"
+dependencies = [
+ "adler32",
+]
+
+[[package]]
 name = "derivative"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -594,7 +609,9 @@ dependencies = [
  "egui-winit",
  "egui_wgpu_backend",
  "env_logger 0.9.0",
+ "epi",
  "gltf",
+ "image 0.24.0",
  "jni",
  "log",
  "ndk",
@@ -657,6 +674,70 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55673de2eb96660dde25ba7b2d36a7054beead1a2bec74dcfd5eb05a1e1ba76d"
 
 [[package]]
+name = "encoding"
+version = "0.2.33"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b0d943856b990d12d3b55b359144ff341533e516d94098b1d3fc1ac666d36ec"
+dependencies = [
+ "encoding-index-japanese",
+ "encoding-index-korean",
+ "encoding-index-simpchinese",
+ "encoding-index-singlebyte",
+ "encoding-index-tradchinese",
+]
+
+[[package]]
+name = "encoding-index-japanese"
+version = "1.20141219.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04e8b2ff42e9a05335dbf8b5c6f7567e5591d0d916ccef4e0b1710d32a0d0c91"
+dependencies = [
+ "encoding_index_tests",
+]
+
+[[package]]
+name = "encoding-index-korean"
+version = "1.20141219.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4dc33fb8e6bcba213fe2f14275f0963fd16f0a02c878e3095ecfdf5bee529d81"
+dependencies = [
+ "encoding_index_tests",
+]
+
+[[package]]
+name = "encoding-index-simpchinese"
+version = "1.20141219.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d87a7194909b9118fc707194baa434a4e3b0fb6a5a757c73c3adb07aa25031f7"
+dependencies = [
+ "encoding_index_tests",
+]
+
+[[package]]
+name = "encoding-index-singlebyte"
+version = "1.20141219.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3351d5acffb224af9ca265f435b859c7c01537c0849754d3db3fdf2bfe2ae84a"
+dependencies = [
+ "encoding_index_tests",
+]
+
+[[package]]
+name = "encoding-index-tradchinese"
+version = "1.20141219.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd0e20d5688ce3cab59eb3ef3a2083a5c77bf496cb798dc6fcdb75f323890c18"
+dependencies = [
+ "encoding_index_tests",
+]
+
+[[package]]
+name = "encoding_index_tests"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a246d82be1c9d791c5dfde9a2bd045fc3cbba3fa2b11ad558f27d01712f00569"
+
+[[package]]
 name = "env_logger"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -690,6 +771,15 @@ dependencies = [
  "atomic_refcell",
  "emath",
  "nohash-hasher",
+]
+
+[[package]]
+name = "epi"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4ae4ce3271febeacc5b4afbd77e500316c6ba316561067acbdddf0c14268a7c"
+dependencies = [
+ "egui",
 ]
 
 [[package]]
@@ -754,7 +844,7 @@ dependencies = [
  "base64",
  "byteorder",
  "gltf-json",
- "image",
+ "image 0.23.14",
  "lazy_static",
 ]
 
@@ -924,11 +1014,27 @@ dependencies = [
  "bytemuck",
  "byteorder",
  "color_quant",
- "jpeg-decoder",
+ "jpeg-decoder 0.1.22",
  "num-iter",
- "num-rational",
+ "num-rational 0.3.2",
  "num-traits",
- "png",
+ "png 0.16.8",
+]
+
+[[package]]
+name = "image"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e94ac3d41f882c624a82d7945952032388488681f45f9d4077999a6c85688d61"
+dependencies = [
+ "bytemuck",
+ "byteorder",
+ "color_quant",
+ "jpeg-decoder 0.2.1",
+ "num-iter",
+ "num-rational 0.4.0",
+ "num-traits",
+ "png 0.17.2",
 ]
 
 [[package]]
@@ -996,6 +1102,12 @@ name = "jpeg-decoder"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "229d53d58899083193af11e15917b5640cd40b29ff475a1fe4ef725deb02d0f2"
+
+[[package]]
+name = "jpeg-decoder"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fbcf0244f6597be39ab8d9203f574cafb529ae8c698afa2182f7b3c3205a4a9c"
 
 [[package]]
 name = "js-sys"
@@ -1128,6 +1240,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "791daaae1ed6889560f8c4359194f56648355540573244a5448a83ba1ecc7435"
 dependencies = [
  "adler32",
+]
+
+[[package]]
+name = "miniz_oxide"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a92518e98c078586bc6c934028adcca4c92a53d6a958196de835170a01d84e4b"
+dependencies = [
+ "adler",
+ "autocfg",
 ]
 
 [[package]]
@@ -1304,6 +1426,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-rational"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d41702bd167c2df5520b384281bc111a4b5efcf7fbc4c9c222c815b07e0a6a6a"
+dependencies = [
+ "autocfg",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
 name = "num-traits"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1452,8 +1585,21 @@ checksum = "3c3287920cb847dee3de33d301c463fba14dda99db24214ddf93f83d3021f4c6"
 dependencies = [
  "bitflags",
  "crc32fast",
- "deflate",
- "miniz_oxide",
+ "deflate 0.8.6",
+ "miniz_oxide 0.3.7",
+]
+
+[[package]]
+name = "png"
+version = "0.17.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c845088517daa61e8a57eee40309347cea13f273694d1385c553e7a57127763b"
+dependencies = [
+ "bitflags",
+ "crc32fast",
+ "deflate 0.9.1",
+ "encoding",
+ "miniz_oxide 0.4.4",
 ]
 
 [[package]]
@@ -1715,9 +1861,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.6.1"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe0f37c9e8f3c5a4a66ad655a93c74daac4ad00c441533bf5c6e7990bb42604e"
+checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
 
 [[package]]
 name = "smithay-client-toolkit"

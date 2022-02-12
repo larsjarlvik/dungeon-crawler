@@ -32,7 +32,7 @@ pub fn apply_theme(ui: &mut Ui, opacity: f32) -> &mut Style {
 }
 
 pub fn default_frame(padding: f32) -> Frame {
-    egui::Frame {
+    Frame {
         margin: vec2(padding, padding),
         fill: Color32::TRANSPARENT,
         ..Default::default()
@@ -40,7 +40,7 @@ pub fn default_frame(padding: f32) -> Frame {
 }
 
 pub fn default_frame_colored(padding: f32, fill: Color32, opacity: f32) -> Frame {
-    egui::Frame {
+    Frame {
         margin: vec2(padding, padding),
         fill: fill.linear_multiply(opacity),
         ..Default::default()

@@ -5,7 +5,7 @@ pub mod collision;
 pub mod frustum;
 pub mod model;
 pub mod pipelines;
-mod texture;
+pub mod texture;
 mod viewport;
 
 pub struct Context {

@@ -2,10 +2,11 @@ mod in_game;
 mod loading;
 mod main_menu;
 use crate::{
-    config,
+    config, engine,
     world::{GameState, World},
 };
-use egui::Rect;
+use egui::*;
+use egui_wgpu_backend::RenderPass;
 use std::time::Instant;
 
 pub struct Views {
@@ -17,9 +18,9 @@ pub struct Views {
 }
 
 impl Views {
-    pub fn new() -> Self {
+    pub fn new(ctx: &engine::Context, render_pass: &mut RenderPass) -> Self {
         Self {
-            loading: loading::Loading::new(),
+            loading: loading::Loading::new(ctx, render_pass),
             in_game: in_game::InGame::new(),
             main_menu: main_menu::MainMenu::new(),
             current_ui_state: GameState::Loading,
@@ -27,7 +28,7 @@ impl Views {
         }
     }
 
-    pub fn update(&mut self, ctx: &egui::CtxRef, world: &mut World) -> Vec<Rect> {
+    pub fn update(&mut self, ctx: &CtxRef, world: &mut World) -> Vec<Rect> {
         if world.game_state != self.current_ui_state {
             match self.last_ui_state_change {
                 Some(ui) => {

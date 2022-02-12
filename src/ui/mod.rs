@@ -5,6 +5,7 @@ use std::{iter, time::Instant};
 use winit::*;
 mod app;
 mod theme;
+mod utils;
 mod views;
 
 pub struct Ui {
@@ -20,8 +21,8 @@ impl Ui {
     pub fn new(ctx: &engine::Context, window: &winit::window::Window) -> Self {
         let context = CtxRef::default();
         let platform = egui_winit::State::new(window);
-        let app = app::App::new(&context);
-        let render_pass = RenderPass::new(&ctx.device, config::COLOR_TEXTURE_FORMAT, 1);
+        let mut render_pass = RenderPass::new(&ctx.device, config::COLOR_TEXTURE_FORMAT, 1);
+        let app = app::App::new(&ctx, &context, &mut render_pass);
 
         Self {
             context,
@@ -40,7 +41,6 @@ impl Ui {
     pub fn update(&mut self, window: &window::Window, world: &mut World) {
         let mut raw_input = self.platform.take_egui_input(window);
         self.context.begin_frame(raw_input.take());
-
         self.app.update(&self.context, world);
     }
 

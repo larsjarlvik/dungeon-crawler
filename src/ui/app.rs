@@ -1,6 +1,7 @@
 use super::views::{self, Views};
-use crate::{utils, world::World};
+use crate::{engine, utils, world::World};
 use egui::*;
+use egui_wgpu_backend::RenderPass;
 
 pub struct App {
     pub views: Views,
@@ -8,7 +9,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(ctx: &egui::CtxRef) -> Self {
+    pub fn new(ctx: &engine::Context, ui_ctx: &egui::CtxRef, render_pass: &mut RenderPass) -> Self {
         let mut fonts = FontDefinitions::default();
         fonts
             .font_data
@@ -23,10 +24,10 @@ impl App {
         fonts.family_and_size.insert(TextStyle::Button, (FontFamily::Proportional, 18.0));
         fonts.family_and_size.insert(TextStyle::Body, (FontFamily::Proportional, 18.0));
 
-        ctx.set_fonts(fonts);
+        ui_ctx.set_fonts(fonts);
 
         Self {
-            views: views::Views::new(),
+            views: views::Views::new(ctx, render_pass),
             blocking_elements: vec![],
         }
     }
