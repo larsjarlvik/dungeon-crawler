@@ -1,5 +1,4 @@
 // Vertex shader
-[[block]]
 struct Uniforms {
     center: vec2<f32>;
     current: vec2<f32>;
@@ -15,7 +14,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
+fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     var out: VertexOutput;
 
     let x = i32(vertex_index) / 2;
@@ -32,10 +31,8 @@ fn main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     return out;
 }
 
-// Fragment shader
-
 [[stage(fragment)]]
-fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let fade = (1.0 - length(in.coord.xy)) + 0.3;
     let outer = step(length(in.coord.xy), 1.0);
     let inner = step(length(in.coord.xy), 0.95) * fade;

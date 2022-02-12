@@ -1,5 +1,4 @@
 // Vertex shader
-[[block]]
 struct Uniforms {
     view_proj: mat4x4<f32>;
     model: mat4x4<f32>;
@@ -8,7 +7,6 @@ struct Uniforms {
     is_animated: bool;
 };
 
-[[block]]
 struct PrimitiveUniforms {
     orm_factor: vec4<f32>;
     base_color: vec4<f32>;
@@ -36,9 +34,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
-    model: VertexInput,
-) -> VertexOutput {
+fn vert_main(model: VertexInput) -> VertexOutput {
     var out: VertexOutput;
 
     var skin_matrix: mat4x4<f32> = mat4x4<f32>(
@@ -93,7 +89,7 @@ struct GBufferOutput {
 [[group(2), binding(3)]] var t_sampler: sampler;
 
 [[stage(fragment)]]
-fn main(in: VertexOutput) -> GBufferOutput {
+fn frag_main(in: VertexOutput) -> GBufferOutput {
     var output : GBufferOutput;
 
     if (primitive_uniforms.has_textures) {
