@@ -23,6 +23,7 @@ pub struct Engine {
     pub deferred_pipeline: pipelines::DeferredPipeline,
     pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
+    pub glyph_pipeline: pipelines::GlyphPipeline,
 }
 
 impl Engine {
@@ -78,6 +79,7 @@ impl Engine {
         let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
+        let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
 
         Self {
             ctx,
@@ -86,14 +88,8 @@ impl Engine {
             particle_pipeline,
             scaling_pipeline,
             joystick_pipeline,
+            glyph_pipeline,
         }
-    }
-
-    pub fn init(&mut self) {
-        self.model_pipeline = pipelines::ModelPipeline::new(&self.ctx);
-        self.deferred_pipeline = pipelines::DeferredPipeline::new(&self.ctx);
-        self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);
-        self.joystick_pipeline = pipelines::JoystickPipeline::new(&self.ctx);
     }
 
     pub fn set_viewport(&mut self, window: &winit::window::Window) {

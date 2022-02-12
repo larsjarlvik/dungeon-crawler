@@ -1,5 +1,5 @@
 use super::views::{self, Views};
-use crate::world::World;
+use crate::{utils, world::World};
 use egui::*;
 
 pub struct App {
@@ -10,10 +10,9 @@ pub struct App {
 impl App {
     pub fn new(ctx: &egui::CtxRef) -> Self {
         let mut fonts = FontDefinitions::default();
-        fonts.font_data.insert(
-            "font".to_owned(),
-            FontData::from_owned(include_bytes!("./exo2-medium.ttf").to_vec()),
-        );
+        fonts
+            .font_data
+            .insert("font".to_owned(), FontData::from_owned(utils::read_bytes("exo2-medium.ttf")));
         fonts
             .fonts_for_family
             .get_mut(&FontFamily::Proportional)

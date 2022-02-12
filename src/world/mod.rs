@@ -55,18 +55,12 @@ impl<'a> World {
     pub fn load_resources(&mut self, engine: &engine::Engine) {
         self.resources = Some(Resources {
             character: engine.load_model("models/character.glb"),
-            map: map::Map::new(&engine, 42312, 20),
+            map: map::Map::new(&engine, 42312, 3),
         });
     }
 
     pub fn init(&mut self, engine: &engine::Engine) {
         let mut components = create_components(&engine.ctx);
-
-        components
-            .create_entity()
-            .with(components::Text::new(""))
-            .with(components::Transform2d::from_translation_scale(vec2(20.0, 20.0), 18.0))
-            .build();
 
         if let Some(resources) = &mut self.resources {
             components
@@ -91,7 +85,7 @@ impl<'a> World {
             resources.map.reset();
 
             if let Some(tile) = &map::edit_mode() {
-                resources.map.single_tile(&engine, &mut self.components, &tile);
+                resources.map.single_tile(&engine, &mut components, &tile);
             } else {
                 resources.map.generate();
             }
@@ -161,7 +155,6 @@ pub fn create_components(ctx: &Context) -> specs::World {
     components.register::<components::Render>();
     components.register::<components::Model>();
     components.register::<components::Transform>();
-    components.register::<components::Transform2d>();
     components.register::<components::Text>();
     components.register::<components::Light>();
     components.register::<components::Animations>();

@@ -22,19 +22,8 @@ impl State {
         let world = world::World::new(&engine);
         let ui = ui::Ui::new(&engine.ctx, &window);
 
-        let mut state = Self { engine, world, ui };
         println!("Startup {} ms", start.elapsed().as_millis());
-
-        state.reset();
-        state
-    }
-
-    pub fn reset(&mut self) {
-        let start = Instant::now();
-
-        self.engine.init();
-
-        println!("Init {} ms", start.elapsed().as_millis());
+        Self { engine, world, ui }
     }
 
     pub fn resize(&mut self, window: &Window, active: bool) {
@@ -57,7 +46,7 @@ impl State {
         };
 
         if r == KeyState::Pressed(false) {
-            self.reset();
+            self.world.init(&self.engine);
         }
     }
 
@@ -111,6 +100,7 @@ impl State {
             );
 
             self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
+            self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
 
             self.ui.render(&self.engine.ctx, &window, &view);
