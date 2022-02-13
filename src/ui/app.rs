@@ -32,7 +32,7 @@ impl App {
         }
     }
 
-    pub fn update(&mut self, ctx: &egui::CtxRef, world: &mut World) {
-        self.blocking_elements = self.views.update(ctx, world);
+    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &egui::CtxRef, world: &mut World) {
+        self.blocking_elements = self.views.update(ctx, ui_ctx, world);
     }
 }

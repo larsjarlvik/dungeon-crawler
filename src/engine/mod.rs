@@ -5,6 +5,7 @@ pub mod collision;
 pub mod frustum;
 pub mod model;
 pub mod pipelines;
+pub mod settings;
 pub mod texture;
 mod viewport;
 
@@ -14,6 +15,7 @@ pub struct Context {
     pub surface: Option<wgpu::Surface>,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
+    pub settings: settings::Settings,
 }
 
 pub struct Engine {
@@ -31,8 +33,9 @@ impl Engine {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
+        let settings = settings::Settings::load();
 
-        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32);
+        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32, settings.render_scale);
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -72,6 +75,7 @@ impl Engine {
             device,
             surface: Some(surface),
             queue,
+            settings,
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
@@ -92,9 +96,23 @@ impl Engine {
         }
     }
 
+    pub fn reload_pipelines(&mut self) {
+        self.model_pipeline = pipelines::ModelPipeline::new(&self.ctx);
+        self.deferred_pipeline = pipelines::DeferredPipeline::new(&self.ctx);
+        self.particle_pipeline = pipelines::ParticlePipeline::new(&self.ctx);
+        self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);
+        self.joystick_pipeline = pipelines::JoystickPipeline::new(&self.ctx);
+        self.glyph_pipeline = pipelines::GlyphPipeline::new(&self.ctx);
+    }
+
     pub fn set_viewport(&mut self, window: &winit::window::Window) {
         let size = window.inner_size();
-        self.ctx.viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32);
+        self.ctx.viewport = viewport::Viewport::new(
+            size.width,
+            size.height,
+            window.scale_factor() as f32,
+            self.ctx.settings.render_scale,
+        );
         self.scaling_pipeline.resize(&mut self.ctx);
 
         if self.ctx.surface.is_none() {

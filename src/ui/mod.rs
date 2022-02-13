@@ -9,7 +9,7 @@ mod utils;
 mod views;
 
 pub struct Ui {
-    context: CtxRef,
+    ctx: CtxRef,
     pub platform: egui_winit::State,
     app: app::App,
     render_pass: RenderPass,
@@ -19,13 +19,13 @@ pub struct Ui {
 
 impl Ui {
     pub fn new(ctx: &engine::Context, window: &winit::window::Window) -> Self {
-        let context = CtxRef::default();
+        let ui_ctx = CtxRef::default();
         let platform = egui_winit::State::new(window);
         let mut render_pass = RenderPass::new(&ctx.device, config::COLOR_TEXTURE_FORMAT, 1);
-        let app = app::App::new(&ctx, &context, &mut render_pass);
+        let app = app::App::new(&ctx, &ui_ctx, &mut render_pass);
 
         Self {
-            context,
+            ctx: ui_ctx,
             platform,
             app,
             render_pass,
@@ -35,20 +35,20 @@ impl Ui {
     }
 
     pub fn handle_event(&mut self, winit_event: &winit::event::WindowEvent) {
-        self.platform.on_event(&self.context, winit_event);
+        self.platform.on_event(&self.ctx, winit_event);
     }
 
-    pub fn update(&mut self, window: &window::Window, world: &mut World) {
+    pub fn update(&mut self, window: &window::Window, ctx: &engine::Context, world: &mut World) {
         let mut raw_input = self.platform.take_egui_input(window);
-        self.context.begin_frame(raw_input.take());
-        self.app.update(&self.context, world);
+        self.ctx.begin_frame(raw_input.take());
+        self.app.update(ctx, &self.ctx, world);
     }
 
     pub fn render(&mut self, ctx: &engine::Context, window: &window::Window, target: &wgpu::TextureView) {
         let egui_start = Instant::now();
 
-        let (_, paint_commands) = self.context.end_frame();
-        let paint_jobs = self.context.tessellate(paint_commands);
+        let (_, paint_commands) = self.ctx.end_frame();
+        let paint_jobs = self.ctx.tessellate(paint_commands);
 
         let frame_time = (Instant::now() - egui_start).as_secs_f64() as f32;
         self.previous_frame_time = Some(frame_time);
@@ -63,7 +63,7 @@ impl Ui {
             scale_factor: window.scale_factor() as f32,
         };
 
-        self.render_pass.update_texture(&ctx.device, &ctx.queue, &self.context.font_image());
+        self.render_pass.update_texture(&ctx.device, &ctx.queue, &self.ctx.font_image());
         self.render_pass.update_user_textures(&ctx.device, &ctx.queue);
         self.render_pass
             .update_buffers(&ctx.device, &ctx.queue, &paint_jobs, &screen_descriptor);

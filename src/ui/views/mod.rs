@@ -22,13 +22,13 @@ impl Views {
         Self {
             loading: loading::Loading::new(ctx, render_pass),
             in_game: in_game::InGame::new(),
-            main_menu: main_menu::MainMenu::new(),
+            main_menu: main_menu::MainMenu::new(ctx),
             current_ui_state: GameState::Loading,
             last_ui_state_change: None,
         }
     }
 
-    pub fn update(&mut self, ctx: &CtxRef, world: &mut World) -> Vec<Rect> {
+    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, world: &mut World) -> Vec<Rect> {
         if world.game_state != self.current_ui_state {
             match self.last_ui_state_change {
                 Some(ui) => {
@@ -55,10 +55,10 @@ impl Views {
         };
 
         match self.current_ui_state {
-            GameState::Loading => self.loading.update(ctx, opacity),
-            GameState::Running => self.in_game.update(ctx, world, opacity),
-            GameState::MainMenu => self.main_menu.update(ctx, world, opacity),
-            GameState::Terminated => vec![],
+            GameState::Loading => self.loading.update(ui_ctx, opacity),
+            GameState::Running => self.in_game.update(ui_ctx, world, opacity),
+            GameState::MainMenu => self.main_menu.update(ctx, ui_ctx, world, opacity),
+            _ => vec![],
         }
     }
 }

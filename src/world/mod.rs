@@ -17,6 +17,7 @@ pub enum GameState {
     Running,
     MainMenu,
     Terminated,
+    Reload,
 }
 
 pub struct Resources {

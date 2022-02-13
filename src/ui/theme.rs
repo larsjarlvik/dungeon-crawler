@@ -5,6 +5,7 @@ pub fn apply_theme(ui: &mut Ui, opacity: f32) -> &mut Style {
 
     style.spacing.button_padding = vec2(16.0, 16.0);
     style.spacing.item_spacing = vec2(16.0, 16.0);
+    style.spacing.slider_width = 250.0;
 
     style.visuals.override_text_color = Some(Color32::WHITE.linear_multiply(opacity));
     style.visuals.widgets.inactive.bg_fill = Color32::from_rgba_premultiplied(0, 0, 0, 100).linear_multiply(opacity);
@@ -28,6 +29,7 @@ pub fn apply_theme(ui: &mut Ui, opacity: f32) -> &mut Style {
     style.visuals.widgets.inactive.corner_radius = 8.0;
     style.visuals.widgets.active.corner_radius = 8.0;
     style.visuals.widgets.hovered.corner_radius = 8.0;
+
     style
 }
 

@@ -19,18 +19,20 @@ impl Loading {
         }
     }
 
-    pub fn update(&mut self, ctx: &CtxRef, opacity: f32) -> Vec<Rect> {
+    pub fn update(&mut self, ui_ctx: &CtxRef, opacity: f32) -> Vec<Rect> {
         let menu = CentralPanel::default()
             .frame(default_frame_colored(
                 self.height / 2.0 - 170.0,
                 Color32::from_rgba_premultiplied(0, 0, 0, 255),
                 opacity,
             ))
-            .show(ctx, |ui| {
+            .show(ui_ctx, |ui| {
                 apply_theme(ui, opacity);
                 ui.vertical_centered_justified(|ui| {
-                    ui.image(self.texture_id, vec2(300.0, 300.0));
-                    ui.label("Loading...");
+                    if opacity == 1.0 {
+                        ui.image(self.texture_id, vec2(300.0, 300.0));
+                        ui.label("Loading...");
+                    }
                 });
             });
 

@@ -1,3 +1,4 @@
+use engine::settings::Settings;
 use specs::WorldExt;
 use winit::{
     event::*,
@@ -47,6 +48,12 @@ pub fn main() {
             match state.world.game_state {
                 GameState::Terminated => {
                     *control_flow = ControlFlow::Exit;
+                }
+                GameState::Reload => {
+                    state.engine.ctx.settings = Settings::load();
+                    state.resize(&window, true);
+                    state.engine.reload_pipelines();
+                    state.world.game_state = GameState::Running;
                 }
                 _ => {}
             }

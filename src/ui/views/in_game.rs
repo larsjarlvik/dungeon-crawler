@@ -12,11 +12,11 @@ impl InGame {
         Self {}
     }
 
-    pub fn update(&mut self, ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
+    pub fn update(&mut self, ui_ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
         let fps = { world.components.read_resource::<resources::Fps>().fps };
         let mut blocking_elements = vec![];
 
-        TopBottomPanel::top("in_game_top").frame(default_frame(16.0)).show(ctx, |ui| {
+        TopBottomPanel::top("in_game_top").frame(default_frame(16.0)).show(ui_ctx, |ui| {
             apply_theme(ui, opacity);
 
             ui.horizontal(|ui| {
@@ -33,13 +33,15 @@ impl InGame {
             });
         });
 
-        TopBottomPanel::bottom("in_game_bottom").frame(default_frame(32.0)).show(ctx, |ui| {
-            apply_theme(ui, opacity);
+        TopBottomPanel::bottom("in_game_bottom")
+            .frame(default_frame(32.0))
+            .show(ui_ctx, |ui| {
+                apply_theme(ui, opacity);
 
-            ui.with_layout(Layout::right_to_left(), |_ui| {
-                // TODO: Action buttons
+                ui.with_layout(Layout::right_to_left(), |_ui| {
+                    // TODO: Action buttons
+                });
             });
-        });
 
         blocking_elements
     }
