@@ -26,7 +26,7 @@ impl MainMenu {
     pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
         let menu = CentralPanel::default()
             .frame(default_frame_colored(
-                96.0,
+                48.0,
                 Color32::from_rgba_premultiplied(20, 22, 24, 210),
                 opacity,
             ))

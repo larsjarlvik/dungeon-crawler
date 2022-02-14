@@ -1,5 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 
+use crate::utils;
+
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct Settings {
     pub brightness: f32,
@@ -21,11 +23,14 @@ impl Default for Settings {
 
 impl Settings {
     pub fn load() -> Self {
-        let cfg: Settings = confy::load("dungeon_crawler").unwrap_or(Self::default());
-        cfg
+        match utils::read_file("settings.json") {
+            Ok(json) => serde_json::from_str(&json).unwrap_or(Self::default()),
+            Err(_) => Self::default(),
+        }
     }
 
     pub fn store(&self) {
-        confy::store("dungeon_crawler", self).unwrap();
+        let preferences = serde_json::to_string(self).unwrap();
+        utils::write_file("settings.json", &preferences);
     }
 }
