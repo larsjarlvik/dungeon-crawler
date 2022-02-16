@@ -1,4 +1,4 @@
-use engine::settings::Settings;
+use engine::Settings;
 use specs::WorldExt;
 use winit::{
     event::*,
@@ -147,6 +147,7 @@ pub fn main() {
                         Err(e) => eprintln!("{:?}", e),
                     }
                 }
+
                 window.request_redraw();
 
                 if let Some(state) = &mut state {

@@ -5,6 +5,7 @@ use std::{iter, time::Instant};
 use winit::*;
 mod app;
 mod theme;
+mod transition;
 mod utils;
 mod views;
 

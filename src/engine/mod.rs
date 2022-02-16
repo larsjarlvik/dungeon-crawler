@@ -5,9 +5,10 @@ pub mod collision;
 pub mod frustum;
 pub mod model;
 pub mod pipelines;
-pub mod settings;
+mod settings;
 pub mod texture;
 mod viewport;
+pub use settings::Settings;
 
 pub struct Context {
     pub instance: wgpu::Instance,

@@ -12,5 +12,10 @@ pub fn aquire_wakelock() {
         .unwrap();
 
     const FLAG_KEEP_SCREEN_ON: jni::sys::jint = 128;
-    env.call_method(window, "addFlags", "(I)V", &[FLAG_KEEP_SCREEN_ON.into()]).unwrap();
+    match env.call_method(window, "addFlags", "(I)V", &[FLAG_KEEP_SCREEN_ON.into()]) {
+        Ok(_) => {}
+        Err(_) => {
+            println!("Failed to aquire wakelock!");
+        }
+    }
 }

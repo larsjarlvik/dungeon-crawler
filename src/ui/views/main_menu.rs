@@ -1,30 +1,33 @@
+use super::pages;
 use crate::{
-    engine::{self, settings::Settings},
-    ui::theme::*,
+    engine::{self},
+    ui::{theme::*, transition::Transition},
     world::{GameState, World},
 };
 use egui::*;
 
-enum MenuState {
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum MenuItem {
     None,
     Settings,
 }
 
 pub struct MainMenu {
-    menu_state: MenuState,
-    settings: Settings,
+    menu_state: Transition<MenuItem>,
+    settings: pages::Settings,
 }
 
 impl MainMenu {
     pub fn new(ctx: &engine::Context) -> Self {
         Self {
-            menu_state: MenuState::None,
-            settings: ctx.settings.clone(),
+            menu_state: Transition::new(MenuItem::None),
+            settings: pages::Settings::new(ctx),
         }
     }
 
     pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
-        let vw = ctx.viewport.width as f32;
+        let vw = ctx.viewport.width as f32 / ui_ctx.pixels_per_point();
+        let center_opacity = self.menu_state.tick();
 
         let menu = SidePanel::left("main_menu")
             .min_width(vw * 0.25)
@@ -42,7 +45,7 @@ impl MainMenu {
                     ui.add_space(16.0);
                 });
                 ui.vertical_centered_justified(|ui| {
-                    self.main_menu(ctx, ui, world);
+                    self.main_menu(ui, world, opacity);
                 });
             });
 
@@ -53,21 +56,18 @@ impl MainMenu {
                 opacity,
             ))
             .show(ui_ctx, |ui| {
-                apply_theme(ui, opacity);
+                apply_theme(ui, center_opacity.min(opacity));
 
                 ScrollArea::vertical().auto_shrink([false; 2]).show(ui, |ui| {
                     ui.horizontal(|ui| {
-                        ui.add_space(vw * 0.07);
+                        ui.add_space(vw * 0.06);
                         ui.vertical(|ui| {
-                            let menu_state = &mut self.menu_state;
+                            ui.add_space(vw * 0.06);
 
-                            ui.add_space(vw * 0.07);
-                            match menu_state {
-                                MenuState::Settings => {
-                                    self.settings(world, ui);
-                                }
-                                _ => {}
-                            };
+                            self.menu_state.optional_set(match &self.menu_state.state {
+                                MenuItem::Settings => self.settings.update(world, ui),
+                                _ => None,
+                            });
                         });
                     })
                 });
@@ -76,77 +76,26 @@ impl MainMenu {
         vec![menu.response.rect, center.response.rect]
     }
 
-    fn main_menu(&mut self, ctx: &engine::Context, ui: &mut Ui, world: &mut World) {
-        if ui.button("Settings").clicked() {
-            self.settings = ctx.settings.clone();
-            self.menu_state = MenuState::Settings;
-        }
-        if ui.button("Resume").clicked() {
-            self.menu_state = MenuState::None;
+    fn main_menu(&mut self, ui: &mut Ui, world: &mut World, opacity: f32) {
+        self.menu_button(ui, MenuItem::Settings, "Settings", opacity, || {});
+        self.menu_button(ui, MenuItem::None, "Resume", opacity, || {
             world.game_state = GameState::Running;
-        }
-        if ui.button("Exit").clicked() {
+        });
+        self.menu_button(ui, MenuItem::None, "Exit", opacity, || {
             world.game_state = GameState::Terminated;
-        }
+        });
     }
 
-    fn settings(&mut self, world: &mut World, ui: &mut Ui) {
-        ui.vertical_centered_justified(|ui| {
-            egui::Grid::new("settings_grid")
-                .num_columns(2)
-                .spacing([30.0, 20.0])
-                .show(ui, |ui| {
-                    ui.label("Brightness:");
-                    ui.horizontal(|ui| {
-                        ui.add(Slider::new(&mut self.settings.brightness, -0.5..=0.5).show_value(false));
-                        ui.label(format!("{:.2}", self.settings.brightness));
-                    });
-                    ui.end_row();
+    fn menu_button<F: FnOnce()>(&mut self, ui: &mut Ui, menu: MenuItem, text: &str, opacity: f32, f: F) {
+        ui.scope(|ui| {
+            if menu == self.menu_state.state && menu != MenuItem::None {
+                apply_active(ui, opacity);
+            }
 
-                    ui.label("Contrast:");
-                    ui.horizontal(|ui| {
-                        ui.add(Slider::new(&mut self.settings.contrast, 0.0..=10.0).show_value(false));
-                        ui.label(format!("{:.2}", self.settings.contrast));
-                    });
-                    ui.end_row();
-
-                    ui.label("Render Scale:");
-                    ui.horizontal(|ui| {
-                        ui.add(Slider::new(&mut self.settings.render_scale, 0.1..=1.0).show_value(false));
-                        ui.label(format!("{:.2}", self.settings.render_scale));
-                    });
-                    ui.end_row();
-
-                    ui.label("Shadow quality:");
-                    ui.horizontal(|ui| {
-                        ui.add(Slider::new(&mut self.settings.shadow_map_scale, 0.5..=4.0).show_value(false));
-                        ui.label(format!("{:.2}", self.settings.shadow_map_scale));
-                    });
-                    ui.end_row();
-                    ui.checkbox(&mut self.settings.show_fps, "Show FPS");
-                    ui.end_row();
-                });
-        });
-
-        ui.set_min_height(100.0);
-        ui.horizontal(|ui| {
-            if ui.button("Cancel").clicked() {
-                self.menu_state = MenuState::None;
-            };
-
-            if ui.button("Apply").clicked() {
-                self.settings.store();
-                self.menu_state = MenuState::None;
-                world.game_state = GameState::Reload;
-            };
-
-            ui.add_space(40.0);
-            if ui.button("Reset").clicked() {
-                self.settings = Settings::default();
-                self.settings.store();
-                self.menu_state = MenuState::None;
-                world.game_state = GameState::Reload;
-            };
+            if ui.button(text).clicked() {
+                self.menu_state.set(menu);
+                f();
+            }
         });
     }
 }

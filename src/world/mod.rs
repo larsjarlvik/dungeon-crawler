@@ -11,7 +11,7 @@ pub mod resources;
 pub mod systems;
 use cgmath::*;
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum GameState {
     Loading,
     Running,
