@@ -13,6 +13,7 @@ struct Uniforms {
     light: array<Light, 32>;
     light_count: i32;
     contrast: f32;
+    brightness: f32;
 };
 
 [[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
@@ -199,7 +200,7 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
         }
     }
 
-    let min_shadow = 0.3 * uniforms.contrast;
+    let min_shadow = 0.3;
     let shadow = get_shadow_factor(position) * (1.0 - min_shadow) + min_shadow;
-    return contrast_matrix(uniforms.contrast) * vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a);
+    return contrast_matrix(uniforms.contrast) * vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a) + uniforms.brightness;
 }

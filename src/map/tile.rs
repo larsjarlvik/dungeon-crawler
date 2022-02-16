@@ -127,6 +127,7 @@ impl Tile {
             for z in -config::GRID_COUNT..=config::GRID_COUNT {
                 let off = vec3(x as f32 * config::GRID_DIST, 0.0, z as f32 * config::GRID_DIST);
                 let text = format!("{},{}", x, z);
+
                 world
                     .create_entity()
                     .with(world::components::Text::new(&text))
