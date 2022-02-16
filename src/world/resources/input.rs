@@ -74,7 +74,6 @@ impl Input {
                 } else {
                     joystick.center = Some(if joystick.touch { relative } else { Point2::new(0.0, 0.0) });
                 }
-                return;
             }
         }
 

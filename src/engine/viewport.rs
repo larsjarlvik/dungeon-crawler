@@ -1,5 +1,3 @@
-use crate::config;
-
 #[derive(Clone)]
 pub struct Viewport {
     pub width: u32,
@@ -9,12 +7,12 @@ pub struct Viewport {
 }
 
 impl Viewport {
-    pub fn new(width: u32, height: u32, ui_scale: f32) -> Self {
+    pub fn new(width: u32, height: u32, ui_scale: f32, render_scale: f32) -> Self {
         Self {
             width,
             height,
             ui_scale,
-            render_scale: config::RENDER_SCALE,
+            render_scale,
         }
     }
 

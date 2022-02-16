@@ -5,8 +5,10 @@ pub mod collision;
 pub mod frustum;
 pub mod model;
 pub mod pipelines;
-mod texture;
+mod settings;
+pub mod texture;
 mod viewport;
+pub use settings::Settings;
 
 pub struct Context {
     pub instance: wgpu::Instance,
@@ -14,16 +16,17 @@ pub struct Context {
     pub surface: Option<wgpu::Surface>,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
+    pub settings: settings::Settings,
 }
 
 pub struct Engine {
     pub ctx: Context,
     pub model_pipeline: pipelines::ModelPipeline,
-    pub glyph_pipeline: pipelines::GlyphPipeline,
     pub joystick_pipeline: pipelines::JoystickPipeline,
     pub deferred_pipeline: pipelines::DeferredPipeline,
     pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
+    pub glyph_pipeline: pipelines::GlyphPipeline,
 }
 
 impl Engine {
@@ -31,8 +34,9 @@ impl Engine {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
+        let settings = settings::Settings::load();
 
-        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32);
+        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32, settings.render_scale);
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -72,37 +76,44 @@ impl Engine {
             device,
             surface: Some(surface),
             queue,
+            settings,
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
-        let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
         let deferred_pipeline = pipelines::DeferredPipeline::new(&ctx);
         let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
+        let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
 
         Self {
             ctx,
             model_pipeline,
-            glyph_pipeline,
             deferred_pipeline,
             particle_pipeline,
             scaling_pipeline,
             joystick_pipeline,
+            glyph_pipeline,
         }
     }
 
-    pub fn init(&mut self) {
+    pub fn reload_pipelines(&mut self) {
         self.model_pipeline = pipelines::ModelPipeline::new(&self.ctx);
-        self.glyph_pipeline = pipelines::GlyphPipeline::new(&self.ctx);
         self.deferred_pipeline = pipelines::DeferredPipeline::new(&self.ctx);
+        self.particle_pipeline = pipelines::ParticlePipeline::new(&self.ctx);
         self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);
         self.joystick_pipeline = pipelines::JoystickPipeline::new(&self.ctx);
+        self.glyph_pipeline = pipelines::GlyphPipeline::new(&self.ctx);
     }
 
     pub fn set_viewport(&mut self, window: &winit::window::Window) {
         let size = window.inner_size();
-        self.ctx.viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32);
+        self.ctx.viewport = viewport::Viewport::new(
+            size.width,
+            size.height,
+            window.scale_factor() as f32,
+            self.ctx.settings.render_scale,
+        );
         self.scaling_pipeline.resize(&mut self.ctx);
 
         if self.ctx.surface.is_none() {

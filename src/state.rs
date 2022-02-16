@@ -1,5 +1,6 @@
 use crate::{
     engine::{self},
+    ui::{self},
     world::{self, resources::input::KeyState},
 };
 use cgmath::*;
@@ -8,34 +9,38 @@ use std::time::Instant;
 use winit::{event::VirtualKeyCode, window::Window};
 
 pub struct State {
-    engine: engine::Engine,
+    pub engine: engine::Engine,
     pub world: world::World,
+    pub ui: ui::Ui,
 }
 
 impl State {
     pub async fn new(window: &Window) -> Self {
-        let engine = engine::Engine::new(window).await;
-        let world = world::World::new(&engine);
-
-        let mut state = Self { engine, world };
-        state.init_all();
-        state
-    }
-
-    pub fn init_all(&mut self) {
         let start = Instant::now();
 
-        self.engine.init();
-        self.world = world::World::new(&self.engine);
-        self.world.init(&self.engine);
+        let engine = engine::Engine::new(window).await;
+        let world = world::World::new(&engine);
+        let ui = ui::Ui::new(&engine.ctx, &window);
 
-        println!("Total {} ms", start.elapsed().as_millis());
+        println!("Startup {} ms", start.elapsed().as_millis());
+        Self { engine, world, ui }
     }
 
     pub fn resize(&mut self, window: &Window, active: bool) {
         if active {
             self.engine.set_viewport(window);
             self.engine.deferred_pipeline.resize(&self.engine.ctx);
+
+            let size = window.inner_size();
+            let pos = window.inner_position().unwrap_or(winit::dpi::PhysicalPosition::new(100, 100));
+            let fullscreen = window.fullscreen().is_some();
+
+            if !fullscreen {
+                self.engine.ctx.settings.window_size = [size.width, size.height];
+                self.engine.ctx.settings.window_pos = [pos.x, pos.y];
+            }
+            self.engine.ctx.settings.fullscreen = window.fullscreen().is_some();
+            self.engine.ctx.settings.store();
 
             let mut camera = self.world.components.write_resource::<world::resources::Camera>();
             *camera = world::resources::Camera::new(self.engine.ctx.viewport.get_aspect());
@@ -45,17 +50,13 @@ impl State {
     }
 
     pub fn keyboard(&mut self, keyboard_input: &winit::event::KeyboardInput) {
-        let (r, t) = {
+        let r = {
             let mut input = self.world.components.write_resource::<world::resources::Input>();
             input.keyboard(keyboard_input);
-            (input.key_state(VirtualKeyCode::R), input.key_state(VirtualKeyCode::T))
+            input.key_state(VirtualKeyCode::R)
         };
 
         if r == KeyState::Pressed(false) {
-            self.init_all();
-        }
-
-        if t == KeyState::Pressed(false) {
             self.world.init(&self.engine);
         }
     }
@@ -72,16 +73,25 @@ impl State {
 
     pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
         let mut input = self.world.components.write_resource::<world::resources::Input>();
-        input.mouse_set_pressed(id, touch, pressed);
+
+        if !pressed || !self.ui.is_blocking(input.mouse.position) {
+            input.mouse_set_pressed(id, touch, pressed);
+        }
     }
 
-    pub fn update(&mut self) {
+    pub fn is_ui_blocking(&self) -> bool {
+        let input = self.world.components.read_resource::<world::resources::Input>();
+        self.ui.is_blocking(input.mouse.position)
+    }
+
+    pub fn update(&mut self, window: &Window) {
         self.world.update(&self.engine);
         self.engine.deferred_pipeline.update(&self.engine.ctx, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
+        self.ui.update(window, &self.engine.ctx, &mut self.world)
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(&mut self, window: &Window) -> Result<(), wgpu::SurfaceError> {
         if let Some(frame) = self.engine.get_output_frame() {
             let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
@@ -101,10 +111,10 @@ impl State {
             );
 
             self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
-
             self.engine.glyph_pipeline.render(&self.engine.ctx, &self.world.components, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
 
+            self.ui.render(&self.engine.ctx, &window, &view);
             frame.present();
         }
 

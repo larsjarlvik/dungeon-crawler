@@ -47,8 +47,12 @@ impl Texture {
         Self { texture, view }
     }
 
-    pub fn create_mipmapped_view(ctx: &super::Context, pixels: &[u8], width: u32, height: u32) -> Self {
-        let mip_level_count = (1f32 + ((width as f32).max(height as f32)).log2().floor()) as u32;
+    pub fn create_view(ctx: &super::Context, pixels: &[u8], width: u32, height: u32, mipmap: bool) -> Self {
+        let mip_level_count = if mipmap {
+            (1f32 + ((width as f32).max(height as f32)).log2().floor()) as u32
+        } else {
+            1
+        };
         let size = wgpu::Extent3d {
             width,
             height,
@@ -89,7 +93,9 @@ impl Texture {
             size,
         );
 
-        pipelines::mipmap::generate_mipmaps(ctx, &mut encoder, &texture, mip_level_count);
+        if mip_level_count > 1 {
+            pipelines::mipmap::generate_mipmaps(ctx, &mut encoder, &texture, mip_level_count);
+        }
         ctx.queue.submit(std::iter::once(encoder.finish()));
 
         Self { texture, view }
