@@ -23,30 +23,22 @@ pub fn main() {
     #[cfg(not(target_os = "android"))]
     env_logger::init();
 
-    let event_loop = EventLoop::new();
-
     let settings = Settings::load();
-    let window = WindowBuilder::new()
-        .with_title("Dungeon Crawler")
-        .with_decorations(true)
-        .with_visible(false)
-        .with_inner_size(winit::dpi::LogicalSize::new(settings.window_size[0], settings.window_size[1]))
-        .with_position(winit::dpi::LogicalPosition::new(settings.window_pos[0], settings.window_pos[1]))
-        .with_fullscreen(if settings.fullscreen {
-            Some(Fullscreen::Borderless(None))
-        } else {
-            None
-        })
-        .build(&event_loop)
-        .unwrap();
+    let mut window = WindowBuilder::new().with_title("Dungeon Crawler").with_decorations(true);
+
+    window = if settings.fullscreen {
+        window.with_fullscreen(Some(Fullscreen::Borderless(None)))
+    } else {
+        window
+            .with_inner_size(winit::dpi::LogicalSize::new(settings.window_size[0], settings.window_size[1]))
+            .with_position(winit::dpi::LogicalPosition::new(settings.window_pos[0], settings.window_pos[1]))
+    };
+
+    let event_loop = EventLoop::new();
+    let window = window.build(&event_loop).unwrap();
 
     #[allow(unused_assignments)]
     let mut state: Option<state::State> = None;
-
-    #[cfg(not(target_os = "android"))]
-    {
-        state = Some(pollster::block_on(state::State::new(&window)));
-    }
 
     #[cfg(target_os = "android")]
     utils::aquire_wakelock();
@@ -94,10 +86,9 @@ pub fn main() {
 
                             if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::F) == KeyState::Pressed(false)
                             {
-                                if window.fullscreen().is_some() {
-                                    window.set_fullscreen(None);
-                                } else {
-                                    window.set_fullscreen(Some(Fullscreen::Borderless(None)));
+                                match window.fullscreen() {
+                                    Some(_) => window.set_fullscreen(None),
+                                    None => window.set_fullscreen(Some(Fullscreen::Borderless(None))),
                                 }
                             }
                         }
@@ -152,10 +143,14 @@ pub fn main() {
 
                 if let Some(state) = &mut state {
                     if state.world.resources.is_none() {
-                        window.set_visible(true);
                         state.world.load_resources(&state.engine);
                         state.world.init(&state.engine);
                         state.world.game_state = GameState::Running;
+                    }
+                } else {
+                    #[cfg(not(target_os = "android"))]
+                    {
+                        state = Some(pollster::block_on(state::State::new(&window)));
                     }
                 }
             }
