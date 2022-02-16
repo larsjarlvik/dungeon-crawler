@@ -8,6 +8,7 @@ pub struct Uniforms {
     pub lights: [LightUniforms; 32],
     pub lights_count: i32,
     pub contrast: f32,
+    pub brightness: f32,
 }
 
 #[repr(C)]

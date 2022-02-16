@@ -1,15 +1,17 @@
+use engine::Settings;
 use specs::WorldExt;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::{Fullscreen, WindowBuilder},
 };
-use world::resources::input::KeyState;
+use world::{resources::input::KeyState, GameState};
 
 mod config;
 mod engine;
 mod map;
 mod state;
+mod ui;
 mod utils;
 mod world;
 
@@ -22,7 +24,21 @@ pub fn main() {
     env_logger::init();
 
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().with_title("Dungeon Crawler").build(&event_loop).unwrap();
+
+    let settings = Settings::load();
+    let window = WindowBuilder::new()
+        .with_title("Dungeon Crawler")
+        .with_decorations(true)
+        .with_visible(false)
+        .with_inner_size(winit::dpi::LogicalSize::new(settings.window_size[0], settings.window_size[1]))
+        .with_position(winit::dpi::LogicalPosition::new(settings.window_pos[0], settings.window_pos[1]))
+        .with_fullscreen(if settings.fullscreen {
+            Some(Fullscreen::Borderless(None))
+        } else {
+            None
+        })
+        .build(&event_loop)
+        .unwrap();
 
     #[allow(unused_assignments)]
     let mut state: Option<state::State> = None;
@@ -36,11 +52,32 @@ pub fn main() {
     utils::aquire_wakelock();
 
     event_loop.run(move |event, _, control_flow| {
+        if let Some(state) = &mut state {
+            match state.world.game_state {
+                GameState::Terminated => {
+                    *control_flow = ControlFlow::Exit;
+                }
+                GameState::Reload => {
+                    state.engine.ctx.settings = Settings::load();
+                    state.resize(&window, true);
+                    state.engine.reload_pipelines();
+                    state.world.game_state = GameState::Running;
+                }
+                _ => {}
+            }
+        }
+
         match event {
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 if let Some(state) = &mut state {
                     match event {
+                        WindowEvent::CloseRequested => {
+                            *control_flow = ControlFlow::Exit;
+                        }
                         WindowEvent::Resized(..) => {
+                            state.resize(&window, true);
+                        }
+                        WindowEvent::Moved(..) => {
                             state.resize(&window, true);
                         }
                         WindowEvent::ScaleFactorChanged { .. } => {
@@ -81,6 +118,12 @@ pub fn main() {
                         _ => {}
                     }
                 }
+
+                if let Some(state) = &mut state {
+                    if state.is_ui_blocking() {
+                        state.ui.handle_event(&event);
+                    }
+                }
             }
             Event::Resumed => {
                 if let Some(state) = &mut state {
@@ -96,15 +139,25 @@ pub fn main() {
             }
             Event::MainEventsCleared => {
                 if let Some(state) = &mut state {
-                    state.update();
-                    match state.render() {
+                    state.update(&window);
+                    match state.render(&window) {
                         Ok(_) => {}
                         Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
                         Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                         Err(e) => eprintln!("{:?}", e),
                     }
                 }
+
                 window.request_redraw();
+
+                if let Some(state) = &mut state {
+                    if state.world.resources.is_none() {
+                        window.set_visible(true);
+                        state.world.load_resources(&state.engine);
+                        state.world.init(&state.engine);
+                        state.world.game_state = GameState::Running;
+                    }
+                }
             }
             _ => {}
         };

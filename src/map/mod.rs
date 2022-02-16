@@ -85,6 +85,7 @@ impl Map {
         tile.add_room(engine, world, &self.tile, Vector3::zero(), 0.0);
         tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, &self.decor);
         tile.add_grid(world, Vector3::zero());
+        self.placed_tiles.push(tile);
     }
 
     pub fn reset(&mut self) {
@@ -105,4 +106,3 @@ pub fn edit_mode() -> Option<String> {
         None
     }
 }
-
