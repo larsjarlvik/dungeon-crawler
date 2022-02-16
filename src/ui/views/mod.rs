@@ -56,7 +56,7 @@ impl Views {
 
         match self.current_ui_state {
             GameState::Loading => self.loading.update(ui_ctx, opacity),
-            GameState::Running => self.in_game.update(ui_ctx, world, opacity),
+            GameState::Running => self.in_game.update(ctx, ui_ctx, world, opacity),
             GameState::MainMenu => self.main_menu.update(ctx, ui_ctx, world, opacity),
             _ => vec![],
         }

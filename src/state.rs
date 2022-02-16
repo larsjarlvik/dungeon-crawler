@@ -31,6 +31,14 @@ impl State {
             self.engine.set_viewport(window);
             self.engine.deferred_pipeline.resize(&self.engine.ctx);
 
+            let size = window.inner_size();
+            let pos = window.inner_position().unwrap_or(winit::dpi::PhysicalPosition::new(100, 100));
+
+            self.engine.ctx.settings.window_size = [size.width, size.height];
+            self.engine.ctx.settings.window_pos = [pos.x, pos.y];
+            self.engine.ctx.settings.fullscreen = window.fullscreen().is_some();
+            self.engine.ctx.settings.store();
+
             let mut camera = self.world.components.write_resource::<world::resources::Camera>();
             *camera = world::resources::Camera::new(self.engine.ctx.viewport.get_aspect());
         } else {

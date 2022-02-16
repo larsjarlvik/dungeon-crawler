@@ -6,7 +6,7 @@ use crate::{
 use egui::*;
 
 enum MenuState {
-    MainMenu,
+    None,
     Settings,
 }
 
@@ -18,47 +18,71 @@ pub struct MainMenu {
 impl MainMenu {
     pub fn new(ctx: &engine::Context) -> Self {
         Self {
-            menu_state: MenuState::MainMenu,
+            menu_state: MenuState::None,
             settings: ctx.settings.clone(),
         }
     }
 
     pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
-        let menu = CentralPanel::default()
+        let vw = ctx.viewport.width as f32;
+
+        let menu = SidePanel::left("main_menu")
+            .min_width(vw * 0.25)
+            .max_width(vw * 0.25)
+            .resizable(false)
             .frame(default_frame_colored(
-                48.0,
+                vw * 0.05,
+                Color32::from_rgba_premultiplied(10, 10, 10, 210),
+                opacity,
+            ))
+            .show(ui_ctx, |ui| {
+                apply_theme(ui, opacity);
+                ui.vertical_centered(|ui| {
+                    ui.heading("Dungeon Crawler");
+                    ui.add_space(16.0);
+                });
+                ui.vertical_centered_justified(|ui| {
+                    self.main_menu(ctx, ui, world);
+                });
+            });
+
+        let center = CentralPanel::default()
+            .frame(default_frame_colored(
+                10.0,
                 Color32::from_rgba_premultiplied(20, 22, 24, 210),
                 opacity,
             ))
             .show(ui_ctx, |ui| {
                 apply_theme(ui, opacity);
-                ui.vertical_centered_justified(|ui| {
-                    ui.set_max_width(500.0);
 
-                    let menu_state = &mut self.menu_state;
-                    match menu_state {
-                        MenuState::MainMenu => {
-                            self.main_menu(ctx, ui, world);
-                        }
-                        MenuState::Settings => {
-                            self.settings(world, ui);
-                        }
-                    }
+                ScrollArea::vertical().auto_shrink([false; 2]).show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.add_space(vw * 0.07);
+                        ui.vertical(|ui| {
+                            let menu_state = &mut self.menu_state;
+
+                            ui.add_space(vw * 0.07);
+                            match menu_state {
+                                MenuState::Settings => {
+                                    self.settings(world, ui);
+                                }
+                                _ => {}
+                            };
+                        });
+                    })
                 });
             });
 
-        vec![menu.response.rect]
+        vec![menu.response.rect, center.response.rect]
     }
 
     fn main_menu(&mut self, ctx: &engine::Context, ui: &mut Ui, world: &mut World) {
-        ui.heading("Dungeon Crawler");
-        ui.add_space(16.0);
-
         if ui.button("Settings").clicked() {
             self.settings = ctx.settings.clone();
             self.menu_state = MenuState::Settings;
         }
         if ui.button("Resume").clicked() {
+            self.menu_state = MenuState::None;
             world.game_state = GameState::Running;
         }
         if ui.button("Exit").clicked() {
@@ -67,58 +91,62 @@ impl MainMenu {
     }
 
     fn settings(&mut self, world: &mut World, ui: &mut Ui) {
-        ui.heading("Settings");
-        ui.add_space(16.0);
+        ui.vertical_centered_justified(|ui| {
+            egui::Grid::new("settings_grid")
+                .num_columns(2)
+                .spacing([30.0, 20.0])
+                .show(ui, |ui| {
+                    ui.label("Brightness:");
+                    ui.horizontal(|ui| {
+                        ui.add(Slider::new(&mut self.settings.brightness, -0.5..=0.5).show_value(false));
+                        ui.label(format!("{:.2}", self.settings.brightness));
+                    });
+                    ui.end_row();
 
-        Layout::from_main_dir_and_cross_align(Direction::TopDown, Align::Min)
-            .with_main_wrap(false)
-            .with_cross_justify(true);
+                    ui.label("Contrast:");
+                    ui.horizontal(|ui| {
+                        ui.add(Slider::new(&mut self.settings.contrast, 0.0..=10.0).show_value(false));
+                        ui.label(format!("{:.2}", self.settings.contrast));
+                    });
+                    ui.end_row();
 
-        ui.horizontal(|ui| {
-            ui.label("Brightness:");
-            ui.with_layout(Layout::right_to_left(), |ui| {
-                ui.add_sized([35.0, 24.0], Label::new(format!("{:.2}", self.settings.brightness)));
-                ui.add(Slider::new(&mut self.settings.brightness, -0.5..=0.5).show_value(false));
-            });
+                    ui.label("Render Scale:");
+                    ui.horizontal(|ui| {
+                        ui.add(Slider::new(&mut self.settings.render_scale, 0.1..=1.0).show_value(false));
+                        ui.label(format!("{:.2}", self.settings.render_scale));
+                    });
+                    ui.end_row();
+
+                    ui.label("Shadow quality:");
+                    ui.horizontal(|ui| {
+                        ui.add(Slider::new(&mut self.settings.shadow_map_scale, 0.5..=4.0).show_value(false));
+                        ui.label(format!("{:.2}", self.settings.shadow_map_scale));
+                    });
+                    ui.end_row();
+                    ui.checkbox(&mut self.settings.show_fps, "Show FPS");
+                    ui.end_row();
+                });
         });
 
+        ui.set_min_height(100.0);
         ui.horizontal(|ui| {
-            ui.label("Contrast:");
-            ui.with_layout(Layout::right_to_left(), |ui| {
-                ui.add_sized([35.0, 24.0], Label::new(format!("{:.2}", self.settings.contrast)));
-                ui.add(Slider::new(&mut self.settings.contrast, 0.0..=10.0).show_value(false));
-            });
-        });
+            if ui.button("Cancel").clicked() {
+                self.menu_state = MenuState::None;
+            };
 
-        ui.horizontal(|ui| {
-            ui.label("Render Scale:");
-            ui.with_layout(Layout::right_to_left(), |ui| {
-                ui.add_sized([35.0, 24.0], Label::new(format!("{:.2}", self.settings.render_scale)));
-                ui.add(Slider::new(&mut self.settings.render_scale, 0.1..=1.0).show_value(false));
-            });
-        });
+            if ui.button("Apply").clicked() {
+                self.settings.store();
+                self.menu_state = MenuState::None;
+                world.game_state = GameState::Reload;
+            };
 
-        ui.horizontal(|ui| {
-            ui.label("Shadow quality:");
-            ui.with_layout(Layout::right_to_left(), |ui| {
-                ui.add_sized([35.0, 24.0], Label::new(format!("{:.2}", self.settings.shadow_map_scale)));
-                ui.add(Slider::new(&mut self.settings.shadow_map_scale, 0.5..=4.0).show_value(false));
-            });
-        });
-
-        ui.add_space(ui.spacing().item_spacing.y);
-        ui.columns(2, |columns| {
-            columns[0].vertical_centered_justified(|ui| {
-                if ui.button("Cancel").clicked() {
-                    self.menu_state = MenuState::MainMenu;
-                };
-            });
-            columns[1].vertical_centered_justified(|ui| {
-                if ui.button("Apply").clicked() {
-                    self.settings.store();
-                    world.game_state = GameState::Reload;
-                };
-            });
+            ui.add_space(40.0);
+            if ui.button("Reset").clicked() {
+                self.settings = Settings::default();
+                self.settings.store();
+                self.menu_state = MenuState::None;
+                world.game_state = GameState::Reload;
+            };
         });
     }
 }

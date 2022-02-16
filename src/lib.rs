@@ -25,10 +25,18 @@ pub fn main() {
 
     let event_loop = EventLoop::new();
 
+    let settings = Settings::load();
     let window = WindowBuilder::new()
         .with_title("Dungeon Crawler")
         .with_decorations(true)
         .with_visible(false)
+        .with_inner_size(winit::dpi::LogicalSize::new(settings.window_size[0], settings.window_size[1]))
+        .with_position(winit::dpi::LogicalPosition::new(settings.window_pos[0], settings.window_pos[1]))
+        .with_fullscreen(if settings.fullscreen {
+            Some(Fullscreen::Borderless(None))
+        } else {
+            None
+        })
         .build(&event_loop)
         .unwrap();
 
@@ -67,6 +75,9 @@ pub fn main() {
                             *control_flow = ControlFlow::Exit;
                         }
                         WindowEvent::Resized(..) => {
+                            state.resize(&window, true);
+                        }
+                        WindowEvent::Moved(..) => {
                             state.resize(&window, true);
                         }
                         WindowEvent::ScaleFactorChanged { .. } => {

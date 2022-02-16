@@ -1,4 +1,5 @@
 use crate::{
+    engine,
     ui::theme::*,
     world::{resources, GameState, World},
 };
@@ -12,7 +13,7 @@ impl InGame {
         Self {}
     }
 
-    pub fn update(&mut self, ui_ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
+    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
         let fps = { world.components.read_resource::<resources::Fps>().fps };
         let mut blocking_elements = vec![];
 
@@ -20,7 +21,9 @@ impl InGame {
             apply_theme(ui, opacity);
 
             ui.horizontal(|ui| {
-                ui.label(format!("FPS: {}", fps).to_string());
+                if ctx.settings.show_fps {
+                    ui.label(format!("FPS: {}", fps).to_string());
+                }
 
                 ui.with_layout(Layout::right_to_left(), |ui| {
                     let menu_button = ui.add_sized([50.0, 50.0], Button::new("\u{2630}"));

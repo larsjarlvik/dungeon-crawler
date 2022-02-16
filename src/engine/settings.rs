@@ -8,6 +8,10 @@ pub struct Settings {
     pub contrast: f32,
     pub render_scale: f32,
     pub shadow_map_scale: f32,
+    pub show_fps: bool,
+    pub window_size: [u32; 2],
+    pub window_pos: [i32; 2],
+    pub fullscreen: bool,
 }
 
 impl Default for Settings {
@@ -17,6 +21,10 @@ impl Default for Settings {
             contrast: 2.2,
             render_scale: 1.0,
             shadow_map_scale: 2.0,
+            show_fps: false,
+            window_size: [1280, 720],
+            window_pos: [100, 100],
+            fullscreen: false,
         }
     }
 }
