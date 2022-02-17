@@ -9,7 +9,7 @@ resolver = "2"
 incremental = true
 
 [lib]
-name = "dclib"
+name = "dungeon_crawler"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
