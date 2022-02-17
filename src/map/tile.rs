@@ -193,7 +193,7 @@ impl Tile {
             &mut decor_model
                 .lights
                 .iter()
-                .filter(|l| l.name.contains(&decor.name))
+                .filter(|l| l.name.contains(format!("{}_", &decor.name).as_str()))
                 .map(|l| {
                     world
                         .create_entity()
