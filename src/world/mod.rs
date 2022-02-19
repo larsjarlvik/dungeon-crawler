@@ -54,10 +54,12 @@ impl<'a> World {
     }
 
     pub fn load_resources(&mut self, engine: &engine::Engine) {
+        let start = Instant::now();
         self.resources = Some(Resources {
             character: engine.load_model("models/character.glb"),
             map: map::Map::new(&engine, 42312, 3),
         });
+        println!("Load resources {} ms", start.elapsed().as_millis());
     }
 
     pub fn init(&mut self, engine: &engine::Engine) {
