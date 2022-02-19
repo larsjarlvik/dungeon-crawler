@@ -77,6 +77,7 @@ impl<'a> World {
                     0.6,
                     Some(10.0),
                     vec3(0.0, 2.5, 0.0),
+                    0.0,
                 ))
                 .with(components::Movement::new(15.0))
                 .with(components::UserControl)

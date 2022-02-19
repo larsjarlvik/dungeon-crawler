@@ -202,6 +202,7 @@ impl Tile {
                             l.intensity,
                             Some(l.radius),
                             l.translation,
+                            1.0,
                         ))
                         .with(world::components::Transform::from_translation_angle(pos, r))
                         .maybe_with(self.get_flicker(l.flicker, flicker_speed))

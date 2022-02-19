@@ -6,6 +6,7 @@ use crate::utils;
 pub struct Settings {
     pub brightness: f32,
     pub contrast: f32,
+    pub bloom: f32,
     pub render_scale: f32,
     pub shadow_map_scale: f32,
     pub show_fps: bool,
@@ -19,6 +20,7 @@ impl Default for Settings {
         Self {
             brightness: 0.0,
             contrast: 2.2,
+            bloom: 2.5,
             render_scale: 1.0,
             shadow_map_scale: 2.0,
             show_fps: false,

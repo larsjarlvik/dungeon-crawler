@@ -3,6 +3,7 @@ struct Light {
     position: vec3<f32>;
     radius: f32;
     color: vec3<f32>;
+    bloom: f32;
 };
 
 struct Uniforms {
@@ -107,19 +108,18 @@ fn attenuation_strength_real(rpos: vec3<f32>) -> f32 {
     return 1.0 / (0.025 + d2);
 }
 
-fn apply_point_glow(wpos: vec3<f32>, dir: vec3<f32>, max_dist: f32, factor: f32, light: Light) -> vec3<f32> {
-    let t = max(dot(light.position - wpos, dir), 0.0);
+fn apply_point_glow(wpos: vec3<f32>, dir: vec3<f32>, max_dist: f32, position: vec3<f32>, bloom: f32) -> f32 {
+    let t = max(dot(position - wpos, dir), 0.0);
     let nearest = wpos + dir * min(t, max_dist);
 
-    let difference = light.position - nearest;
-    let distance_2 = dot(difference, difference);
-    if (distance_2 > 100000.0) {
-        return vec3<f32>(0.0);
+    let difference = position - nearest;
+    if (dot(difference, difference) > 100.0) {
+        return 0.0;
     }
 
     let spread = 1.0;
     let strength = pow(attenuation_strength_real(difference), spread); // TODO
-    return light.color * strength * 0.025 * pow(factor, 0.65);
+    return strength * 0.025 * pow(bloom, 0.65);
 }
 
 
@@ -162,7 +162,6 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];
         var light_dist: f32 = distance(light.position, position);
-
         if (light_dist > light.radius) { continue; }
 
         let attenuation = clamp(pow(1.0 - light_dist / light.radius, 2.0), 0.0, 1.0);
@@ -193,10 +192,9 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
 
             let dist = distance(position, uniforms.eye_pos.xyz);
             let dir = (position - uniforms.eye_pos.xyz) / dist;
+            let bloom = light.color * apply_point_glow(uniforms.eye_pos, dir, dist, light.position, light.bloom);
 
-
-
-            total_light = total_light + new_light + apply_point_glow(uniforms.eye_pos, dir, dist, 10.0, light);
+            total_light = total_light + new_light + bloom;
         }
     }
 
