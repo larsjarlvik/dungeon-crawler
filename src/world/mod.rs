@@ -71,7 +71,7 @@ impl<'a> World {
                 .with(components::Model::new(&engine, &resources.character, "character"))
                 .with(components::Collider::new(&resources.character, "character"))
                 .with(components::Animations::new("base", "idle"))
-                .with(components::Transform::from_translation(vec3(0.0, 0.0, 0.0)))
+                .with(components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01))
                 .with(components::Light::new(
                     vec3(1.0, 1.0, 0.72),
                     0.6,

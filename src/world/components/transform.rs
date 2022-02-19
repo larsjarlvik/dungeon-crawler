@@ -14,6 +14,7 @@ impl Component for Transform {
 }
 
 impl Transform {
+    #[allow(dead_code)]
     pub fn from_translation(translation: Vector3<f32>) -> Self {
         Self {
             translation: InterpolatedValue::new(translation),
@@ -39,6 +40,9 @@ impl Transform {
     }
 
     pub fn to_matrix(&self, frame_time: f32) -> Matrix4<f32> {
-        Matrix4::from_translation(self.translation.get(frame_time)) * Matrix4::from(self.rotation.get(frame_time))
+        let scale = self.scale.get(frame_time);
+        Matrix4::from_translation(self.translation.get(frame_time))
+            * Matrix4::from_nonuniform_scale(scale.x, scale.y, scale.z)
+            * Matrix4::from(self.rotation.get(frame_time))
     }
 }

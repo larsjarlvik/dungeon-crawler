@@ -59,8 +59,8 @@ impl<'a> System<'a> for Movement {
 
                 if let Some(animation) = animation {
                     let animation_velocity = velocity / 0.04;
-                    if animation_velocity > 1.6 {
-                        animation.set_animation("base", "run", animation_velocity);
+                    if animation_velocity > 2.5 {
+                        animation.set_animation("base", "run", animation_velocity * 0.4);
                     } else if animation_velocity > 0.3 {
                         animation.set_animation("base", "walk", animation_velocity);
                     }
