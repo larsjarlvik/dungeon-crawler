@@ -56,17 +56,29 @@ impl Map {
     pub fn generate(&mut self) {
         let mut rng = StdRng::seed_from_u64(self.seed);
         let mut tiles = generator::generate(&mut rng, self.grid_size, self.number_of_tiles);
+        let gs_2 = self.grid_size * 2;
 
-        for x in 0..(self.grid_size * 2) {
-            for z in 0..(self.grid_size * 2) {
+        for x in 0..(gs_2 + 1) {
+            for z in 0..(gs_2 + 1) {
                 let tx = x as i32 - self.grid_size as i32;
                 let tz = z as i32 - self.grid_size as i32;
 
-                self.placed_tiles.push(if let Some(t) = &mut tiles[x][z] {
-                    tile::Tile::new(tx, tz, self.tile_size, &t.entrances, &mut rng)
+                if x == gs_2 || z == gs_2 {
+                    self.placed_tiles.push(tile::Tile::new_known(
+                        tx,
+                        tz,
+                        self.tile_size,
+                        "tile-empty",
+                        tile::TileDecor { decor: vec![] },
+                        0.0,
+                    ));
                 } else {
-                    tile::Tile::new_known(tx, tz, self.tile_size, "tile-empty", tile::TileDecor { decor: vec![] }, 0.0)
-                })
+                    self.placed_tiles.push(if let Some(t) = &mut tiles[x][z] {
+                        tile::Tile::new(tx, tz, self.tile_size, &t.entrances, &mut rng)
+                    } else {
+                        tile::Tile::new_known(tx, tz, self.tile_size, "tile-empty", tile::TileDecor { decor: vec![] }, 0.0)
+                    });
+                }
             }
         }
     }
