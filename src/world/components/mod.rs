@@ -1,3 +1,4 @@
+mod action;
 pub mod animation;
 mod collider;
 mod collision;
@@ -13,6 +14,8 @@ mod text;
 mod transform;
 mod user_control;
 
+pub use action::Action;
+pub use action::CurrentAction;
 pub use animation::Animations;
 pub use collider::Collider;
 pub use collision::Collision;

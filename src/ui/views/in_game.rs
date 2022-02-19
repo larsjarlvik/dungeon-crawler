@@ -1,7 +1,11 @@
 use crate::{
     engine,
     ui::theme::*,
-    world::{resources, GameState, World},
+    world::{
+        self,
+        resources::{self, input::UiActionCode},
+        GameState, World,
+    },
 };
 use egui::*;
 use specs::WorldExt;
@@ -41,8 +45,17 @@ impl InGame {
             .show(ui_ctx, |ui| {
                 apply_theme(ui, opacity);
 
-                ui.with_layout(Layout::right_to_left(), |_ui| {
-                    // TODO: Action buttons
+                ui.with_layout(Layout::right_to_left(), |ui| {
+                    let mut input = world.components.write_resource::<world::resources::Input>();
+                    let attack = ui.add_sized([80.0, 80.0], Button::new("Attack"));
+
+                    let pressed = match ui_ctx.input().pointer.hover_pos() {
+                        Some(pos) => ui_ctx.input().pointer.any_down() && attack.rect.contains(pos),
+                        None => false,
+                    };
+
+                    input.set_ui(UiActionCode::Attack, pressed);
+                    blocking_elements.push(attack.rect);
                 });
             });
 

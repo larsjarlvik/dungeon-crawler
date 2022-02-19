@@ -10,6 +10,11 @@ pub enum KeyState {
     Pressed(bool),
 }
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum UiActionCode {
+    Attack,
+}
+
 pub struct Joystick {
     pub id: u64,
     pub touch: bool,
@@ -27,6 +32,7 @@ pub struct Mouse {
 
 pub struct Input {
     pub keys: HashMap<VirtualKeyCode, KeyState>,
+    pub ui: HashMap<UiActionCode, KeyState>,
     pub mouse: Mouse,
     pub joystick: Option<Joystick>,
 }
@@ -35,6 +41,7 @@ impl Default for Input {
     fn default() -> Self {
         Self {
             keys: HashMap::new(),
+            ui: HashMap::new(),
             mouse: Mouse {
                 id: 0,
                 position: Point2::new(0.0, 0.0),
@@ -119,6 +126,14 @@ impl Input {
             *state != KeyState::Released
         } else {
             false
+        }
+    }
+
+    pub fn set_ui(&mut self, action_code: UiActionCode, pressed: bool) {
+        if pressed {
+            self.ui.insert(action_code, KeyState::Pressed(self.ui.contains_key(&action_code)));
+        } else {
+            self.ui.remove(&action_code);
         }
     }
 }

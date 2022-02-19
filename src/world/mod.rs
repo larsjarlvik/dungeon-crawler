@@ -38,7 +38,8 @@ impl<'a> World {
     pub fn new(engine: &engine::Engine) -> Self {
         let components = create_components(&engine.ctx);
         let dispatcher = DispatcherBuilder::new()
-            .with(systems::UserControl, "user_control", &[])
+            .with(systems::Action, "action", &[])
+            .with(systems::UserControl, "user_control", &["action"])
             .with(systems::Movement, "movement", &[])
             .with(systems::Flicker, "flicker", &[])
             .build();
@@ -80,6 +81,7 @@ impl<'a> World {
                     0.0,
                 ))
                 .with(components::Movement::new(15.0))
+                .with(components::Action::new())
                 .with(components::UserControl)
                 .with(components::Render { cull_frustum: false })
                 .with(components::Shadow)
@@ -164,6 +166,7 @@ pub fn create_components(ctx: &Context) -> specs::World {
     components.register::<components::Animations>();
     components.register::<components::UserControl>();
     components.register::<components::Movement>();
+    components.register::<components::Action>();
     components.register::<components::Follow>();
     components.register::<components::Collider>();
     components.register::<components::Collision>();
