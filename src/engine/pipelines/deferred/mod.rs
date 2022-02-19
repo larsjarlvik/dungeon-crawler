@@ -124,7 +124,7 @@ impl DeferredPipeline {
 
     pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
         let camera = components.read_resource::<resources::Camera>();
-        let (lights_count, lights) = self.get_lights(&camera, components);
+        let (lights_count, lights) = self.get_lights(ctx, &camera, components);
 
         let uniforms = uniforms::Uniforms {
             inv_view_proj: camera.view_proj.invert().unwrap().into(),
@@ -169,7 +169,12 @@ impl DeferredPipeline {
         }
     }
 
-    fn get_lights(&self, camera: &resources::Camera, components: &specs::World) -> (i32, [uniforms::LightUniforms; 32]) {
+    fn get_lights(
+        &self,
+        ctx: &engine::Context,
+        camera: &resources::Camera,
+        components: &specs::World,
+    ) -> (i32, [uniforms::LightUniforms; 32]) {
         let time = components.read_resource::<resources::Time>();
         let light_sources = components.read_storage::<components::Light>();
         let transform = components.read_storage::<components::Transform>();
@@ -206,7 +211,8 @@ impl DeferredPipeline {
             lights[i] = uniforms::LightUniforms {
                 position: (transform.translation.get(time.last_frame) + light.offset.get(time.last_frame)).into(),
                 radius,
-                color: (light.color * light.intensity.get(time.last_frame)).extend(0.0).into(),
+                color: (light.color * light.intensity.get(time.last_frame)).into(),
+                bloom: light.bloom * ctx.settings.bloom,
             };
         }
 

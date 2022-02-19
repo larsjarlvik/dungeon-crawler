@@ -46,6 +46,13 @@ impl Settings {
                     });
                     ui.end_row();
 
+                    ui.label("Bloom:");
+                    ui.horizontal(|ui| {
+                        ui.add(Slider::new(&mut self.settings.bloom, 0.0..=10.0).show_value(false));
+                        ui.label(format!("{:.2}", self.settings.bloom));
+                    });
+                    ui.end_row();
+
                     ui.label("Render Scale:");
                     ui.horizontal(|ui| {
                         ui.add(Slider::new(&mut self.settings.render_scale, 0.1..=1.0).show_value(false));
