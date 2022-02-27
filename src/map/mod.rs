@@ -93,7 +93,7 @@ impl Map {
             }
         };
 
-        let tile = tile::Tile::new_known(0, 0, self.tile_size, &tile_name, decor, 0.0);
+        let mut tile = tile::Tile::new_known(0, 0, self.tile_size, &tile_name, decor, 0.0);
         tile.add_room(engine, world, &self.tile, Vector3::zero(), 0.0);
         tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, &self.decor);
         tile.add_grid(world, Vector3::zero());

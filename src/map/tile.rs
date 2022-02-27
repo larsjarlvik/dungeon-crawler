@@ -22,7 +22,7 @@ pub struct TileDecor {
 }
 
 pub enum TileState {
-    Active(Vec<specs::Entity>),
+    Active(Entity),
     Destroyed,
 }
 
@@ -83,43 +83,38 @@ impl Tile {
     ) {
         match self.state {
             TileState::Destroyed => {
-                let mut entities = vec![];
-
-                entities.push(self.add_room(engine, world, &tile_model, self.center, -self.rotation));
-                entities.append(&mut self.add_decor(engine, world, rng, self.center, self.rotation, &decor_model));
-
-                self.state = TileState::Active(entities);
+                self.add_room(engine, world, &tile_model, self.center, -self.rotation);
+                self.add_decor(engine, world, rng, self.center, self.rotation, &decor_model);
             }
             _ => (),
         };
     }
 
     pub fn destroy(&mut self, world: &mut specs::World) {
-        match &mut self.state {
-            TileState::Active(entities) => {
-                world.delete_entities(entities.as_slice()).expect("Failed to delete tile!");
-                entities.clear();
-                self.state = TileState::Destroyed;
-            }
-            _ => {}
+        if let TileState::Active(entity) = &mut self.state {
+            // Remove entity
+            world.delete_entity(*entity).unwrap();
+            self.state = TileState::Destroyed;
         };
     }
 
     pub fn add_room(
-        &self,
+        &mut self,
         engine: &engine::Engine,
         world: &mut specs::World,
         tile_model: &engine::model::GltfModel,
         center: Vector3<f32>,
         rotation: f32,
-    ) -> Entity {
-        world
-            .create_entity()
-            .with(world::components::Model::new(&engine, &tile_model, &self.tile))
-            .maybe_with(world::components::Collision::new(&tile_model, &self.tile))
-            .with(world::components::Render { cull_frustum: true })
-            .with(world::components::Transform::from_translation_angle(center, rotation))
-            .build()
+    ) {
+        self.state = TileState::Active(
+            world
+                .create_entity()
+                .with(world::components::Model::new(&engine, &tile_model, &self.tile))
+                .maybe_with(world::components::Collision::new(&tile_model, &self.tile))
+                .with(world::components::Render { cull_frustum: true })
+                .with(world::components::Transform::from_translation_angle(center, rotation))
+                .build(),
+        );
     }
 
     pub fn add_grid(&self, world: &mut specs::World, center: Vector3<f32>) {
@@ -145,16 +140,20 @@ impl Tile {
         center: Vector3<f32>,
         rotation: f32,
         decor_model: &engine::model::GltfModel,
-    ) -> Vec<Entity> {
-        let mut entities = vec![];
-        for decor in self.decor.decor.iter() {
-            entities.append(&mut self.add_decor_item(engine, world, rng, center, &decor, &decor_model, rotation));
+    ) {
+        match self.state {
+            TileState::Active(entity) => {
+                for decor in self.decor.decor.iter() {
+                    self.add_decor_item(entity.id(), engine, world, rng, center, &decor, &decor_model, rotation);
+                }
+            }
+            _ => {}
         }
-        entities
     }
 
     pub fn add_decor_item(
         &self,
+        parent: u32,
         engine: &engine::Engine,
         world: &mut specs::World,
         rng: &mut StdRng,
@@ -162,7 +161,7 @@ impl Tile {
         decor: &Decor,
         decor_model: &engine::model::GltfModel,
         rotation: f32,
-    ) -> Vec<Entity> {
+    ) {
         let q_rotation = Quaternion::from_angle_y(Deg(-rotation));
         let pos = center
             + q_rotation.rotate_vector(vec3(
@@ -173,74 +172,64 @@ impl Tile {
 
         let flicker_speed = rng.gen::<f32>() * 0.05 + 0.02;
         let r = decor.rotation - rotation;
-        let mut entities = vec![];
 
-        entities.push(
+        let entity = world
+            .create_entity()
+            .with(world::components::Child::new(parent))
+            .with(world::components::Model::new(&engine, &decor_model, &decor.name))
+            .maybe_with(world::components::Collision::new(&decor_model, &decor.name))
+            .with(world::components::Transform::from_translation_angle(
+                pos,
+                r + (rng.gen::<f32>() * 2.0 - 1.0) * decor.rotation_rng,
+            ))
+            .with(world::components::Render { cull_frustum: true })
+            .with(world::components::Shadow)
+            .with(world::components::Health::new(10.0))
+            .build();
+
+        decor_model
+            .lights
+            .iter()
+            .filter(|l| l.name.contains(format!("{}_", &decor.name).as_str()))
+            .for_each(|l| {
+                world
+                    .create_entity()
+                    .with(world::components::Child::new(entity.id()))
+                    .with(world::components::Light::new(
+                        l.color,
+                        l.intensity,
+                        Some(l.radius),
+                        l.translation,
+                        1.0,
+                    ))
+                    .with(world::components::Transform::from_translation_angle(pos, r))
+                    .maybe_with(self.get_flicker(l.flicker, flicker_speed))
+                    .build();
+            });
+
+        decor_model.get_emitters(&decor.name).iter().for_each(|e| {
+            let emitter = engine
+                .particle_pipeline
+                .create_emitter(&engine.ctx, e.particle_count, e.life_time, e.spread, e.speed);
+
             world
                 .create_entity()
-                .with(world::components::Model::new(&engine, &decor_model, &decor.name))
-                .maybe_with(world::components::Collision::new(&decor_model, &decor.name))
-                .with(world::components::Transform::from_translation_angle(
-                    pos,
-                    r + (rng.gen::<f32>() * 2.0 - 1.0) * decor.rotation_rng,
+                .with(world::components::Child::new(entity.id()))
+                .with(world::components::Particle::new(
+                    emitter,
+                    e.start_color,
+                    e.end_color,
+                    e.size,
+                    e.strength,
                 ))
                 .with(world::components::Render { cull_frustum: true })
-                .with(world::components::Shadow)
-                .build(),
-        );
-
-        entities.append(
-            &mut decor_model
-                .lights
-                .iter()
-                .filter(|l| l.name.contains(format!("{}_", &decor.name).as_str()))
-                .map(|l| {
-                    world
-                        .create_entity()
-                        .with(world::components::Light::new(
-                            l.color,
-                            l.intensity,
-                            Some(l.radius),
-                            l.translation,
-                            1.0,
-                        ))
-                        .with(world::components::Transform::from_translation_angle(pos, r))
-                        .maybe_with(self.get_flicker(l.flicker, flicker_speed))
-                        .build()
-                })
-                .collect(),
-        );
-
-        entities.append(
-            &mut decor_model
-                .get_emitters(&decor.name)
-                .iter()
-                .map(|e| {
-                    let emitter = engine
-                        .particle_pipeline
-                        .create_emitter(&engine.ctx, e.particle_count, e.life_time, e.spread, e.speed);
-
-                    world
-                        .create_entity()
-                        .with(world::components::Particle::new(
-                            emitter,
-                            e.start_color,
-                            e.end_color,
-                            e.size,
-                            e.strength,
-                        ))
-                        .with(world::components::Render { cull_frustum: true })
-                        .maybe_with(self.get_flicker(e.flicker, flicker_speed))
-                        .with(world::components::Transform::from_translation_angle(
-                            pos + Quaternion::from_angle_y(Deg(decor.rotation - rotation)).rotate_vector(e.position),
-                            decor.rotation - rotation,
-                        ))
-                        .build()
-                })
-                .collect(),
-        );
-
-        entities
+                .maybe_with(self.get_flicker(e.flicker, flicker_speed))
+                .with(world::components::Transform::from_translation_angle(
+                    pos + Quaternion::from_angle_y(Deg(decor.rotation - rotation)).rotate_vector(e.position),
+                    decor.rotation - rotation,
+                ))
+                .build();
+        });
     }
 
     fn get_flicker(&self, flicker: Option<f32>, speed: f32) -> Option<world::components::Flicker> {

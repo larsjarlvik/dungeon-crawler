@@ -39,6 +39,7 @@ impl<'a> World {
         let components = create_components(&engine.ctx);
         let dispatcher = DispatcherBuilder::new()
             .with(systems::Action, "action", &[])
+            .with(systems::Parent, "parent", &["action"])
             .with(systems::UserControl, "user_control", &["action"])
             .with(systems::Movement, "movement", &[])
             .with(systems::Flicker, "flicker", &[])
@@ -124,23 +125,25 @@ impl<'a> World {
                         }
                     }
 
-                    let mut camera = self.components.write_resource::<resources::Camera>();
-                    let mut time = self.components.write_resource::<resources::Time>();
-                    time.freeze();
+                    {
+                        let mut camera = self.components.write_resource::<resources::Camera>();
+                        let mut time = self.components.write_resource::<resources::Time>();
+                        time.freeze();
 
-                    let follow = self.components.read_storage::<components::Follow>();
-                    let transform = self.components.read_storage::<components::Transform>();
+                        let follow = self.components.read_storage::<components::Follow>();
+                        let transform = self.components.read_storage::<components::Transform>();
 
-                    for (transform, _) in (&transform, &follow).join() {
-                        camera.set(transform.translation.get(time.last_frame));
-                    }
+                        for (transform, _) in (&transform, &follow).join() {
+                            camera.set(transform.translation.get(time.last_frame));
+                        }
 
-                    let mut animations = self.components.write_storage::<components::Animations>();
-                    for animation in (&mut animations).join() {
-                        for (_, channel) in animation.channels.iter_mut() {
-                            channel.current.elapsed += self.last_frame.elapsed().as_secs_f32() * channel.current.speed;
-                            if let Some(previous) = &mut channel.prev {
-                                previous.elapsed += self.last_frame.elapsed().as_secs_f32() * previous.speed;
+                        let mut animations = self.components.write_storage::<components::Animations>();
+                        for animation in (&mut animations).join() {
+                            for (_, channel) in animation.channels.iter_mut() {
+                                channel.current.elapsed += self.last_frame.elapsed().as_secs_f32() * channel.current.speed;
+                                if let Some(previous) = &mut channel.prev {
+                                    previous.elapsed += self.last_frame.elapsed().as_secs_f32() * previous.speed;
+                                }
                             }
                         }
                     }
@@ -173,6 +176,9 @@ pub fn create_components(ctx: &Context) -> specs::World {
     components.register::<components::Flicker>();
     components.register::<components::Particle>();
     components.register::<components::Shadow>();
+    components.register::<components::Health>();
+    components.register::<components::Child>();
+    components.register::<components::Delete>();
 
     components.insert(resources::Camera::new(ctx.viewport.get_aspect()));
     components.insert(resources::Input::default());

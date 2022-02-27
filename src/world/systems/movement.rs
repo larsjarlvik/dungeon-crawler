@@ -55,7 +55,7 @@ impl<'a> System<'a> for Movement {
             }
 
             match action.current {
-                components::CurrentAction::Attack => {
+                components::CurrentAction::Attack(_) => {
                     animation.set_animation("base", "attack", 2.0);
                     transform.translation.set(transform.translation.current + velocity_dir);
                     movement.velocity *= 0.85;

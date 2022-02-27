@@ -2,7 +2,7 @@ pub use self::polygon::*;
 use cgmath::*;
 mod polygon;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Intersection {
     None,
     WillIntersect(Vector2<f32>),
