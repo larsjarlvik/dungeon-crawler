@@ -1,20 +1,16 @@
-use crate::engine::{collision::Polygon, model};
+use crate::engine::collision::{self, Polygon};
 use bevy_ecs::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Collider {
     pub polygons: Vec<Polygon>,
     pub intersections: Vec<Polygon>,
 }
 
 impl Collider {
-    pub fn new(gltf: &model::GltfModel, name: &str) -> Self {
+    pub fn new(polygons: Vec<collision::Polygon>) -> Self {
         Self {
-            polygons: gltf
-                .collisions
-                .get(name)
-                .expect(format!("Could not find collision for: {}!", name).as_str())
-                .clone(),
+            polygons,
             intersections: vec![],
         }
     }

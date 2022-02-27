@@ -58,7 +58,7 @@ impl State {
         };
 
         if r == KeyState::Pressed(false) {
-            self.world.init(&self.engine);
+            self.world.init(&mut self.engine);
         }
     }
 
@@ -86,7 +86,7 @@ impl State {
     }
 
     pub fn update(&mut self, window: &Window) {
-        self.world.update(&self.engine);
+        self.world.update();
         self.engine.deferred_pipeline.update(&self.engine.ctx, &mut self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
         self.ui.update(window, &self.engine.ctx, &mut self.world)

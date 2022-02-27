@@ -5,6 +5,7 @@ use crate::{
 use bevy_ecs::prelude::*;
 
 pub fn action(
+    mut commands: Commands,
     mut query: QuerySet<(
         QueryState<(
             &mut components::Action,
@@ -12,7 +13,7 @@ pub fn action(
             &components::Collider,
             &components::Transform,
         )>,
-        QueryState<(&mut components::Health, &components::Collision, &components::Transform)>,
+        QueryState<(Entity, &mut components::Health, &components::Collision, &components::Transform)>,
     )>,
 ) {
     let mut hits = vec![];
@@ -39,13 +40,13 @@ pub fn action(
         }
     }
 
-    for (mut health, collision, transform) in query.q1().iter_mut() {
+    for (entity, mut health, collision, transform) in query.q1().iter_mut() {
         if health.amount > 0.0 {
             for (collider, velocity_dir, dmg) in hits.iter() {
                 for polygon in collider {
                     attack(&polygon, &mut health, collision, transform, *velocity_dir, *dmg);
                     if health.amount <= 0.0 {
-                        dbg!("DEAD");
+                        commands.entity(entity).despawn();
                     }
                 }
             }

@@ -2,7 +2,7 @@ use super::{material, primitive};
 use cgmath::*;
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Emitter {
     pub name: String,
     pub spread: f32,

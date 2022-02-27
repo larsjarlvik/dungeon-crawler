@@ -1,7 +1,7 @@
 use cgmath::*;
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Light {
     pub name: String,
     pub radius: f32,

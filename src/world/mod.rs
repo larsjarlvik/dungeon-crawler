@@ -1,6 +1,6 @@
 use crate::{
     config,
-    engine::{self, Context},
+    engine::{self, model, Context},
     map,
     utils::Interpolate,
 };
@@ -22,7 +22,7 @@ pub enum GameState {
 
 pub struct Resources {
     pub map: map::Map,
-    pub character: engine::model::GltfModel,
+    pub character: model::GltfModel,
 }
 
 pub struct World {
@@ -52,7 +52,8 @@ impl<'a> World {
         let mut post_schedule = Schedule::default();
         post_schedule.add_stage(
             "post",
-            SystemStage::single_threaded()
+            SystemStage::parallel()
+                .with_system(systems::tile)
                 .with_system(systems::camera)
                 .with_system(systems::animation),
         );
@@ -68,23 +69,28 @@ impl<'a> World {
         }
     }
 
-    pub fn load_resources(&mut self, engine: &engine::Engine) {
+    pub fn load_resources(&mut self, engine: &mut engine::Engine) {
         let start = Instant::now();
+        let character = engine.load_model("models/character.glb");
+        engine.initialize_model(&character, "character", "character".to_string());
+
         self.resources = Some(Resources {
-            character: engine.load_model("models/character.glb"),
-            map: map::Map::new(&engine, 42312, 3),
+            map: map::Map::new(engine, 42312, 3),
+            character,
         });
         println!("Load resources {} ms", start.elapsed().as_millis());
     }
 
-    pub fn init(&mut self, engine: &engine::Engine) {
-        let mut components = create_components(&engine.ctx);
+    pub fn init(&mut self, engine: &mut engine::Engine) {
+        self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {
-            components
+            let collision = resources.character.collisions.get("character").unwrap();
+
+            self.components
                 .spawn()
-                .insert(components::Model::new(&engine, &resources.character, "character"))
-                .insert(components::Collider::new(&resources.character, "character"))
+                .insert(components::Model::new("character"))
+                .insert(components::Collider::new(collision.clone()))
                 .insert(components::Animations::new("base", "idle"))
                 .insert(components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01))
                 .insert(components::Light::new(
@@ -101,52 +107,45 @@ impl<'a> World {
                 .insert(components::Shadow)
                 .insert(components::Follow);
 
-            resources.map.reset();
-
             if let Some(tile) = &map::edit_mode() {
-                resources.map.single_tile(&engine, &mut components, &tile);
+                resources.map.single_tile(engine, &mut self.components, &tile);
             } else {
-                resources.map.generate();
+                resources.map.generate(&mut self.components, engine);
             }
         }
-
-        self.components = components;
     }
 
-    pub fn update(&mut self, engine: &engine::Engine) {
+    pub fn update(&mut self) {
         self.update_time += self.last_frame.elapsed().as_secs_f32();
         self.update_time = self.update_time.min(5.0);
 
-        if let Some(resources) = &mut self.resources {
-            {
-                let mut fps = self.components.get_resource_mut::<resources::Fps>().unwrap();
-                fps.update();
-            }
-
-            match self.game_state {
-                GameState::Running => {
-                    while self.update_time >= 0.0 {
-                        self.schedule.run(&mut self.components);
-                        self.update_time -= config::time_step().as_secs_f32();
-
-                        {
-                            let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
-                            time.reset();
-                        }
-                    }
-
-                    let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
-                    time.freeze(self.last_frame.elapsed().as_secs_f32());
-
-                    self.post_schedule.run(&mut self.components);
-                }
-                _ => {
-                    self.update_time = 0.0;
-                }
-            }
-
-            resources.map.update(&engine, &mut self.components);
+        {
+            let mut fps = self.components.get_resource_mut::<resources::Fps>().unwrap();
+            fps.update();
         }
+
+        match self.game_state {
+            GameState::Running => {
+                while self.update_time >= 0.0 {
+                    self.schedule.run(&mut self.components);
+                    self.update_time -= config::time_step().as_secs_f32();
+
+                    {
+                        let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
+                        time.reset();
+                    }
+                }
+
+                let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
+                time.freeze(self.last_frame.elapsed().as_secs_f32());
+
+                self.post_schedule.run(&mut self.components);
+            }
+            _ => {
+                self.update_time = 0.0;
+            }
+        }
+
         self.last_frame = Instant::now();
     }
 }

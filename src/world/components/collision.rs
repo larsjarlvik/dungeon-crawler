@@ -7,11 +7,7 @@ pub struct Collision {
 }
 
 impl Collision {
-    pub fn new(gltf: &model::GltfModel, name: &str) -> Option<Self> {
-        if let Some(col) = gltf.collisions.get(name) {
-            Some(Self { polygons: col.clone() })
-        } else {
-            None
-        }
+    pub fn new(polygons: Vec<collision::Polygon>) -> Self {
+        Self { polygons }
     }
 }

@@ -99,10 +99,15 @@ impl ParticlePipeline {
                 ],
             };
 
-            ctx.queue
-                .write_buffer(&particle.emitter.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
+            let emitter = ctx
+                .emitter_instances
+                .get(&particle.emitter)
+                .expect("Could not find particle emitter!");
 
-            bundles.push(&particle.emitter.render_bundle);
+            ctx.queue
+                .write_buffer(&emitter.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
+
+            bundles.push(&emitter.render_bundle);
         }
 
         builders::RenderTargetBuilder::new(ctx, "particle")

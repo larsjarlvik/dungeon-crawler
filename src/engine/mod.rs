@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{config, utils};
 
 pub mod bounding_box;
@@ -10,6 +12,12 @@ pub mod texture;
 mod viewport;
 pub use settings::Settings;
 
+pub struct ModelInstance {
+    pub key: String,
+    pub model: pipelines::model::Model,
+    pub nodes: model::GltfModelNodes,
+}
+
 pub struct Context {
     pub instance: wgpu::Instance,
     pub viewport: viewport::Viewport,
@@ -17,6 +25,8 @@ pub struct Context {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub settings: settings::Settings,
+    pub model_instances: HashMap<String, ModelInstance>,
+    pub emitter_instances: HashMap<String, pipelines::ParticleEmitter>,
 }
 
 pub struct Engine {
@@ -77,6 +87,8 @@ impl Engine {
             surface: Some(surface),
             queue,
             settings,
+            model_instances: HashMap::new(),
+            emitter_instances: HashMap::new(),
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
@@ -142,12 +154,23 @@ impl Engine {
         None
     }
 
-    pub fn load_model(&self, path: &str) -> model::GltfModel {
+    pub fn load_model(&mut self, path: &str) -> model::GltfModel {
         let bytes = utils::read_bytes(path);
         model::GltfModel::new(&self.ctx, bytes.as_slice())
     }
 
-    pub fn get_mesh(&self, model: &model::GltfModel, name: &str) -> pipelines::model::Model {
-        pipelines::model::Model::new(&self.ctx, &self.model_pipeline, model, name)
+    pub fn initialize_model(&mut self, model: &model::GltfModel, name: &str, key: String) {
+        self.ctx.model_instances.insert(
+            key.to_string(),
+            ModelInstance {
+                key,
+                model: pipelines::model::Model::new(&self.ctx, &self.model_pipeline, model, name),
+                nodes: model.nodes.clone(),
+            },
+        );
+    }
+
+    pub fn initialize_particle(&mut self, emitter: pipelines::ParticleEmitter, key: String) {
+        self.ctx.emitter_instances.insert(key.to_string(), emitter);
     }
 }

@@ -766,6 +766,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
+ "uuid",
  "wgpu",
  "wgpu_glyph",
  "winit",
