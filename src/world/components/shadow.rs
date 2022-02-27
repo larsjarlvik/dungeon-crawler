@@ -1,8 +1,4 @@
-use specs::{Component, NullStorage};
+use bevy_ecs::prelude::*;
 
-#[derive(Default)]
+#[derive(Component)]
 pub struct Shadow;
-
-impl Component for Shadow {
-    type Storage = NullStorage<Self>;
-}

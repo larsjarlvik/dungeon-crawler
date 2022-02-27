@@ -1,14 +1,11 @@
+use bevy_ecs::prelude::*;
 use cgmath::*;
-use specs::{Component, VecStorage};
 
+#[derive(Component)]
 pub struct Movement {
     pub max_velocity: f32,
     pub velocity: f32,
     pub direction: f32,
-}
-
-impl Component for Movement {
-    type Storage = VecStorage<Self>;
 }
 
 impl Movement {

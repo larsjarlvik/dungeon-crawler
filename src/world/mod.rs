@@ -4,11 +4,11 @@ use crate::{
     map,
     utils::Interpolate,
 };
-use specs::*;
 use std::time::Instant;
 pub mod components;
 pub mod resources;
 pub mod systems;
+use bevy_ecs::prelude::*;
 use cgmath::*;
 
 #[derive(PartialEq, Clone, Debug)]
@@ -26,8 +26,9 @@ pub struct Resources {
 }
 
 pub struct World {
-    pub components: specs::World,
-    pub dispatcher: specs::Dispatcher<'static, 'static>,
+    pub components: bevy_ecs::world::World,
+    pub schedule: Schedule,
+    pub post_schedule: Schedule,
     pub game_state: GameState,
     update_time: f32,
     last_frame: std::time::Instant,
@@ -37,17 +38,29 @@ pub struct World {
 impl<'a> World {
     pub fn new(engine: &engine::Engine) -> Self {
         let components = create_components(&engine.ctx);
-        let dispatcher = DispatcherBuilder::new()
-            .with(systems::Action, "action", &[])
-            .with(systems::Parent, "parent", &["action"])
-            .with(systems::UserControl, "user_control", &["action"])
-            .with(systems::Movement, "movement", &[])
-            .with(systems::Flicker, "flicker", &[])
-            .build();
+
+        let mut schedule = Schedule::default();
+        schedule.add_stage(
+            "update",
+            SystemStage::parallel()
+                .with_system(systems::action)
+                .with_system(systems::flicker)
+                .with_system(systems::user_control.label("user_control"))
+                .with_system(systems::movement.after("user_control")),
+        );
+
+        let mut post_schedule = Schedule::default();
+        post_schedule.add_stage(
+            "post",
+            SystemStage::single_threaded()
+                .with_system(systems::camera)
+                .with_system(systems::animation),
+        );
 
         Self {
             components,
-            dispatcher,
+            schedule,
+            post_schedule,
             update_time: 0.0,
             last_frame: Instant::now(),
             resources: None,
@@ -69,25 +82,24 @@ impl<'a> World {
 
         if let Some(resources) = &mut self.resources {
             components
-                .create_entity()
-                .with(components::Model::new(&engine, &resources.character, "character"))
-                .with(components::Collider::new(&resources.character, "character"))
-                .with(components::Animations::new("base", "idle"))
-                .with(components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01))
-                .with(components::Light::new(
+                .spawn()
+                .insert(components::Model::new(&engine, &resources.character, "character"))
+                .insert(components::Collider::new(&resources.character, "character"))
+                .insert(components::Animations::new("base", "idle"))
+                .insert(components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01))
+                .insert(components::Light::new(
                     vec3(1.0, 1.0, 0.72),
                     0.6,
                     Some(10.0),
                     vec3(0.0, 2.5, 0.0),
                     0.0,
                 ))
-                .with(components::Movement::new(15.0))
-                .with(components::Action::new())
-                .with(components::UserControl)
-                .with(components::Render { cull_frustum: false })
-                .with(components::Shadow)
-                .with(components::Follow)
-                .build();
+                .insert(components::Movement::new(15.0))
+                .insert(components::Action::new())
+                .insert(components::UserControl)
+                .insert(components::Render { cull_frustum: false })
+                .insert(components::Shadow)
+                .insert(components::Follow);
 
             resources.map.reset();
 
@@ -107,46 +119,26 @@ impl<'a> World {
 
         if let Some(resources) = &mut self.resources {
             {
-                let mut fps = self.components.write_resource::<resources::Fps>();
+                let mut fps = self.components.get_resource_mut::<resources::Fps>().unwrap();
                 fps.update();
             }
 
             match self.game_state {
                 GameState::Running => {
                     while self.update_time >= 0.0 {
-                        self.dispatcher.setup(&mut self.components);
-                        self.dispatcher.dispatch_par(&mut self.components);
-                        self.components.maintain();
+                        self.schedule.run(&mut self.components);
                         self.update_time -= config::time_step().as_secs_f32();
 
                         {
-                            let mut time = self.components.write_resource::<resources::Time>();
+                            let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
                             time.reset();
                         }
                     }
 
-                    {
-                        let mut camera = self.components.write_resource::<resources::Camera>();
-                        let mut time = self.components.write_resource::<resources::Time>();
-                        time.freeze();
+                    let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
+                    time.freeze(self.last_frame.elapsed().as_secs_f32());
 
-                        let follow = self.components.read_storage::<components::Follow>();
-                        let transform = self.components.read_storage::<components::Transform>();
-
-                        for (transform, _) in (&transform, &follow).join() {
-                            camera.set(transform.translation.get(time.last_frame));
-                        }
-
-                        let mut animations = self.components.write_storage::<components::Animations>();
-                        for animation in (&mut animations).join() {
-                            for (_, channel) in animation.channels.iter_mut() {
-                                channel.current.elapsed += self.last_frame.elapsed().as_secs_f32() * channel.current.speed;
-                                if let Some(previous) = &mut channel.prev {
-                                    previous.elapsed += self.last_frame.elapsed().as_secs_f32() * previous.speed;
-                                }
-                            }
-                        }
-                    }
+                    self.post_schedule.run(&mut self.components);
                 }
                 _ => {
                     self.update_time = 0.0;
@@ -159,31 +151,13 @@ impl<'a> World {
     }
 }
 
-pub fn create_components(ctx: &Context) -> specs::World {
-    let mut components = specs::World::new();
-    components.register::<components::Render>();
-    components.register::<components::Model>();
-    components.register::<components::Transform>();
-    components.register::<components::Text>();
-    components.register::<components::Light>();
-    components.register::<components::Animations>();
-    components.register::<components::UserControl>();
-    components.register::<components::Movement>();
-    components.register::<components::Action>();
-    components.register::<components::Follow>();
-    components.register::<components::Collider>();
-    components.register::<components::Collision>();
-    components.register::<components::Flicker>();
-    components.register::<components::Particle>();
-    components.register::<components::Shadow>();
-    components.register::<components::Health>();
-    components.register::<components::Child>();
-    components.register::<components::Delete>();
+pub fn create_components(ctx: &Context) -> bevy_ecs::world::World {
+    let mut components = bevy_ecs::world::World::new();
 
-    components.insert(resources::Camera::new(ctx.viewport.get_aspect()));
-    components.insert(resources::Input::default());
-    components.insert(resources::Time::default());
-    components.insert(resources::Fps::default());
+    components.insert_resource(resources::Camera::new(ctx.viewport.get_aspect()));
+    components.insert_resource(resources::Input::default());
+    components.insert_resource(resources::Time::default());
+    components.insert_resource(resources::Fps::default());
 
     components
 }

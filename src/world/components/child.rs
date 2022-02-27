@@ -1,16 +1,12 @@
-use specs::{Component, VecStorage};
+use bevy_ecs::prelude::*;
 
-#[derive(Debug)]
+#[derive(Component)]
 pub struct Child {
-    pub parent_id: u32,
+    pub parent_id: Entity,
 }
 
 impl Child {
-    pub fn new(parent_id: u32) -> Self {
+    pub fn new(parent_id: Entity) -> Self {
         Self { parent_id }
     }
-}
-
-impl Component for Child {
-    type Storage = VecStorage<Self>;
 }

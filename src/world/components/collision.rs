@@ -1,12 +1,9 @@
 use crate::engine::*;
-use specs::{Component, VecStorage};
+use bevy_ecs::prelude::*;
 
+#[derive(Component)]
 pub struct Collision {
     pub polygons: Vec<collision::Polygon>,
-}
-
-impl Component for Collision {
-    type Storage = VecStorage<Self>;
 }
 
 impl Collision {

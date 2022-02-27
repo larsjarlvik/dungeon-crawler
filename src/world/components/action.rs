@@ -1,4 +1,4 @@
-use specs::{Component, VecStorage};
+use bevy_ecs::prelude::*;
 use std::time::Instant;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -7,14 +7,11 @@ pub enum CurrentAction {
     Attack(f32),
 }
 
+#[derive(Component)]
 pub struct Action {
     pub current: CurrentAction,
     pub set: Option<Instant>,
     pub length: f32,
-}
-
-impl Component for Action {
-    type Storage = VecStorage<Self>;
 }
 
 impl Action {

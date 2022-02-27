@@ -2,9 +2,10 @@ use crate::{
     engine::{bounding_box, pipelines::ParticleEmitter},
     utils::InterpolatedValue,
 };
+use bevy_ecs::prelude::*;
 use cgmath::*;
-use specs::{Component, VecStorage};
 
+#[derive(Component)]
 pub struct Particle {
     pub start_color: Vector3<f32>,
     pub end_color: Vector3<f32>,
@@ -30,8 +31,4 @@ impl Particle {
             },
         }
     }
-}
-
-impl Component for Particle {
-    type Storage = VecStorage<Self>;
 }

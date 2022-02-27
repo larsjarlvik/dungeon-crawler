@@ -1,4 +1,4 @@
-use specs::{Component, VecStorage};
+use bevy_ecs::prelude::*;
 use std::{collections::HashMap, time::Instant};
 
 use crate::config;
@@ -26,12 +26,9 @@ impl Channel {
     }
 }
 
+#[derive(Component)]
 pub struct Animations {
     pub channels: HashMap<String, Channel>,
-}
-
-impl Component for Animations {
-    type Storage = VecStorage<Self>;
 }
 
 impl Animations {

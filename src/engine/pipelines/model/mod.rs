@@ -12,7 +12,6 @@ use crate::{
 };
 use cgmath::*;
 pub use model::Model;
-use specs::{Join, WorldExt};
 use std::convert::TryInto;
 pub use uniforms::Uniforms;
 
@@ -29,25 +28,31 @@ impl ModelPipeline {
         }
     }
 
-    pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &pipelines::DeferredPipeline) {
-        let models = components.read_storage::<components::Model>();
-        let render = components.read_storage::<components::Render>();
-        let shadow = components.read_storage::<components::Shadow>();
-        let transform = components.read_storage::<components::Transform>();
-        let animation = components.read_storage::<components::Animations>();
-        let time = components.read_resource::<resources::Time>();
-        let camera = components.read_resource::<resources::Camera>();
+    pub fn render(&self, ctx: &engine::Context, components: &mut bevy_ecs::world::World, target: &pipelines::DeferredPipeline) {
+        let last_frame = { components.get_resource::<resources::Time>().unwrap().last_frame };
+        let (frustum, view_proj, shadow_matrix) = {
+            let camera = components.get_resource::<resources::Camera>().unwrap();
+            (camera.frustum, camera.view_proj, camera.get_shadow_matrix())
+        };
 
         let mut bundles = vec![];
         let mut shadow_bundles = vec![];
 
-        for (model, animation, render, shadow, transform) in (&models, (&animation).maybe(), &render, (&shadow).maybe(), &transform).join()
+        for (model, animation, render, shadow, transform) in components
+            .query::<(
+                &components::Model,
+                Option<&components::Animations>,
+                &components::Render,
+                Option<&components::Shadow>,
+                &components::Transform,
+            )>()
+            .iter(components)
         {
-            let model_matrix = transform.to_matrix(time.last_frame);
+            let model_matrix = transform.to_matrix(last_frame);
 
             if render.cull_frustum {
                 let transformed_bb = model.model.bounding_box.transform(model_matrix.into());
-                if !camera.frustum.test_bounding_box(&transformed_bb) {
+                if !frustum.test_bounding_box(&transformed_bb) {
                     continue;
                 }
             }
@@ -59,7 +64,7 @@ impl ModelPipeline {
                 &model.model.display_uniform_buffer,
                 self.display.uniform_bind_group_layout.index as u64,
                 bytemuck::cast_slice(&[Uniforms {
-                    view_proj: camera.view_proj.into(),
+                    view_proj: view_proj.into(),
                     model: model_matrix.into(),
                     inv_model,
                     joint_transforms: joint_transforms.clone().try_into().unwrap(),
@@ -74,7 +79,7 @@ impl ModelPipeline {
                     &model.model.shadow_uniform_buffer,
                     self.shadows.uniform_bind_group_layout.index as u64,
                     bytemuck::cast_slice(&[Uniforms {
-                        view_proj: camera.get_shadow_matrix().into(),
+                        view_proj: shadow_matrix.into(),
                         model: model_matrix.into(),
                         inv_model,
                         joint_transforms: joint_transforms.clone().try_into().unwrap(),

@@ -2,50 +2,51 @@ use crate::{
     engine::collision::{Intersection, Polygon, PolygonMethods},
     world::*,
 };
-use cgmath::*;
+use bevy_ecs::prelude::*;
 
-pub struct Action;
+pub fn action(
+    mut query: QuerySet<(
+        QueryState<(
+            &mut components::Action,
+            &components::Movement,
+            &components::Collider,
+            &components::Transform,
+        )>,
+        QueryState<(&mut components::Health, &components::Collision, &components::Transform)>,
+    )>,
+) {
+    let mut hits = vec![];
 
-impl<'a> System<'a> for Action {
-    type SystemData = (
-        Entities<'a>,
-        Read<'a, LazyUpdate>,
-        WriteStorage<'a, components::Action>,
-        WriteStorage<'a, components::Health>,
-        ReadStorage<'a, components::Movement>,
-        ReadStorage<'a, components::Collider>,
-        ReadStorage<'a, components::Collision>,
-        ReadStorage<'a, components::Transform>,
-    );
+    for (mut action, movement, collider, transform) in query.q0().iter_mut() {
+        match action.current {
+            components::CurrentAction::Attack(dmg) => {
+                let collider: Vec<Polygon> = collider
+                    .polygons
+                    .iter()
+                    .map(|p| p.transform(transform.translation.current, transform.rotation.current))
+                    .collect();
+                let velocity_dir = vec2(movement.direction.sin(), movement.direction.cos());
 
-    fn run(&mut self, (entities, lazy, mut action, mut health, movement, collider, collision, transform): Self::SystemData) {
-        for (action, movement, collider, t) in (&mut action, &movement, &collider, &transform).join() {
-            match action.current {
-                components::CurrentAction::Attack(dmg) => {
-                    let collider: Vec<Polygon> = collider
-                        .polygons
-                        .iter()
-                        .map(|p| p.transform(t.translation.current, t.rotation.current))
-                        .collect();
-
-                    let velocity_dir = vec2(movement.direction.sin(), movement.direction.cos());
-                    for polygon in collider {
-                        for (entity, health, collision, transform) in (&entities, &mut health, &collision, &transform).join() {
-                            if health.amount > 0.0 {
-                                attack(&polygon, health, collision, transform, velocity_dir, dmg);
-                                if health.amount <= 0.0 {
-                                    lazy.insert(entity, components::Delete);
-                                }
-                            }
-                        }
-                    }
-                }
-                _ => {}
+                hits.push((collider, velocity_dir, dmg));
             }
+            _ => {}
+        }
 
-            if let Some(action_changed) = action.set {
-                if action_changed.elapsed().as_secs_f32() > action.length {
-                    action.reset();
+        if let Some(action_changed) = action.set {
+            if action_changed.elapsed().as_secs_f32() > action.length {
+                action.reset();
+            }
+        }
+    }
+
+    for (mut health, collision, transform) in query.q1().iter_mut() {
+        if health.amount > 0.0 {
+            for (collider, velocity_dir, dmg) in hits.iter() {
+                for polygon in collider {
+                    attack(&polygon, &mut health, collision, transform, *velocity_dir, *dmg);
+                    if health.amount <= 0.0 {
+                        dbg!("DEAD");
+                    }
                 }
             }
         }

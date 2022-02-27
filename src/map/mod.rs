@@ -1,9 +1,8 @@
-use std::env;
-
 use crate::{engine, world::resources};
+use bevy_ecs::prelude::World;
 use cgmath::*;
 use rand::{prelude::StdRng, SeedableRng};
-use specs::WorldExt;
+use std::env;
 mod generator;
 mod tile;
 
@@ -34,11 +33,11 @@ impl Map {
         }
     }
 
-    pub fn update(&mut self, engine: &engine::Engine, world: &mut specs::World) {
+    pub fn update(&mut self, engine: &engine::Engine, world: &mut World) {
         let mut rng = StdRng::seed_from_u64(self.seed);
 
         let frustum = {
-            let camera = world.read_resource::<resources::Camera>();
+            let camera = world.get_resource::<resources::Camera>().unwrap();
             camera.frustum
         };
 
@@ -83,7 +82,7 @@ impl Map {
         }
     }
 
-    pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut specs::World, tile_name: &str) {
+    pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut World, tile_name: &str) {
         let mut rng = StdRng::seed_from_u64(self.seed);
         let decor = match tile::get_decor("edit") {
             Ok(variants) => variants[0].clone(),

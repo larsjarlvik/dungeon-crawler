@@ -1,11 +1,13 @@
 mod action;
-mod delete;
+mod animation;
+mod camera;
 mod flicker;
 mod movement;
 mod user_control;
 
-pub use action::Action;
-pub use delete::Parent;
-pub use flicker::Flicker;
-pub use movement::Movement;
-pub use user_control::UserControl;
+pub use action::action;
+pub use animation::animation;
+pub use camera::camera;
+pub use flicker::flicker;
+pub use movement::movement;
+pub use user_control::user_control;

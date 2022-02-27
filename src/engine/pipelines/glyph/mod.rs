@@ -3,8 +3,8 @@ use crate::{
     utils::{self, Interpolate},
     world::{components, resources},
 };
+use bevy_ecs::world::*;
 use cgmath::*;
-use specs::{Join, WorldExt};
 use wgpu_glyph::{ab_glyph, GlyphBrush, GlyphBrushBuilder, Section, Text};
 
 pub struct GlyphPipeline {
@@ -21,7 +21,7 @@ impl GlyphPipeline {
         Self { brush, staging_belt }
     }
 
-    pub fn render(&mut self, ctx: &engine::Context, components: &specs::World, target: &wgpu::TextureView) {
+    pub fn render(&mut self, ctx: &engine::Context, components: &mut World, target: &wgpu::TextureView) {
         let mut encoder = ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("glyph_encoder"),
         });
@@ -31,37 +31,31 @@ impl GlyphPipeline {
         ctx.queue.submit(Some(encoder.finish()));
     }
 
-    fn draw_3d(
-        &mut self,
-        ctx: &engine::Context,
-        components: &specs::World,
-        encoder: &mut wgpu::CommandEncoder,
-        target: &wgpu::TextureView,
-    ) {
-        let camera = components.read_resource::<resources::Camera>();
-        let transforms = components.read_storage::<components::Transform>();
-        let texts = components.read_storage::<components::Text>();
-        let time = components.read_resource::<resources::Time>();
+    fn draw_3d(&mut self, ctx: &engine::Context, components: &mut World, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
+        let view_proj = { components.get_resource::<resources::Camera>().unwrap().view_proj };
+        let last_frame = { components.get_resource::<resources::Time>().unwrap().last_frame };
         let (width, height) = ctx.viewport.get_render_size();
         let (width, height) = (width as f32 / 2.0, height as f32 / 2.0);
 
-        for (text, transform) in (&texts, &transforms).join() {
-            let scale = transform.scale.get(time.last_frame);
-            let screen_position = camera.view_proj * transform.to_matrix(time.last_frame) * vec4(0.0, 0.0, 0.0, 1.0);
+        components
+            .query::<(&components::Transform, &components::Text)>()
+            .for_each(components, |(transform, text)| {
+                let scale = transform.scale.get(last_frame);
+                let screen_position = view_proj * transform.to_matrix(last_frame) * vec4(0.0, 0.0, 0.0, 1.0);
 
-            let screen_position_x = width * (1.0 + screen_position.x / screen_position.w);
-            let screen_position_y = height * (1.0 - screen_position.y / screen_position.w);
+                let screen_position_x = width * (1.0 + screen_position.x / screen_position.w);
+                let screen_position_y = height * (1.0 - screen_position.y / screen_position.w);
 
-            self.brush.queue(Section {
-                screen_position: (screen_position_x, screen_position_y),
-                bounds: (ctx.viewport.width as f32, ctx.viewport.height as f32),
-                text: vec![Text::new(text.text.as_str()).with_color([1.0, 1.0, 1.0, 1.0]).with_scale(scale.y)],
-                layout: wgpu_glyph::Layout::default_single_line()
-                    .h_align(wgpu_glyph::HorizontalAlign::Center)
-                    .v_align(wgpu_glyph::VerticalAlign::Bottom),
-                ..Section::default()
+                self.brush.queue(Section {
+                    screen_position: (screen_position_x, screen_position_y),
+                    bounds: (ctx.viewport.width as f32, ctx.viewport.height as f32),
+                    text: vec![Text::new(text.text.as_str()).with_color([1.0, 1.0, 1.0, 1.0]).with_scale(scale.y)],
+                    layout: wgpu_glyph::Layout::default_single_line()
+                        .h_align(wgpu_glyph::HorizontalAlign::Center)
+                        .v_align(wgpu_glyph::VerticalAlign::Bottom),
+                    ..Section::default()
+                });
             });
-        }
 
         self.brush
             .draw_queued(

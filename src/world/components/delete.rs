@@ -1,8 +1,4 @@
-use specs::{Component, NullStorage};
+use bevy_ecs::prelude::*;
 
-#[derive(Default)]
+#[derive(Component)]
 pub struct Delete;
-
-impl Component for Delete {
-    type Storage = NullStorage<Self>;
-}

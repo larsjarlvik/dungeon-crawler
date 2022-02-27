@@ -1,16 +1,12 @@
 use crate::utils::{Interpolate, InterpolatedValue};
+use bevy_ecs::prelude::*;
 use cgmath::*;
-use specs::{Component, VecStorage};
 
-#[derive(Debug)]
+#[derive(Component, Debug)]
 pub struct Transform {
     pub translation: InterpolatedValue<Vector3<f32>>,
     pub rotation: InterpolatedValue<Quaternion<f32>>,
     pub scale: InterpolatedValue<Vector3<f32>>,
-}
-
-impl Component for Transform {
-    type Storage = VecStorage<Self>;
 }
 
 impl Transform {

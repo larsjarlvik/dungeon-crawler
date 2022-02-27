@@ -1,8 +1,8 @@
+use crate::engine::{self, model};
+use bevy_ecs::prelude::*;
 use std::collections::HashMap;
 
-use crate::engine::{self, model};
-use specs::{Component, VecStorage};
-
+#[derive(Component)]
 pub struct Model {
     pub depth_first_taversal_indices: Vec<(usize, Option<usize>)>,
     pub model: engine::pipelines::model::Model,
@@ -22,8 +22,4 @@ impl Model {
             animations: gltf.animations.clone(),
         }
     }
-}
-
-impl Component for Model {
-    type Storage = VecStorage<Self>;
 }

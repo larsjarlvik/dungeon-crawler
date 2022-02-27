@@ -1,40 +1,40 @@
+use crate::{utils::fbm, world::*};
+use bevy_ecs::prelude::*;
 use cgmath::vec3;
 
-use crate::{utils::fbm, world::*};
+pub fn flicker(
+    mut query: Query<(
+        &mut components::Flicker,
+        Option<&mut components::Light>,
+        Option<&mut components::Particle>,
+    )>,
+) {
+    for (mut flicker, mut light, mut particle) in query.iter_mut() {
+        let f = fbm(flicker.last, 3) * flicker.amount;
+        flicker.last += flicker.speed;
 
-pub struct Flicker;
+        let amount = (flicker.amount / 2.0) + f;
 
-impl<'a> System<'a> for Flicker {
-    type SystemData = (
-        WriteStorage<'a, components::Flicker>,
-        WriteStorage<'a, components::Light>,
-        WriteStorage<'a, components::Particle>,
-    );
+        if let Some(light) = &mut light {
+            let intensity = light.base_intensity;
+            let orig_offset = light.orig_offset;
 
-    fn run(&mut self, (mut flicker, mut light, mut particle): Self::SystemData) {
-        for (flicker, light, particle) in (&mut flicker, (&mut light).maybe(), (&mut particle).maybe()).join() {
-            let f = fbm(flicker.last, 3) * flicker.amount;
-            flicker.last += flicker.speed;
+            light.intensity.set(intensity - amount);
 
-            let amount = (flicker.amount / 2.0) + f;
+            let movement = ((flicker.amount - (flicker.amount / 2.0)) * 2.0) * 0.5;
+            light.offset.set(
+                orig_offset
+                    + vec3(
+                        fbm(flicker.last, 3) * movement,
+                        fbm(flicker.last, 3) * movement,
+                        fbm(flicker.last, 3) * movement,
+                    ),
+            );
+        }
 
-            if let Some(light) = light {
-                light.intensity.set(light.base_intensity - amount);
-
-                let movement = ((flicker.amount - (flicker.amount / 2.0)) * 2.0) * 0.5;
-                light.offset.set(
-                    light.orig_offset
-                        + vec3(
-                            fbm(flicker.last, 3) * movement,
-                            fbm(flicker.last, 3) * movement,
-                            fbm(flicker.last, 3) * movement,
-                        ),
-                );
-            }
-
-            if let Some(particle) = particle {
-                particle.strength.set(particle.base_strength - (amount * particle.base_strength));
-            }
+        if let Some(particle) = &mut particle {
+            let base_strength = particle.base_strength;
+            particle.strength.set(base_strength - (amount * base_strength));
         }
     }
 }
