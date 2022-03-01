@@ -3,6 +3,7 @@ use crate::{
     world::*,
 };
 use bevy_ecs::prelude::*;
+use bevy_transform::hierarchy::DespawnRecursiveExt;
 
 pub fn action(
     mut commands: Commands,
@@ -46,7 +47,7 @@ pub fn action(
                 for polygon in collider {
                     attack(&polygon, &mut health, collision, transform, *velocity_dir, *dmg);
                     if health.amount <= 0.0 {
-                        commands.entity(entity).despawn();
+                        commands.entity(entity).despawn_recursive();
                     }
                 }
             }

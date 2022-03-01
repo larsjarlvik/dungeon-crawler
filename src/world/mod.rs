@@ -87,25 +87,19 @@ impl<'a> World {
         if let Some(resources) = &mut self.resources {
             let collision = resources.character.collisions.get("character").unwrap();
 
-            self.components
-                .spawn()
-                .insert(components::Model::new("character"))
-                .insert(components::Collider::new(collision.clone()))
-                .insert(components::Animations::new("base", "idle"))
-                .insert(components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01))
-                .insert(components::Light::new(
-                    vec3(1.0, 1.0, 0.72),
-                    0.6,
-                    Some(10.0),
-                    vec3(0.0, 2.5, 0.0),
-                    0.0,
-                ))
-                .insert(components::Movement::new(15.0))
-                .insert(components::Action::new())
-                .insert(components::UserControl)
-                .insert(components::Render { cull_frustum: false })
-                .insert(components::Shadow)
-                .insert(components::Follow);
+            self.components.spawn().insert_bundle((
+                components::Model::new("character"),
+                components::Collider::new(collision.clone()),
+                components::Animations::new("base", "idle"),
+                components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
+                components::Light::new(vec3(1.0, 1.0, 0.72), 0.6, Some(10.0), vec3(0.0, 2.5, 0.0), 0.0),
+                components::Movement::new(15.0),
+                components::Action::new(),
+                components::UserControl,
+                components::Render { cull_frustum: false },
+                components::Shadow,
+                components::Follow,
+            ));
 
             if let Some(tile) = &map::edit_mode() {
                 resources.map.single_tile(engine, &mut self.components, &tile);
