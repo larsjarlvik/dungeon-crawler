@@ -9,6 +9,7 @@ use bevy_ecs::prelude::*;
 use cgmath::*;
 
 pub fn movement(
+    time: Res<resources::Time>,
     mut query: QuerySet<(
         QueryState<(&components::Collision, &components::Transform)>,
         QueryState<(
@@ -38,7 +39,7 @@ pub fn movement(
 
         let new_rot = cgmath::Quaternion::from_angle_y(Rad(movement.direction));
 
-        transform.rotation.set(current_rot.slerp(new_rot, 0.2));
+        transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
 
         if let Some(collider) = collider {
             let collider: Vec<Polygon> = collider
@@ -58,13 +59,13 @@ pub fn movement(
         match action.current {
             components::CurrentAction::Attack(_) => {
                 animation.set_animation("base", "attack", 2.0);
-                transform.translation.set(current_trans + velocity_dir);
+                transform.translation.set(current_trans + velocity_dir, time.frame);
                 movement.velocity *= 0.85;
             }
             components::CurrentAction::None => {
                 let velocity = vec2(velocity_dir.x, velocity_dir.z).distance(Vector2::zero());
                 if velocity > 0.01 {
-                    transform.translation.set(current_trans + velocity_dir);
+                    transform.translation.set(current_trans + velocity_dir, time.frame);
 
                     let animation_velocity = velocity / 0.04;
                     if animation_velocity > 2.5 {

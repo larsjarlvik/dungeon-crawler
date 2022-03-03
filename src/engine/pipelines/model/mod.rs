@@ -30,7 +30,7 @@ impl ModelPipeline {
     }
 
     pub fn render(&self, ctx: &engine::Context, components: &mut bevy_ecs::world::World, target: &pipelines::DeferredPipeline) {
-        let last_frame = { components.get_resource::<resources::Time>().unwrap().last_frame };
+        let alpha = { components.get_resource::<resources::Time>().unwrap().alpha };
         let (frustum, view_proj, shadow_matrix) = {
             let camera = components.get_resource::<resources::Camera>().unwrap();
             (camera.frustum, camera.view_proj, camera.get_shadow_matrix())
@@ -49,7 +49,7 @@ impl ModelPipeline {
             )>()
             .iter(components)
         {
-            let model_matrix = transform.to_matrix(last_frame);
+            let model_matrix = transform.to_matrix(alpha);
             let model = ctx
                 .model_instances
                 .get(&model.key)

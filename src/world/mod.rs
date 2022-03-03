@@ -30,8 +30,6 @@ pub struct World {
     pub schedule: Schedule,
     pub post_schedule: Schedule,
     pub game_state: GameState,
-    update_time: f32,
-    last_frame: std::time::Instant,
     pub resources: Option<Resources>,
 }
 
@@ -62,8 +60,6 @@ impl<'a> World {
             components,
             schedule,
             post_schedule,
-            update_time: 0.0,
-            last_frame: Instant::now(),
             resources: None,
             game_state: GameState::Loading,
         }
@@ -110,8 +106,12 @@ impl<'a> World {
     }
 
     pub fn update(&mut self) {
-        self.update_time += self.last_frame.elapsed().as_secs_f32();
-        self.update_time = self.update_time.min(5.0);
+        let time_step = config::time_step().as_secs_f32();
+        let mut accumulator = {
+            let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
+            time.accumulator += (Instant::now() - time.time).as_secs_f32();
+            time.accumulator
+        };
 
         {
             let mut fps = self.components.get_resource_mut::<resources::Fps>().unwrap();
@@ -120,28 +120,60 @@ impl<'a> World {
 
         match self.game_state {
             GameState::Running => {
-                while self.update_time >= 0.0 {
+                while accumulator >= time_step {
                     self.schedule.run(&mut self.components);
-                    self.update_time -= config::time_step().as_secs_f32();
+                    accumulator -= time_step;
 
-                    {
-                        let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
-                        time.reset();
-                    }
+                    let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
+                    time.frame += 1;
                 }
 
                 let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
-                time.freeze(self.last_frame.elapsed().as_secs_f32());
+                time.freeze(accumulator, time_step);
 
                 self.post_schedule.run(&mut self.components);
             }
-            _ => {
-                self.update_time = 0.0;
-            }
+            _ => {}
+        }
+    }
+
+    /*
+
+       double t = 0.0;
+    double dt = 0.01;
+
+    double currentTime = hires_time_in_seconds();
+    double accumulator = 0.0;
+
+    State previous;
+    State current;
+
+    while ( !quit )
+    {
+        double newTime = time();
+        double frameTime = newTime - currentTime;
+        if ( frameTime > 0.25 )
+            frameTime = 0.25;
+        currentTime = newTime;
+
+        accumulator += frameTime;
+
+        while ( accumulator >= dt )
+        {
+            previousState = currentState;
+            integrate( currentState, t, dt );
+            t += dt;
+            accumulator -= dt;
         }
 
-        self.last_frame = Instant::now();
+        const double alpha = accumulator / dt;
+
+        State state = currentState * alpha +
+            previousState * ( 1.0 - alpha );
+
+        render( state );
     }
+    */
 }
 
 pub fn create_components(ctx: &Context) -> bevy_ecs::world::World {

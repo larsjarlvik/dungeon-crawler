@@ -3,6 +3,7 @@ use bevy_ecs::prelude::*;
 use cgmath::vec3;
 
 pub fn flicker(
+    time: Res<resources::Time>,
     mut query: Query<(
         &mut components::Flicker,
         Option<&mut components::Light>,
@@ -19,7 +20,7 @@ pub fn flicker(
             let intensity = light.base_intensity;
             let orig_offset = light.orig_offset;
 
-            light.intensity.set(intensity - amount);
+            light.intensity.set(intensity - amount, time.frame);
 
             let movement = ((flicker.amount - (flicker.amount / 2.0)) * 2.0) * 0.5;
             light.offset.set(
@@ -28,13 +29,13 @@ pub fn flicker(
                         fbm(flicker.last, 3) * movement,
                         fbm(flicker.last, 3) * movement,
                         fbm(flicker.last, 3) * movement,
-                    ),
+                    ), time.frame
             );
         }
 
         if let Some(particle) = &mut particle {
             let base_strength = particle.base_strength;
-            particle.strength.set(base_strength - (amount * base_strength));
+            particle.strength.set(base_strength - (amount * base_strength), time.frame);
         }
     }
 }

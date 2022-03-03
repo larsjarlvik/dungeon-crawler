@@ -174,9 +174,9 @@ impl DeferredPipeline {
     }
 
     fn get_lights(&self, ctx: &engine::Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 32]) {
-        let last_frame = {
+        let alpha = {
             let time = components.get_resource::<resources::Time>().unwrap();
-            time.last_frame
+            time.alpha
         };
         let (frustum, target) = {
             let camera = components.get_resource::<resources::Camera>().unwrap();
@@ -190,7 +190,7 @@ impl DeferredPipeline {
             .iter(&components)
             .filter(|(light, transform)| {
                 if let Some(bounding_box) = &light.bounding_box {
-                    frustum.test_bounding_box(&bounding_box.transform(transform.to_matrix(last_frame).into()))
+                    frustum.test_bounding_box(&bounding_box.transform(transform.to_matrix(alpha).into()))
                 } else {
                     true
                 }
@@ -199,9 +199,9 @@ impl DeferredPipeline {
 
         visible_lights.sort_by(|a, b| {
             a.1.translation
-                .get(last_frame)
+                .get(alpha)
                 .distance(target)
-                .partial_cmp(&b.1.translation.get(last_frame).distance(target))
+                .partial_cmp(&b.1.translation.get(alpha).distance(target))
                 .unwrap()
         });
 
@@ -212,9 +212,9 @@ impl DeferredPipeline {
             }
 
             lights[i] = uniforms::LightUniforms {
-                position: (transform.translation.get(last_frame) + light.offset.get(last_frame)).into(),
+                position: (transform.translation.get(alpha) + light.offset.get(alpha)).into(),
                 radius,
-                color: (light.color * light.intensity.get(last_frame)).into(),
+                color: (light.color * light.intensity.get(alpha)).into(),
                 bloom: light.bloom * ctx.settings.bloom,
             };
         }

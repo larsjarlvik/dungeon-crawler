@@ -68,9 +68,9 @@ impl ParticlePipeline {
             let camera = components.get_resource::<resources::Camera>().unwrap();
             (camera.view, camera.proj, camera.frustum)
         };
-        let (last_frame, total_time) = {
+        let (alpha, total_time) = {
             let time = components.get_resource::<resources::Time>().unwrap();
-            (time.last_frame, time.total_time)
+            (time.alpha, time.total_time)
         };
         let mut bundles = vec![];
 
@@ -79,7 +79,7 @@ impl ParticlePipeline {
             .iter(&components)
         {
             if render.cull_frustum {
-                let transformed_bb = particle.bounding_box.transform(transform.to_matrix(last_frame).into());
+                let transformed_bb = particle.bounding_box.transform(transform.to_matrix(alpha).into());
                 if !frustum.test_bounding_box(&transformed_bb) {
                     continue;
                 }
@@ -88,12 +88,12 @@ impl ParticlePipeline {
             let uniforms = uniforms::Uniforms {
                 view: view.into(),
                 proj: proj.into(),
-                model: transform.to_matrix(last_frame).into(),
+                model: transform.to_matrix(alpha).into(),
                 start_color: particle.start_color.extend(1.0).into(),
                 end_color: particle.end_color.extend(1.0).into(),
                 life: [
                     total_time.elapsed().as_secs_f32(),
-                    particle.strength.get(last_frame),
+                    particle.strength.get(alpha),
                     particle.size,
                     0.0,
                 ],

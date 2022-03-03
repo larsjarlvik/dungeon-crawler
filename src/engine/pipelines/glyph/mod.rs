@@ -33,15 +33,15 @@ impl GlyphPipeline {
 
     fn draw_3d(&mut self, ctx: &engine::Context, components: &mut World, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
         let view_proj = { components.get_resource::<resources::Camera>().unwrap().view_proj };
-        let last_frame = { components.get_resource::<resources::Time>().unwrap().last_frame };
+        let alpha = { components.get_resource::<resources::Time>().unwrap().alpha };
         let (width, height) = ctx.viewport.get_render_size();
         let (width, height) = (width as f32 / 2.0, height as f32 / 2.0);
 
         components
             .query::<(&components::Transform, &components::Text)>()
             .for_each(components, |(transform, text)| {
-                let scale = transform.scale.get(last_frame);
-                let screen_position = view_proj * transform.to_matrix(last_frame) * vec4(0.0, 0.0, 0.0, 1.0);
+                let scale = transform.scale.get(alpha);
+                let screen_position = view_proj * transform.to_matrix(alpha) * vec4(0.0, 0.0, 0.0, 1.0);
 
                 let screen_position_x = width * (1.0 + screen_position.x / screen_position.w);
                 let screen_position_y = height * (1.0 - screen_position.y / screen_position.w);

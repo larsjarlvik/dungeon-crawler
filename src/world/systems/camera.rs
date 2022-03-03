@@ -7,7 +7,7 @@ pub fn camera(
     query: Query<(&components::Transform, &components::Follow)>,
 ) {
     for (transform, _) in query.iter() {
-        let t = transform.translation.get(time.last_frame);
+        let t = transform.translation.get(time.alpha);
         camera.set(t);
     }
 }
