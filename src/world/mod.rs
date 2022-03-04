@@ -110,7 +110,7 @@ impl<'a> World {
         let mut accumulator = {
             let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
             time.accumulator += (Instant::now() - time.time).as_secs_f32();
-            time.accumulator
+            time.accumulator.min(3.0)
         };
 
         {
@@ -121,11 +121,11 @@ impl<'a> World {
         match self.game_state {
             GameState::Running => {
                 while accumulator >= time_step {
-                    self.schedule.run(&mut self.components);
-                    accumulator -= time_step;
-
                     let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
                     time.frame += 1;
+                    accumulator -= time_step;
+
+                    self.schedule.run(&mut self.components);
                 }
 
                 let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();

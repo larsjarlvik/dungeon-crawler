@@ -39,7 +39,7 @@ pub trait Interpolate<T> {
 impl Interpolate<f32> for InterpolatedValue<f32> {
     fn get(&self, factor: f32) -> f32 {
         if let Some(prev_value) = self.previous {
-            return self.current * factor + prev_value * ( 1.0 - factor );
+            return self.current * factor + prev_value * (1.0 - factor);
         }
 
         self.current
