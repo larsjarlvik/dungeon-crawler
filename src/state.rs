@@ -116,12 +116,12 @@ impl State {
             );
 
             self.engine.scaling_pipeline.render(&self.engine.ctx, &anti_aliasing);
+            anti_aliasing.resolve();
+
             self.engine
                 .glyph_pipeline
-                .render(&self.engine.ctx, &mut self.world.components, &anti_aliasing);
-            self.engine.joystick_pipeline.render(&self.engine.ctx, &anti_aliasing);
-
-            anti_aliasing.resolve();
+                .render(&self.engine.ctx, &mut self.world.components, &view);
+            self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
             self.ui.render(&self.engine.ctx, &window, &view);
 
             frame.present();
