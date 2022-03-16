@@ -67,6 +67,7 @@ impl Settings {
                     });
                     ui.end_row();
                     ui.checkbox(&mut self.settings.show_fps, "Show FPS");
+                    ui.checkbox(&mut self.settings.smaa, "Antialiasing");
                     ui.end_row();
                 });
         });

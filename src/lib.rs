@@ -89,6 +89,13 @@ pub fn main() {
                                     None => window.set_fullscreen(Some(Fullscreen::Borderless(None))),
                                 }
                             }
+
+                            if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::S) == KeyState::Pressed(false)
+                            {
+                                state.engine.ctx.settings.smaa = !state.engine.ctx.settings.smaa;
+                                state.engine.ctx.settings.store();
+                                state.world.game_state = GameState::Reload;
+                            }
                         }
                         WindowEvent::CursorMoved { position, .. } => {
                             state.mouse_move(0, position.x as f32, position.y as f32);
