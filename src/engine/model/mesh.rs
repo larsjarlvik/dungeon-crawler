@@ -1,6 +1,7 @@
 use super::primitive;
 use crate::engine::bounding_box;
 
+#[derive(Clone)]
 pub struct Mesh {
     pub name: String,
     pub primitives: Vec<primitive::Primitive>,

@@ -1,29 +1,12 @@
-use std::collections::HashMap;
+use bevy_ecs::prelude::*;
 
-use crate::engine::{self, model};
-use specs::{Component, VecStorage};
-
+#[derive(Component)]
 pub struct Model {
-    pub depth_first_taversal_indices: Vec<(usize, Option<usize>)>,
-    pub model: engine::pipelines::model::Model,
-    pub nodes: Vec<model::node::Node>,
-    pub skins: Vec<model::skin::Skin>,
-    pub animations: HashMap<String, model::animation::Animation>,
+    pub key: String,
 }
 
 impl Model {
-    pub fn new(engine: &engine::Engine, gltf: &model::GltfModel, name: &str) -> Self {
-        let model = engine.get_mesh(gltf, name);
-        Self {
-            model,
-            depth_first_taversal_indices: gltf.depth_first_taversal_indices.clone(),
-            nodes: gltf.nodes.clone(),
-            skins: gltf.skins.clone(),
-            animations: gltf.animations.clone(),
-        }
+    pub fn new(key: &str) -> Self {
+        Self { key: key.to_string() }
     }
-}
-
-impl Component for Model {
-    type Storage = VecStorage<Self>;
 }

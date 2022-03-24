@@ -6,13 +6,13 @@ use crate::{
     config,
     engine::{
         self,
+        model::GltfModelNodes,
         pipelines::{self},
     },
     world::*,
 };
 use cgmath::*;
 pub use model::Model;
-use specs::{Join, WorldExt};
 use std::convert::TryInto;
 pub use uniforms::Uniforms;
 
@@ -29,37 +29,47 @@ impl ModelPipeline {
         }
     }
 
-    pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &pipelines::DeferredPipeline) {
-        let models = components.read_storage::<components::Model>();
-        let render = components.read_storage::<components::Render>();
-        let shadow = components.read_storage::<components::Shadow>();
-        let transform = components.read_storage::<components::Transform>();
-        let animation = components.read_storage::<components::Animations>();
-        let time = components.read_resource::<resources::Time>();
-        let camera = components.read_resource::<resources::Camera>();
+    pub fn render(&self, ctx: &engine::Context, components: &mut bevy_ecs::world::World, target: &pipelines::DeferredPipeline) {
+        let alpha = { components.get_resource::<resources::Time>().unwrap().alpha };
+        let (frustum, view_proj, shadow_matrix) = {
+            let camera = components.get_resource::<resources::Camera>().unwrap();
+            (camera.frustum, camera.view_proj, camera.get_shadow_matrix())
+        };
 
         let mut bundles = vec![];
         let mut shadow_bundles = vec![];
 
-        for (model, animation, render, shadow, transform) in (&models, (&animation).maybe(), &render, (&shadow).maybe(), &transform).join()
+        for (model, animation, render, shadow, transform) in components
+            .query::<(
+                &components::Model,
+                Option<&components::Animations>,
+                &components::Render,
+                Option<&components::Shadow>,
+                &components::Transform,
+            )>()
+            .iter(components)
         {
-            let model_matrix = transform.to_matrix(time.last_frame);
+            let model_matrix = transform.to_matrix(alpha);
+            let model = ctx
+                .model_instances
+                .get(&model.key)
+                .expect(format!("Could not find model \"{}\"!", model.key).as_str());
 
             if render.cull_frustum {
                 let transformed_bb = model.model.bounding_box.transform(model_matrix.into());
-                if !camera.frustum.test_bounding_box(&transformed_bb) {
+                if !frustum.test_bounding_box(&transformed_bb) {
                     continue;
                 }
             }
 
-            let joint_transforms = get_joint_transforms(&model, &animation);
+            let joint_transforms = get_joint_transforms(&model.nodes, &animation);
             let inv_model = model_matrix.invert().unwrap().transpose().into();
 
             ctx.queue.write_buffer(
                 &model.model.display_uniform_buffer,
                 self.display.uniform_bind_group_layout.index as u64,
                 bytemuck::cast_slice(&[Uniforms {
-                    view_proj: camera.view_proj.into(),
+                    view_proj: view_proj.into(),
                     model: model_matrix.into(),
                     inv_model,
                     joint_transforms: joint_transforms.clone().try_into().unwrap(),
@@ -74,7 +84,7 @@ impl ModelPipeline {
                     &model.model.shadow_uniform_buffer,
                     self.shadows.uniform_bind_group_layout.index as u64,
                     bytemuck::cast_slice(&[Uniforms {
-                        view_proj: camera.get_shadow_matrix().into(),
+                        view_proj: shadow_matrix.into(),
                         model: model_matrix.into(),
                         inv_model,
                         joint_transforms: joint_transforms.clone().try_into().unwrap(),
@@ -90,7 +100,7 @@ impl ModelPipeline {
     }
 }
 
-fn get_joint_transforms(model: &components::Model, animation: &Option<&components::Animations>) -> Vec<[[f32; 4]; 4]> {
+fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::Animations>) -> Vec<[[f32; 4]; 4]> {
     if let Some(animation) = animation {
         let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
 
@@ -99,11 +109,11 @@ fn get_joint_transforms(model: &components::Model, animation: &Option<&component
 
             if blend_factor < 1.0 {
                 if let Some(prev) = &channel.prev {
-                    animate(model, &prev, &mut joint_transforms, 1.0 - blend_factor);
+                    animate(nodes, &prev, &mut joint_transforms, 1.0 - blend_factor);
                 }
             }
 
-            animate(model, &channel.current, &mut joint_transforms, blend_factor);
+            animate(nodes, &channel.current, &mut joint_transforms, blend_factor);
         });
 
         joint_transforms.iter().map(|jm| jm.clone().into()).collect()
@@ -113,33 +123,34 @@ fn get_joint_transforms(model: &components::Model, animation: &Option<&component
 }
 
 fn animate(
-    model: &components::Model,
+    nodes: &GltfModelNodes,
     animation: &components::animation::Animation,
     joint_matrices: &mut Vec<Matrix4<f32>>,
     blend_factor: f32,
 ) {
-    let mut nodes = model.nodes.clone();
-    let model_animation = model
+    let mut nodes = nodes.clone();
+    let model_animation = nodes
         .animations
         .get(&animation.name)
         .expect(format!("Could not find animation: {}", &animation.name).as_str());
 
-    if model_animation.animate_nodes(&mut nodes, animation.elapsed % model_animation.total_time) {
-        for (index, parent_index) in &model.depth_first_taversal_indices {
+    if model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed % model_animation.total_time) {
+        for (index, parent_index) in &nodes.depth_first_taversal_indices {
             let parent_transform = parent_index
                 .map(|id| {
-                    let parent = &nodes[id];
+                    let parent = &nodes.nodes[id];
                     parent.global_transform_matrix
                 })
                 .or(Matrix4::identity().into());
 
             if let Some(matrix) = parent_transform {
-                let node = &mut nodes[*index];
+                let node = &mut nodes.nodes[*index];
                 node.apply_transform(matrix);
             }
         }
 
         let transforms: Vec<(usize, Matrix4<f32>)> = nodes
+            .nodes
             .iter()
             .filter(|n| n.skin_index.is_some())
             .map(|n| {
@@ -151,9 +162,9 @@ fn animate(
             .collect();
 
         for (s_index, inverse_transform) in transforms {
-            model.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
+            nodes.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
                 joint_matrices[j_index] = joint_matrices[j_index].lerp(
-                    inverse_transform * nodes[joint.node_id].global_transform_matrix * joint.inverse_bind_matrix,
+                    inverse_transform * nodes.nodes[joint.node_id].global_transform_matrix * joint.inverse_bind_matrix,
                     blend_factor,
                 );
             });

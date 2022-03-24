@@ -1,7 +1,7 @@
+use bevy_ecs::prelude::*;
 use rand::Rng;
-use specs::{Component, VecStorage};
 
-#[derive(Debug)]
+#[derive(Component, Debug)]
 pub struct Flicker {
     pub amount: f32,
     pub last: f32,
@@ -17,8 +17,4 @@ impl Flicker {
             speed,
         }
     }
-}
-
-impl Component for Flicker {
-    type Storage = VecStorage<Self>;
 }

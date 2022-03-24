@@ -1,10 +1,10 @@
-use crate::config;
 use cgmath::*;
 
 #[derive(Debug)]
 pub struct InterpolatedValue<T> {
     pub current: T,
     pub previous: Option<T>,
+    frame: u32,
 }
 
 impl<T> InterpolatedValue<T> {
@@ -12,14 +12,18 @@ impl<T> InterpolatedValue<T> {
         Self {
             current: value,
             previous: None,
+            frame: 0,
         }
     }
 
-    pub fn set(&mut self, value: T)
+    pub fn set(&mut self, value: T, frame: u32)
     where
         T: Copy,
     {
-        self.previous = Some(self.current);
+        if frame > self.frame {
+            self.previous = Some(self.current);
+            self.frame = frame;
+        }
         self.current = value;
     }
 
@@ -33,10 +37,9 @@ pub trait Interpolate<T> {
 }
 
 impl Interpolate<f32> for InterpolatedValue<f32> {
-    fn get(&self, frame_time: f32) -> f32 {
+    fn get(&self, factor: f32) -> f32 {
         if let Some(prev_value) = self.previous {
-            let factor = frame_time / config::time_step().as_secs_f32();
-            return vec1(prev_value).lerp(vec1(self.current), factor).x;
+            return self.current * factor + prev_value * (1.0 - factor);
         }
 
         self.current
@@ -44,9 +47,8 @@ impl Interpolate<f32> for InterpolatedValue<f32> {
 }
 
 impl Interpolate<Vector2<f32>> for InterpolatedValue<Vector2<f32>> {
-    fn get(&self, frame_time: f32) -> Vector2<f32> {
+    fn get(&self, factor: f32) -> Vector2<f32> {
         if let Some(prev_value) = self.previous {
-            let factor = frame_time / config::time_step().as_secs_f32();
             return prev_value.lerp(self.current, factor);
         }
 
@@ -55,9 +57,8 @@ impl Interpolate<Vector2<f32>> for InterpolatedValue<Vector2<f32>> {
 }
 
 impl Interpolate<Vector3<f32>> for InterpolatedValue<Vector3<f32>> {
-    fn get(&self, frame_time: f32) -> Vector3<f32> {
+    fn get(&self, factor: f32) -> Vector3<f32> {
         if let Some(prev_value) = self.previous {
-            let factor = frame_time / config::time_step().as_secs_f32();
             return prev_value.lerp(self.current, factor);
         }
 
@@ -66,9 +67,8 @@ impl Interpolate<Vector3<f32>> for InterpolatedValue<Vector3<f32>> {
 }
 
 impl Interpolate<Quaternion<f32>> for InterpolatedValue<Quaternion<f32>> {
-    fn get(&self, frame_time: f32) -> Quaternion<f32> {
+    fn get(&self, factor: f32) -> Quaternion<f32> {
         if let Some(prev_value) = self.previous {
-            let factor = frame_time / config::time_step().as_secs_f32();
             return prev_value.slerp(self.current, factor);
         }
 

@@ -1,9 +1,9 @@
+use bevy_ecs::prelude::*;
 use cgmath::*;
-use specs::{Component, VecStorage};
 
 use crate::{engine::bounding_box, utils::InterpolatedValue};
 
-#[derive(Debug)]
+#[derive(Component, Debug)]
 pub struct Light {
     pub color: Vector3<f32>,
     pub base_intensity: f32,
@@ -29,7 +29,7 @@ impl Light {
         Self {
             color,
             base_intensity: intensity,
-            intensity: InterpolatedValue::new(intensity * 2.0),
+            intensity: InterpolatedValue::new(intensity),
             radius,
             bounding_box,
             offset: InterpolatedValue::new(offset),
@@ -37,8 +37,4 @@ impl Light {
             bloom,
         }
     }
-}
-
-impl Component for Light {
-    type Storage = VecStorage<Self>;
 }

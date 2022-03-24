@@ -2,6 +2,7 @@ use super::vertex::{Vertex, VertexPosition};
 use crate::engine::bounding_box;
 use cgmath::*;
 
+#[derive(Clone)]
 pub struct Primitive {
     pub indices: Vec<u32>,
     pub vertices: Vec<Vertex>,

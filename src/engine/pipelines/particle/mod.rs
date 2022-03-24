@@ -6,8 +6,8 @@ use crate::{
     utils::Interpolate,
     world::{components, resources},
 };
+use bevy_ecs::prelude::World;
 use rand::Rng;
-use specs::{Join, WorldExt};
 mod uniforms;
 mod vertex;
 
@@ -63,40 +63,51 @@ impl ParticlePipeline {
         }
     }
 
-    pub fn render(&self, ctx: &engine::Context, components: &specs::World, target: &wgpu::TextureView, depth_target: &wgpu::TextureView) {
-        let camera = components.read_resource::<resources::Camera>();
-        let time = components.read_resource::<resources::Time>();
-        let render = components.read_storage::<components::Render>();
-        let particle = components.read_storage::<components::Particle>();
-        let transform = components.read_storage::<components::Transform>();
+    pub fn render(&self, ctx: &engine::Context, components: &mut World, target: &wgpu::TextureView, depth_target: &wgpu::TextureView) {
+        let (view, proj, frustum) = {
+            let camera = components.get_resource::<resources::Camera>().unwrap();
+            (camera.view, camera.proj, camera.frustum)
+        };
+        let (alpha, total_time) = {
+            let time = components.get_resource::<resources::Time>().unwrap();
+            (time.alpha, time.total_time)
+        };
         let mut bundles = vec![];
 
-        for (particle, transform, render) in (&particle, &transform, &render).join() {
+        for (particle, transform, render) in components
+            .query::<(&components::Particle, &components::Transform, &components::Render)>()
+            .iter(&components)
+        {
             if render.cull_frustum {
-                let transformed_bb = particle.bounding_box.transform(transform.to_matrix(time.last_frame).into());
-                if !camera.frustum.test_bounding_box(&transformed_bb) {
+                let transformed_bb = particle.bounding_box.transform(transform.to_matrix(alpha).into());
+                if !frustum.test_bounding_box(&transformed_bb) {
                     continue;
                 }
             }
 
             let uniforms = uniforms::Uniforms {
-                view: camera.view.into(),
-                proj: camera.proj.into(),
-                model: transform.to_matrix(time.last_frame).into(),
+                view: view.into(),
+                proj: proj.into(),
+                model: transform.to_matrix(alpha).into(),
                 start_color: particle.start_color.extend(1.0).into(),
                 end_color: particle.end_color.extend(1.0).into(),
                 life: [
-                    time.total_time.elapsed().as_secs_f32(),
-                    particle.strength.get(time.last_frame),
+                    total_time.elapsed().as_secs_f32(),
+                    particle.strength.get(alpha),
                     particle.size,
                     0.0,
                 ],
             };
 
-            ctx.queue
-                .write_buffer(&particle.emitter.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
+            let emitter = ctx
+                .emitter_instances
+                .get(&particle.emitter)
+                .expect("Could not find particle emitter!");
 
-            bundles.push(&particle.emitter.render_bundle);
+            ctx.queue
+                .write_buffer(&emitter.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
+
+            bundles.push(&emitter.render_bundle);
         }
 
         builders::RenderTargetBuilder::new(ctx, "particle")

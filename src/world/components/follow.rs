@@ -1,8 +1,4 @@
-use specs::{Component, NullStorage};
+use bevy_ecs::prelude::*;
 
-#[derive(Default)]
+#[derive(Component)]
 pub struct Follow;
-
-impl Component for Follow {
-    type Storage = NullStorage<Self>;
-}

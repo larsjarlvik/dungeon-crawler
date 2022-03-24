@@ -4,8 +4,8 @@ use crate::{
     utils::Interpolate,
     world::{components, resources},
 };
+use bevy_ecs::prelude::World;
 use cgmath::*;
-use specs::{Join, WorldExt};
 use std::mem;
 
 mod uniforms;
@@ -122,14 +122,18 @@ impl DeferredPipeline {
         );
     }
 
-    pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
-        let camera = components.read_resource::<resources::Camera>();
-        let (lights_count, lights) = self.get_lights(ctx, &camera, components);
+    pub fn update(&mut self, ctx: &engine::Context, components: &mut World) {
+        let (view_proj, shadow_matrix, eye) = {
+            let camera = components.get_resource::<resources::Camera>().unwrap();
+            (camera.view_proj, camera.get_shadow_matrix(), camera.eye)
+        };
+
+        let (lights_count, lights) = self.get_lights(ctx, components);
 
         let uniforms = uniforms::Uniforms {
-            inv_view_proj: camera.view_proj.invert().unwrap().into(),
-            shadow_matrix: camera.get_shadow_matrix().into(),
-            eye_pos: camera.eye.to_vec().extend(0.0).into(),
+            inv_view_proj: view_proj.invert().unwrap().into(),
+            shadow_matrix: shadow_matrix.into(),
+            eye_pos: eye.to_vec().extend(0.0).into(),
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             lights,
             lights_count,
@@ -169,25 +173,24 @@ impl DeferredPipeline {
         }
     }
 
-    fn get_lights(
-        &self,
-        ctx: &engine::Context,
-        camera: &resources::Camera,
-        components: &specs::World,
-    ) -> (i32, [uniforms::LightUniforms; 32]) {
-        let time = components.read_resource::<resources::Time>();
-        let light_sources = components.read_storage::<components::Light>();
-        let transform = components.read_storage::<components::Transform>();
+    fn get_lights(&self, ctx: &engine::Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 32]) {
+        let alpha = {
+            let time = components.get_resource::<resources::Time>().unwrap();
+            time.alpha
+        };
+        let (frustum, target) = {
+            let camera = components.get_resource::<resources::Camera>().unwrap();
+            (camera.frustum, camera.target)
+        };
 
         let mut lights: [uniforms::LightUniforms; 32] = Default::default();
 
-        let mut visible_lights: Vec<(&components::Light, &components::Transform)> = (&light_sources, &transform)
-            .join()
+        let mut visible_lights: Vec<(&components::Light, &components::Transform)> = components
+            .query::<(&components::Light, &components::Transform)>()
+            .iter(&components)
             .filter(|(light, transform)| {
                 if let Some(bounding_box) = &light.bounding_box {
-                    camera
-                        .frustum
-                        .test_bounding_box(&bounding_box.transform(transform.to_matrix(time.last_frame).into()))
+                    frustum.test_bounding_box(&bounding_box.transform(transform.to_matrix(alpha).into()))
                 } else {
                     true
                 }
@@ -196,9 +199,9 @@ impl DeferredPipeline {
 
         visible_lights.sort_by(|a, b| {
             a.1.translation
-                .get(time.last_frame)
-                .distance(camera.target)
-                .partial_cmp(&b.1.translation.get(time.last_frame).distance(camera.target))
+                .get(alpha)
+                .distance(target)
+                .partial_cmp(&b.1.translation.get(alpha).distance(target))
                 .unwrap()
         });
 
@@ -209,9 +212,9 @@ impl DeferredPipeline {
             }
 
             lights[i] = uniforms::LightUniforms {
-                position: (transform.translation.get(time.last_frame) + light.offset.get(time.last_frame)).into(),
+                position: (transform.translation.get(alpha) + light.offset.get(alpha)).into(),
                 radius,
-                color: (light.color * light.intensity.get(time.last_frame)).into(),
+                color: (light.color * light.intensity.get(alpha)).into(),
                 bloom: light.bloom * ctx.settings.bloom,
             };
         }

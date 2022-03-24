@@ -4,7 +4,7 @@ use crate::{
     engine::{self, pipelines::builders},
     world::resources,
 };
-use specs::WorldExt;
+use bevy_ecs::prelude::World;
 pub use uniforms::Uniforms;
 
 pub struct JoystickPipeline {
@@ -59,10 +59,10 @@ impl JoystickPipeline {
         }
     }
 
-    pub fn update(&mut self, ctx: &engine::Context, components: &specs::World) {
+    pub fn update(&mut self, ctx: &engine::Context, components: &World) {
         self.is_visible = false;
-        let input = components.read_resource::<resources::Input>();
-        let camera = components.read_resource::<resources::Camera>();
+        let input = components.get_resource::<resources::Input>().unwrap();
+        let camera = components.get_resource::<resources::Camera>().unwrap();
 
         if let Some(joystick) = &input.joystick {
             if let Some(center) = joystick.center {

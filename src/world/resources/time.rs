@@ -2,8 +2,11 @@ use std::time::Instant;
 
 pub struct Time {
     pub total_time: Instant,
-    time: Instant,
+    pub time: Instant,
     pub last_frame: f32,
+    pub accumulator: f32,
+    pub alpha: f32,
+    pub frame: u32,
 }
 
 impl Default for Time {
@@ -12,16 +15,19 @@ impl Default for Time {
             total_time: Instant::now(),
             time: Instant::now(),
             last_frame: 0.0,
+            accumulator: 0.0,
+            alpha: 0.0,
+            frame: 0,
         }
     }
 }
 
 impl Time {
-    pub fn reset(&mut self) {
-        self.time = Instant::now();
-    }
-
-    pub fn freeze(&mut self) {
+    pub fn freeze(&mut self, accumulator: f32, time_step: f32) {
         self.last_frame = self.time.elapsed().as_secs_f32();
+        self.alpha = accumulator / time_step;
+        self.accumulator = accumulator;
+        self.time = Instant::now();
+        self.frame += 1;
     }
 }

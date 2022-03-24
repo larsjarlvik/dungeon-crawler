@@ -1,6 +1,6 @@
 use crate::engine::{self, texture};
 use cgmath::*;
-use specs::{prelude::ParallelIterator, rayon::iter::IntoParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub struct Textures {
     pub base_color: texture::Texture,

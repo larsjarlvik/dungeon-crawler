@@ -1,5 +1,4 @@
 use engine::Settings;
-use specs::WorldExt;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -78,8 +77,7 @@ pub fn main() {
                         WindowEvent::KeyboardInput { input, .. } => {
                             state.keyboard(input);
 
-                            let input = state.world.components.read_resource::<world::resources::Input>();
-
+                            let input = state.world.components.get_resource::<world::resources::Input>().unwrap();
                             if input.is_pressed(VirtualKeyCode::Escape) {
                                 *control_flow = ControlFlow::Exit;
                             }
@@ -143,8 +141,8 @@ pub fn main() {
 
                 if let Some(state) = &mut state {
                     if state.world.resources.is_none() {
-                        state.world.load_resources(&state.engine);
-                        state.world.init(&state.engine);
+                        state.world.load_resources(&mut state.engine);
+                        state.world.init(&mut state.engine);
                         state.world.game_state = GameState::Running;
                     }
                 } else {

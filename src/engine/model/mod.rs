@@ -19,16 +19,21 @@ pub use mesh::Mesh;
 pub use primitive::Primitive;
 pub use vertex::*;
 
+#[derive(Clone)]
+pub struct GltfModelNodes {
+    pub depth_first_taversal_indices: Vec<(usize, Option<usize>)>,
+    pub nodes: Vec<node::Node>,
+    pub skins: Vec<skin::Skin>,
+    pub animations: HashMap<String, animation::Animation>,
+}
+
 pub struct GltfModel {
     pub meshes: Vec<mesh::Mesh>,
-    pub skins: Vec<skin::Skin>,
-    pub nodes: Vec<node::Node>,
     pub lights: Vec<light::Light>,
     pub emitters: Vec<emitter::Emitter>,
     pub materials: Vec<material::Material>,
     pub collisions: HashMap<String, Vec<collision::Polygon>>,
-    pub animations: HashMap<String, animation::Animation>,
-    pub depth_first_taversal_indices: Vec<(usize, Option<usize>)>,
+    pub nodes: GltfModelNodes,
 }
 
 impl GltfModel {
@@ -105,14 +110,16 @@ impl GltfModel {
 
         Self {
             meshes,
-            skins,
-            nodes,
             materials,
             collisions,
-            animations,
             lights,
             emitters,
-            depth_first_taversal_indices,
+            nodes: GltfModelNodes {
+                animations,
+                depth_first_taversal_indices,
+                nodes,
+                skins,
+            },
         }
     }
 
@@ -131,13 +138,14 @@ impl GltfModel {
         None
     }
 
-    pub fn get_emitters(&self, name: &str) -> Vec<&emitter::Emitter> {
+    pub fn get_emitters(&self, name: &str) -> Vec<emitter::Emitter> {
         self.emitters
             .iter()
             .filter(|e| {
                 let words: Vec<&str> = e.name.split(|c| c == '_' || c == '.').collect();
                 words.contains(&name)
             })
+            .map(|e| e.clone())
             .collect()
     }
 }

@@ -1,10 +1,13 @@
 use crate::{
     engine,
     ui::theme::*,
-    world::{resources, GameState, World},
+    world::{
+        self,
+        resources::{self, input::UiActionCode},
+        GameState, World,
+    },
 };
 use egui::*;
-use specs::WorldExt;
 
 pub struct InGame {}
 
@@ -14,7 +17,7 @@ impl InGame {
     }
 
     pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
-        let fps = { world.components.read_resource::<resources::Fps>().fps };
+        let fps = { world.components.get_resource::<resources::Fps>().unwrap().fps };
         let mut blocking_elements = vec![];
 
         TopBottomPanel::top("in_game_top").frame(default_frame(16.0)).show(ui_ctx, |ui| {
@@ -41,8 +44,17 @@ impl InGame {
             .show(ui_ctx, |ui| {
                 apply_theme(ui, opacity);
 
-                ui.with_layout(Layout::right_to_left(), |_ui| {
-                    // TODO: Action buttons
+                ui.with_layout(Layout::right_to_left(), |ui| {
+                    let mut input = world.components.get_resource_mut::<world::resources::Input>().unwrap();
+                    let attack = ui.add_sized([80.0, 80.0], Button::new("Attack"));
+
+                    let pressed = match ui_ctx.input().pointer.hover_pos() {
+                        Some(pos) => ui_ctx.input().pointer.any_down() && attack.rect.contains(pos),
+                        None => false,
+                    };
+
+                    input.set_ui(UiActionCode::Attack, pressed);
+                    blocking_elements.push(attack.rect);
                 });
             });
 

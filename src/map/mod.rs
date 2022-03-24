@@ -1,59 +1,41 @@
-use std::env;
-
-use crate::{engine, world::resources};
+use crate::{
+    config,
+    engine::{self, Engine},
+    world::components::{self},
+};
+use bevy_ecs::{prelude::World, world::EntityMut};
 use cgmath::*;
 use rand::{prelude::StdRng, SeedableRng};
-use specs::WorldExt;
+use std::env;
+mod decor;
 mod generator;
-mod tile;
 
 pub struct Map {
     seed: u64,
     tile_size: f32,
-    tile: engine::model::GltfModel,
-    decor: engine::model::GltfModel,
-    placed_tiles: Vec<tile::Tile>,
     grid_size: usize,
     number_of_tiles: usize,
+    tiles: engine::model::GltfModel,
+    decor: engine::model::GltfModel,
 }
 
 impl Map {
-    pub fn new(engine: &engine::Engine, seed: u64, grid_size: usize) -> Self {
-        let tile = engine.load_model("models/catacombs.glb");
+    pub fn new(engine: &mut engine::Engine, seed: u64, grid_size: usize) -> Self {
+        let tiles = engine.load_model("models/catacombs.glb");
         let decor = engine.load_model("models/decor.glb");
         let number_of_tiles = 25;
 
         Self {
-            tile,
-            decor,
             tile_size: 14.0,
-            placed_tiles: vec![],
             seed,
             grid_size,
             number_of_tiles,
+            tiles,
+            decor,
         }
     }
 
-    pub fn update(&mut self, engine: &engine::Engine, world: &mut specs::World) {
-        let mut rng = StdRng::seed_from_u64(self.seed);
-
-        let frustum = {
-            let camera = world.read_resource::<resources::Camera>();
-            camera.frustum
-        };
-
-        let tile = &self.tile;
-        let decor = &self.decor;
-        self.placed_tiles.iter_mut().for_each(|t| {
-            if frustum.test_bounding_box(&t.bounding_box) {
-                t.build(engine, world, &mut rng, &tile, &decor)
-            } else {
-                t.destroy(world);
-            }
-        });
-    }
-
-    pub fn generate(&mut self) {
+    pub fn generate(&mut self, world: &mut World, engine: &mut Engine) {
         let mut rng = StdRng::seed_from_u64(self.seed);
         let mut tiles = generator::generate(&mut rng, self.grid_size, self.number_of_tiles);
         let gs_2 = self.grid_size * 2;
@@ -62,46 +44,149 @@ impl Map {
             for z in 0..(gs_2 + 1) {
                 let tx = x as i32 - self.grid_size as i32;
                 let tz = z as i32 - self.grid_size as i32;
+                let mut entity = world.spawn();
+                let center = vec3(tx as f32 * self.tile_size, 0.0, tz as f32 * self.tile_size);
 
                 if x == gs_2 || z == gs_2 {
-                    self.placed_tiles.push(tile::Tile::new_known(
-                        tx,
-                        tz,
-                        self.tile_size,
-                        "tile-empty",
-                        tile::TileDecor { decor: vec![] },
-                        0.0,
-                    ));
+                    self.empty_tile(engine, &mut entity, center);
+                } else if let Some(t) = &mut tiles[x][z] {
+                    self.tile(engine, &mut entity, &mut rng, t, center);
                 } else {
-                    self.placed_tiles.push(if let Some(t) = &mut tiles[x][z] {
-                        tile::Tile::new(tx, tz, self.tile_size, &t.entrances, &mut rng)
-                    } else {
-                        tile::Tile::new_known(tx, tz, self.tile_size, "tile-empty", tile::TileDecor { decor: vec![] }, 0.0)
-                    });
-                }
+                    self.empty_tile(engine, &mut entity, center);
+                };
             }
         }
     }
 
-    pub fn single_tile(&mut self, engine: &engine::Engine, world: &mut specs::World, tile_name: &str) {
+    pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str) {
+        let mesh_id = uuid::Uuid::new_v4().to_string();
         let mut rng = StdRng::seed_from_u64(self.seed);
-        let decor = match tile::get_decor("edit") {
-            Ok(variants) => variants[0].clone(),
-            Err(err) => {
-                println!("{}", err);
-                tile::TileDecor { decor: vec![] }
-            }
-        };
+        let mut entity = world.spawn();
 
-        let tile = tile::Tile::new_known(0, 0, self.tile_size, &tile_name, decor, 0.0);
-        tile.add_room(engine, world, &self.tile, Vector3::zero(), 0.0);
-        tile.add_decor(engine, world, &mut rng, Vector3::zero(), 0.0, &self.decor);
-        tile.add_grid(world, Vector3::zero());
-        self.placed_tiles.push(tile);
+        let collisions = self.tiles.collisions.get(tile_name).unwrap_or(&vec![]).clone();
+        let decor = decor::get_decor(&format!("catacombs/{}", tile_name).as_str(), &mut rng)
+            .iter()
+            .map(|d| self.add_decor(engine, d, Vector3::zero(), 0.0))
+            .collect();
+
+        engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str(), mesh_id.clone());
+        entity.insert(components::Tile::new(
+            mesh_id,
+            collisions,
+            Vector3::zero(),
+            self.tile_size,
+            0.0,
+            decor,
+        ));
+
+        self.add_grid(world, Vector3::zero());
     }
 
-    pub fn reset(&mut self) {
-        self.placed_tiles.clear();
+    fn empty_tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, pos: Vector3<f32>) {
+        let mesh_id = uuid::Uuid::new_v4().to_string();
+        engine.initialize_model(&self.tiles, "tile-empty", mesh_id.clone());
+        entity.insert(components::Tile::new(mesh_id, vec![], pos, self.tile_size, 0.0, vec![]));
+    }
+
+    fn tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, rng: &mut StdRng, tile: &mut generator::Tile, pos: Vector3<f32>) {
+        let entrances = tile.entrances.clone();
+        let (t, rot) = determine_tile(&entrances);
+        let name = t.split('-').last().unwrap();
+
+        let decor = decor::get_decor(&format!("catacombs/{}", name).as_str(), rng)
+            .iter()
+            .map(|d| self.add_decor(engine, d, pos, rot))
+            .collect();
+
+        let collisions = self
+            .tiles
+            .collisions
+            .get(t)
+            .expect(format!("Could not find collision for: {}!", name).as_str())
+            .clone();
+
+        let mesh_id = uuid::Uuid::new_v4().to_string();
+        engine.initialize_model(&self.tiles, t, mesh_id.clone());
+        entity.insert(components::Tile::new(mesh_id, collisions, pos, self.tile_size, -rot, decor));
+    }
+
+    fn add_decor(&self, engine: &mut engine::Engine, d: &decor::Decor, tile_center: Vector3<f32>, tile_rotation: f32) -> components::Decor {
+        let position = tile_center
+            + Quaternion::from_angle_y(Deg(-tile_rotation)).rotate_vector(vec3(
+                d.pos[0] as f32 * config::GRID_DIST,
+                0.0,
+                d.pos[1] as f32 * config::GRID_DIST,
+            ));
+        let rotation = d.rotation - tile_rotation;
+
+        let lights = self
+            .decor
+            .lights
+            .iter()
+            .filter(|l| l.name.contains(format!("{}_", &d.name).as_str()))
+            .map(|l| components::DecorLight {
+                color: l.color,
+                intensity: l.intensity,
+                radius: Some(l.radius),
+                offset: l.translation,
+                flicker: l.flicker,
+                bloom: 1.0,
+                position,
+                rotation,
+            })
+            .collect();
+
+        let emitters = self
+            .decor
+            .get_emitters(&d.name)
+            .iter()
+            .map(|e| {
+                let emitter_id = uuid::Uuid::new_v4().to_string();
+                let emitter = engine
+                    .particle_pipeline
+                    .create_emitter(&engine.ctx, e.particle_count, e.life_time, e.spread, e.speed);
+
+                engine.initialize_particle(emitter, emitter_id.clone());
+                components::DecorEmitter {
+                    emitter_id,
+                    start_color: e.start_color,
+                    end_color: e.end_color,
+                    size: e.size,
+                    strength: e.strength,
+                    flicker: e.flicker,
+                    position: position + Quaternion::from_angle_y(Deg(d.rotation - tile_rotation)).rotate_vector(e.position),
+                    rotation: d.rotation - tile_rotation,
+                }
+            })
+            .collect();
+
+        let mesh_id = uuid::Uuid::new_v4().to_string();
+        let collisions = self.decor.collisions.get(&d.name).unwrap_or(&vec![]).clone();
+
+        engine.initialize_model(&self.decor, d.name.as_str(), mesh_id.clone());
+
+        components::Decor {
+            mesh_id,
+            collisions,
+            lights,
+            emitters,
+            position,
+            rotation,
+        }
+    }
+
+    fn add_grid(&self, world: &mut World, center: Vector3<f32>) {
+        for x in -config::GRID_COUNT..=config::GRID_COUNT {
+            for z in -config::GRID_COUNT..=config::GRID_COUNT {
+                let off = vec3(x as f32 * config::GRID_DIST, 0.0, z as f32 * config::GRID_DIST);
+                let text = format!("{},{}", x, z);
+
+                world
+                    .spawn()
+                    .insert(components::Text::new(&text))
+                    .insert(components::Transform::from_translation_scale(center + off, 16.0));
+            }
+        }
     }
 }
 
@@ -116,5 +201,31 @@ pub fn edit_mode() -> Option<String> {
         }
     } else {
         None
+    }
+}
+
+fn determine_tile(entrances: &[bool; 4]) -> (&str, f32) {
+    match entrances {
+        [true, false, false, false] => ("tile-catacombs-1000", 0.0),
+        [false, true, false, false] => ("tile-catacombs-1000", 90.0),
+        [false, false, true, false] => ("tile-catacombs-1000", 180.0),
+        [false, false, false, true] => ("tile-catacombs-1000", 270.0),
+
+        [true, true, false, false] => ("tile-catacombs-1100", 0.0),
+        [false, true, true, false] => ("tile-catacombs-1100", 90.0),
+        [false, false, true, true] => ("tile-catacombs-1100", 180.0),
+        [true, false, false, true] => ("tile-catacombs-1100", 270.0),
+
+        [true, false, true, false] => ("tile-catacombs-1010", 0.0),
+        [false, true, false, true] => ("tile-catacombs-1010", 90.0),
+
+        [true, true, true, false] => ("tile-catacombs-1110", 0.0),
+        [false, true, true, true] => ("tile-catacombs-1110", 90.0),
+        [true, false, true, true] => ("tile-catacombs-1110", 180.0),
+        [true, true, false, true] => ("tile-catacombs-1110", 270.0),
+
+        [true, true, true, true] => ("tile-catacombs-1111", 0.0),
+
+        _ => ("tile-empty", 0.0),
     }
 }
