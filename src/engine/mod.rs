@@ -11,6 +11,7 @@ mod settings;
 pub mod texture;
 mod viewport;
 pub use settings::Settings;
+use smaa::{SmaaMode, SmaaTarget};
 
 pub struct ModelInstance {
     pub key: String,
@@ -37,6 +38,7 @@ pub struct Engine {
     pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
     pub glyph_pipeline: pipelines::GlyphPipeline,
+    pub smaa_target: SmaaTarget,
 }
 
 impl Engine {
@@ -97,6 +99,14 @@ impl Engine {
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
         let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx);
+        let smaa_target = SmaaTarget::new(
+            &ctx.device,
+            &ctx.queue,
+            window.inner_size().width,
+            window.inner_size().height,
+            config::COLOR_TEXTURE_FORMAT,
+            if ctx.settings.smaa { SmaaMode::Smaa1X } else { SmaaMode::Disabled },
+        );
 
         Self {
             ctx,
@@ -106,6 +116,7 @@ impl Engine {
             scaling_pipeline,
             joystick_pipeline,
             glyph_pipeline,
+            smaa_target,
         }
     }
 
@@ -116,6 +127,18 @@ impl Engine {
         self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);
         self.joystick_pipeline = pipelines::JoystickPipeline::new(&self.ctx);
         self.glyph_pipeline = pipelines::GlyphPipeline::new(&self.ctx);
+        self.smaa_target = SmaaTarget::new(
+            &self.ctx.device,
+            &self.ctx.queue,
+            self.ctx.viewport.width,
+            self.ctx.viewport.height,
+            config::COLOR_TEXTURE_FORMAT,
+            if self.ctx.settings.smaa {
+                SmaaMode::Smaa1X
+            } else {
+                SmaaMode::Disabled
+            },
+        );
     }
 
     pub fn set_viewport(&mut self, window: &winit::window::Window) {
@@ -144,6 +167,8 @@ impl Engine {
                 },
             );
         }
+
+        self.smaa_target.resize(&self.ctx.device, size.width, size.height);
     }
 
     pub fn get_output_frame(&self) -> Option<wgpu::SurfaceTexture> {

@@ -49,10 +49,3 @@ fn vert_main(model: VertexInput) -> [[builtin(position)]] vec4<f32> {
 
     return uniforms.view_proj * uniforms.model * skin_matrix * vec4<f32>(model.position, 1.0);
 }
-
-// Fragment
-// Crashes on android if missing
-[[stage(fragment)]]
-fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return vec4<f32>(1.0, 1.0, 1.0, 1.0);
-}

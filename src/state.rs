@@ -95,6 +95,10 @@ impl State {
     pub fn render(&mut self, window: &Window) -> Result<(), wgpu::SurfaceError> {
         if let Some(frame) = self.engine.get_output_frame() {
             let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+            let anti_aliasing = self
+                .engine
+                .smaa_target
+                .start_frame(&self.engine.ctx.device, &self.engine.ctx.queue, &view);
 
             self.engine
                 .model_pipeline
@@ -111,13 +115,15 @@ impl State {
                 &self.engine.deferred_pipeline.depth_texture.view,
             );
 
-            self.engine.scaling_pipeline.render(&self.engine.ctx, &view);
+            self.engine.scaling_pipeline.render(&self.engine.ctx, &anti_aliasing);
+            anti_aliasing.resolve();
+
             self.engine
                 .glyph_pipeline
                 .render(&self.engine.ctx, &mut self.world.components, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
-
             self.ui.render(&self.engine.ctx, &window, &view);
+
             frame.present();
         }
 

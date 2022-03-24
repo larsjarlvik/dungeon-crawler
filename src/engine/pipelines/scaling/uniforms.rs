@@ -1,6 +1,7 @@
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Uniforms {
-    pub viewport_width: f32,
-    pub viewport_height: f32,
+    pub viewport: [f32; 2],
+    pub sharpen: u32,
+    pub scale: f32,
 }
