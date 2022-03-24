@@ -25,7 +25,6 @@ impl PipelineShadow {
             .with_shader("shaders/shadow.wgsl")
             .with_depth_bias()
             .with_depth_target(config::DEPTH_FORMAT)
-            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
             .with_buffer_layouts(vec![engine::model::VertexPosition::desc()])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .build();
@@ -37,7 +36,6 @@ impl PipelineShadow {
 
     pub fn execute_bundles(&self, ctx: &engine::Context, bundles: Vec<&wgpu::RenderBundle>, target: &pipelines::DeferredPipeline) {
         builders::RenderTargetBuilder::new(ctx, "model_shadows")
-            .with_color_attachment(&target.mock_shadow_color.view, wgpu::LoadOp::Clear(wgpu::Color::BLACK))
             .with_depth_attachment(&target.shadow_texture.view, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
     }

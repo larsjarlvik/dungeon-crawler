@@ -197,11 +197,15 @@ impl<'a> PipelineBuilder<'a> {
             None
         };
 
-        let fragment = Some(wgpu::FragmentState {
-            module: &shader,
-            entry_point: "frag_main",
-            targets: color_targets.as_slice(),
-        });
+        let fragment = if self.color_targets.len() > 0 {
+            Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: "frag_main",
+                targets: color_targets.as_slice(),
+            })
+        } else {
+            None
+        };
 
         let render_pipeline = self.ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some(format!("{}_render_pipeline", self.label).as_str()),
