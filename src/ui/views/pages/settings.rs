@@ -30,7 +30,7 @@ impl Settings {
         ui.vertical_centered_justified(|ui| {
             egui::Grid::new("settings_grid")
                 .num_columns(2)
-                .spacing([30.0, 20.0])
+                .spacing([30.0, 15.0])
                 .show(ui, |ui| {
                     ui.label("Brightness:");
                     ui.horizontal(|ui| {
@@ -66,8 +66,13 @@ impl Settings {
                         ui.label(format!("{:.2}", self.settings.shadow_map_scale));
                     });
                     ui.end_row();
-                    ui.checkbox(&mut self.settings.show_fps, "Show FPS");
-                    ui.checkbox(&mut self.settings.smaa, "Antialiasing");
+                    ui.horizontal(|ui| {
+                        ui.checkbox(&mut self.settings.show_fps, "Show FPS");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.checkbox(&mut self.settings.smaa, "Antialiasing");
+                        ui.checkbox(&mut self.settings.sharpen, "Sharpening");
+                    });
                     ui.end_row();
                 });
         });

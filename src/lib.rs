@@ -90,9 +90,16 @@ pub fn main() {
                                 }
                             }
 
-                            if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::S) == KeyState::Pressed(false)
+                            if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::A) == KeyState::Pressed(false)
                             {
                                 state.engine.ctx.settings.smaa = !state.engine.ctx.settings.smaa;
+                                state.engine.ctx.settings.store();
+                                state.world.game_state = GameState::Reload;
+                            }
+
+                            if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::S) == KeyState::Pressed(false)
+                            {
+                                state.engine.ctx.settings.sharpen = !state.engine.ctx.settings.sharpen;
                                 state.engine.ctx.settings.store();
                                 state.world.game_state = GameState::Reload;
                             }

@@ -14,6 +14,7 @@ pub struct Settings {
     pub window_pos: [i32; 2],
     pub fullscreen: bool,
     pub smaa: bool,
+    pub sharpen: bool,
 }
 
 impl Default for Settings {
@@ -29,6 +30,7 @@ impl Default for Settings {
             window_pos: [100, 100],
             fullscreen: false,
             smaa: false,
+            sharpen: true,
         }
     }
 }

@@ -47,8 +47,9 @@ impl ScalingPipeline {
         let (width, height) = ctx.viewport.get_render_size();
         let texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "texture");
         let uniform_buffer = render_bundle_builder.create_uniform_buffer_init(bytemuck::cast_slice(&[Uniforms {
-            viewport_width: ctx.viewport.width as f32,
-            viewport_height: ctx.viewport.height as f32,
+            viewport: [ctx.viewport.width as f32, ctx.viewport.height as f32],
+            sharpen: (ctx.settings.render_scale < 1.0 && ctx.settings.sharpen) as u32,
+            scale: ctx.settings.render_scale,
         }]));
 
         let render_bundle = render_bundle_builder
@@ -85,8 +86,9 @@ impl ScalingPipeline {
             &self.uniform_buffer,
             0,
             bytemuck::cast_slice(&[Uniforms {
-                viewport_width: ctx.viewport.width as f32,
-                viewport_height: ctx.viewport.height as f32,
+                viewport: [ctx.viewport.width as f32, ctx.viewport.height as f32],
+                sharpen: ctx.settings.sharpen as u32,
+                scale: ctx.settings.render_scale,
             }]),
         );
 
