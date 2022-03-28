@@ -14,7 +14,13 @@ pub fn action(
             &components::Collider,
             &components::Transform,
         )>,
-        QueryState<(Entity, &mut components::Health, &components::Collision, &components::Transform)>,
+        QueryState<(
+            Entity,
+            &mut components::Health,
+            &components::Collision,
+            &components::Transform,
+            Option<&mut components::Action>,
+        )>,
     )>,
 ) {
     let mut hits = vec![];
@@ -40,14 +46,22 @@ pub fn action(
         }
     }
 
-    for (entity, mut health, collision, transform) in query.q1().iter_mut() {
+    for (entity, mut health, collision, transform, mut action) in query.q1().iter_mut() {
         for (collider, velocity_dir, dmg) in hits.iter() {
             for polygon in collider {
                 if did_hit(&polygon, collision, transform, *velocity_dir) {
                     health.amount -= dmg;
-                    if health.amount <= 0.0 {
+
+                    if let Some(action) = &mut action {
+                        if health.amount <= 0.0 {
+                            action.set_action(components::CurrentAction::Death, 100.0, 0.5, true);
+                        } else {
+                            action.set_action(components::CurrentAction::Hit, 1.0, 0.5, true);
+                        }
+                    } else if health.amount <= 0.0 {
                         commands.entity(entity).despawn_recursive();
                     }
+
                     break;
                 }
             }

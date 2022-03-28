@@ -200,8 +200,16 @@ impl Map {
                 (rng.gen::<f32>() - 0.5) * (self.tile_size - 2.0),
             );
 
+        let collider = self
+            .hostiles
+            .collisions
+            .get("skeleton")
+            .expect("Could not find skeleton collider!")
+            .clone();
+
         vec![components::Hostile {
             mesh_id,
+            collider,
             position,
             health: 10.0,
         }]

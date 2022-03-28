@@ -1,4 +1,5 @@
 mod action;
+mod aggression;
 mod animation;
 mod camera;
 mod flicker;
@@ -7,6 +8,7 @@ mod tile;
 mod user_control;
 
 pub use action::action;
+pub use aggression::aggression;
 pub use animation::animation;
 pub use camera::camera;
 pub use flicker::flicker;

@@ -80,10 +80,16 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                     for h in tile.hostiles.iter() {
                         commands.spawn_bundle((
                             components::Model::new(h.mesh_id.as_str(), 1.5),
-                            components::Animations::new("base", "idle"),
+                            components::Collider::new(h.collider.clone()),
+                            components::Collision::new(h.collider.clone()),
+                            components::Animations::new("base", "idle", true),
                             components::Transform::from_translation_scale(h.position, 0.8),
                             components::Render { cull_frustum: true },
+                            components::Agressor::new(6.0),
+                            components::Movement::new(10.0),
                             components::Shadow,
+                            components::Action::new(),
+                            components::Health::new(10.0),
                         ));
                     }
 

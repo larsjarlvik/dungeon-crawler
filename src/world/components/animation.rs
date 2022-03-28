@@ -8,6 +8,7 @@ pub struct Animation {
     pub name: String,
     pub elapsed: f32,
     pub speed: f32,
+    pub repeat: bool,
 }
 
 #[derive(Debug)]
@@ -32,7 +33,7 @@ pub struct Animations {
 }
 
 impl Animations {
-    pub fn new(key: &str, animation: &str) -> Self {
+    pub fn new(key: &str, animation: &str, repeat: bool) -> Self {
         let mut channels = HashMap::new();
         channels.insert(
             key.to_string(),
@@ -42,6 +43,7 @@ impl Animations {
                     name: animation.to_string(),
                     elapsed: 0.0,
                     speed: 1.0,
+                    repeat,
                 },
                 updated: Instant::now(),
             },
@@ -50,7 +52,7 @@ impl Animations {
         Self { channels }
     }
 
-    pub fn set_animation(&mut self, channel: &str, animation: &str, speed: f32) {
+    pub fn set_animation(&mut self, channel: &str, animation: &str, speed: f32, repeat: bool) {
         if let Some(channel) = self.channels.get_mut(&channel.to_string()) {
             if channel.current.name == animation.to_string() {
                 channel.current.speed = speed;
@@ -63,6 +65,7 @@ impl Animations {
                     name: animation.to_string(),
                     speed,
                     elapsed: 0.0,
+                    repeat,
                 };
                 channel.updated = Instant::now();
             }
@@ -75,6 +78,7 @@ impl Animations {
                         name: animation.to_string(),
                         speed,
                         elapsed: 0.0,
+                        repeat,
                     },
                     updated: Instant::now(),
                 },

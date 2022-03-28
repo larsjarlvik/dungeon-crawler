@@ -136,7 +136,13 @@ fn animate(
         .get(&animation.name)
         .expect(format!("Could not find animation: {}", &animation.name).as_str());
 
-    if model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed % model_animation.total_time) {
+    let time = if animation.repeat {
+        animation.elapsed % model_animation.total_time
+    } else {
+        animation.elapsed.min(model_animation.total_time)
+    };
+
+    if model_animation.animate_nodes(&mut nodes.nodes, time) {
         for (index, parent_index) in &nodes.depth_first_taversal_indices {
             let parent_transform = parent_index
                 .map(|id| {

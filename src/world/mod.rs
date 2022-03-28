@@ -44,7 +44,8 @@ impl<'a> World {
                 .with_system(systems::action)
                 .with_system(systems::flicker)
                 .with_system(systems::user_control)
-                .with_system(systems::movement),
+                .with_system(systems::movement)
+                .with_system(systems::aggression),
         );
 
         let mut post_schedule = Schedule::default();
@@ -81,16 +82,16 @@ impl<'a> World {
         self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {
-            let collision = resources
+            let collider = resources
                 .character
                 .collisions
                 .get("character")
-                .expect("Could not find character model!");
+                .expect("Could not find character collider!");
 
             self.components.spawn().insert_bundle((
                 components::Model::new("character", 1.5),
-                components::Collider::new(collision.clone()),
-                components::Animations::new("base", "idle"),
+                components::Collider::new(collider.clone()),
+                components::Animations::new("base", "idle", true),
                 components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),
                 components::Action::new(),
@@ -98,6 +99,8 @@ impl<'a> World {
                 components::Render { cull_frustum: false },
                 components::Shadow,
                 components::Follow,
+                components::Target,
+                components::Health::new(10.0),
             ));
 
             if let Some(tile) = &map::edit_mode() {

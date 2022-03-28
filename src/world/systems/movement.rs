@@ -58,7 +58,7 @@ pub fn movement(
 
         match action.current {
             components::CurrentAction::Attack(_) => {
-                animation.set_animation("base", "attack", 2.0);
+                animation.set_animation("base", "attack", 2.0, false);
                 transform.translation.set(current_trans + velocity_dir, time.frame);
                 movement.velocity *= 0.85;
             }
@@ -69,16 +69,22 @@ pub fn movement(
 
                     let animation_velocity = velocity / 0.04;
                     if animation_velocity > 2.5 {
-                        animation.set_animation("base", "run", animation_velocity * 0.4);
+                        animation.set_animation("base", "run", animation_velocity * 0.4, true);
                     } else if animation_velocity > 0.3 {
-                        animation.set_animation("base", "walk", animation_velocity);
+                        animation.set_animation("base", "walk", animation_velocity, true);
                     }
                 } else {
                     transform.translation.freeze();
-                    animation.set_animation("base", "idle", 1.0);
+                    animation.set_animation("base", "idle", 1.0, true);
                 }
 
                 movement.velocity *= 0.9;
+            }
+            components::CurrentAction::Hit => {
+                animation.set_animation("base", "hit", 2.0, false);
+            }
+            components::CurrentAction::Death => {
+                animation.set_animation("base", "death", 2.0, false);
             }
         }
     }

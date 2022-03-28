@@ -1,4 +1,5 @@
 mod action;
+mod aggression;
 pub mod animation;
 mod collider;
 mod collision;
@@ -18,6 +19,7 @@ mod user_control;
 
 pub use action::Action;
 pub use action::CurrentAction;
+pub use aggression::*;
 pub use animation::Animations;
 pub use collider::Collider;
 pub use collision::Collision;
