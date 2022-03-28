@@ -26,8 +26,9 @@ pub fn aggression(
             if action.current == components::CurrentAction::None {
                 movement.towards(target_transform - transform.translation.current);
 
-                if distance < 1.5 {
-                    action.set_action(components::CurrentAction::Attack(2.0), 1.0, 0.35, false);
+                // TODO: Attack range
+                if distance < 1.0 {
+                    action.set_action(components::CurrentAction::Attack, 1.0, 0.35, false);
                 } else if transform.translation.current.distance(*target_transform) < range {
                     movement.velocity = 0.07;
                     agressor.is_aggressive = true;

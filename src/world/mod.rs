@@ -41,10 +41,11 @@ impl<'a> World {
         schedule.add_stage(
             "update",
             SystemStage::parallel()
-                .with_system(systems::action)
                 .with_system(systems::flicker)
                 .with_system(systems::user_control)
-                .with_system(systems::movement)
+                .with_system(systems::actions.label("movement"))
+                .with_system(systems::collision.after("movement"))
+                .with_system(systems::damage.after("movement"))
                 .with_system(systems::aggression),
         );
 
@@ -90,7 +91,7 @@ impl<'a> World {
 
             self.components.spawn().insert_bundle((
                 components::Model::new("character", 1.5),
-                components::Collider::new(collider.clone()),
+                components::Collision::new(collider.clone()),
                 components::Animations::new("base", "idle", true),
                 components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),

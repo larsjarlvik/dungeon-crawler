@@ -1,13 +1,17 @@
-use crate::engine::*;
+use crate::engine::collision::{self, Polygon};
 use bevy_ecs::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Collision {
-    pub polygons: Vec<collision::Polygon>,
+    pub key: String,
+    pub polygons: Vec<Polygon>,
 }
 
 impl Collision {
     pub fn new(polygons: Vec<collision::Polygon>) -> Self {
-        Self { polygons }
+        Self {
+            key: uuid::Uuid::new_v4().to_string(),
+            polygons,
+        }
     }
 }

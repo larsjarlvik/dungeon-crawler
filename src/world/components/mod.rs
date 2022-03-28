@@ -1,7 +1,7 @@
 mod action;
 mod aggression;
 pub mod animation;
-mod collider;
+mod attack;
 mod collision;
 mod flicker;
 mod follow;
@@ -21,7 +21,7 @@ pub use action::Action;
 pub use action::CurrentAction;
 pub use aggression::*;
 pub use animation::Animations;
-pub use collider::Collider;
+pub use attack::Attack;
 pub use collision::Collision;
 pub use flicker::Flicker;
 pub use follow::Follow;

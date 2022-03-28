@@ -4,7 +4,7 @@ use std::time::Instant;
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum CurrentAction {
     None,
-    Attack(f32),
+    Attack,
     Hit,
     Death,
 }

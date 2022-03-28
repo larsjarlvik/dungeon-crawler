@@ -17,7 +17,7 @@ pub fn user_control(
         }
 
         if input.is_pressed(VirtualKeyCode::Space) || input.ui.contains_key(&resources::input::UiActionCode::Attack) {
-            action.set_action(components::CurrentAction::Attack(2.0), 1.0, 0.35, false);
+            action.set_action(components::CurrentAction::Attack, 1.0, 0.35, false);
         } else {
             if let Some(joystick) = &input.joystick {
                 if action.current == components::CurrentAction::None {
