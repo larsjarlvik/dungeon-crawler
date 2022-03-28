@@ -24,7 +24,7 @@ impl<T: Interpolate> Sampler<T> {
             let mut index = None;
             for i in 0..self.times.len() {
                 index = Some(i);
-                if t >= self.times[i] && t < self.times[i + 1] {
+                if t >= self.times[i] && t < self.times[(i + 1) % self.times.len()] {
                     break;
                 }
             }

@@ -43,8 +43,8 @@ impl<'a> World {
             SystemStage::parallel()
                 .with_system(systems::action)
                 .with_system(systems::flicker)
-                .with_system(systems::user_control.label("user_control"))
-                .with_system(systems::movement.after("user_control")),
+                .with_system(systems::user_control)
+                .with_system(systems::movement),
         );
 
         let mut post_schedule = Schedule::default();
@@ -81,14 +81,17 @@ impl<'a> World {
         self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {
-            let collision = resources.character.collisions.get("character").unwrap();
+            let collision = resources
+                .character
+                .collisions
+                .get("character")
+                .expect("Could not find character model!");
 
             self.components.spawn().insert_bundle((
-                components::Model::new("character"),
+                components::Model::new("character", 1.5),
                 components::Collider::new(collision.clone()),
                 components::Animations::new("base", "idle"),
                 components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
-                components::Light::new(vec3(1.0, 1.0, 0.72), 0.6, Some(10.0), vec3(0.0, 2.5, 0.0), 0.0),
                 components::Movement::new(15.0),
                 components::Action::new(),
                 components::UserControl,

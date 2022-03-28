@@ -41,6 +41,12 @@ pub struct Decor {
     pub collisions: Vec<collision::Polygon>,
 }
 
+pub struct Hostile {
+    pub mesh_id: String,
+    pub health: f32,
+    pub position: Vector3<f32>,
+}
+
 #[derive(Component)]
 pub struct Tile {
     pub mesh_id: String,
@@ -50,10 +56,19 @@ pub struct Tile {
     pub decor: Vec<Decor>,
     pub bounding_box: bounding_box::BoundingBox,
     pub collisions: Vec<Polygon>,
+    pub hostiles: Vec<Hostile>,
 }
 
 impl Tile {
-    pub fn new(mesh_id: String, collisions: Vec<Polygon>, center: Vector3<f32>, size: f32, rotation: f32, decor: Vec<Decor>) -> Self {
+    pub fn new(
+        mesh_id: String,
+        collisions: Vec<Polygon>,
+        center: Vector3<f32>,
+        size: f32,
+        rotation: f32,
+        decor: Vec<Decor>,
+        hostiles: Vec<Hostile>,
+    ) -> Self {
         let h_size = size / 2.0;
 
         Self {
@@ -67,6 +82,7 @@ impl Tile {
             },
             rotation,
             decor,
+            hostiles,
         }
     }
 }

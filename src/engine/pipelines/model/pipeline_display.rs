@@ -36,9 +36,9 @@ impl PipelineDisplay {
             2,
             "texture_bind_group_layout",
             &[
-                builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
-                builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT),
-                builder.create_texture_entry(2, wgpu::ShaderStages::FRAGMENT),
+                builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT, true),
+                builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT, true),
+                builder.create_texture_entry(2, wgpu::ShaderStages::FRAGMENT, true),
                 builder.create_sampler_entry(3, wgpu::ShaderStages::FRAGMENT, false),
             ],
         );
@@ -46,7 +46,7 @@ impl PipelineDisplay {
         let render_pipeline = builder
             .with_shader("shaders/model.wgsl")
             .with_color_targets(vec![
-                config::COLOR_TEXTURE_FORMAT,
+                wgpu::TextureFormat::Rgba16Float,
                 config::COLOR_TEXTURE_FORMAT,
                 config::COLOR_TEXTURE_FORMAT,
             ])

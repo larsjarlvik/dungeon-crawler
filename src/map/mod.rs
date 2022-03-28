@@ -5,7 +5,7 @@ use crate::{
 };
 use bevy_ecs::{prelude::World, world::EntityMut};
 use cgmath::*;
-use rand::{prelude::StdRng, SeedableRng};
+use rand::{prelude::StdRng, Rng, SeedableRng};
 use std::env;
 mod decor;
 mod generator;
@@ -17,12 +17,14 @@ pub struct Map {
     number_of_tiles: usize,
     tiles: engine::model::GltfModel,
     decor: engine::model::GltfModel,
+    hostiles: engine::model::GltfModel,
 }
 
 impl Map {
     pub fn new(engine: &mut engine::Engine, seed: u64, grid_size: usize) -> Self {
         let tiles = engine.load_model("models/catacombs.glb");
         let decor = engine.load_model("models/decor.glb");
+        let hostiles = engine.load_model("models/skeleton.glb");
         let number_of_tiles = 25;
 
         Self {
@@ -32,6 +34,7 @@ impl Map {
             number_of_tiles,
             tiles,
             decor,
+            hostiles,
         }
     }
 
@@ -77,6 +80,7 @@ impl Map {
             self.tile_size,
             0.0,
             decor,
+            vec![],
         ));
 
         self.add_grid(world, Vector3::zero());
@@ -85,7 +89,7 @@ impl Map {
     fn empty_tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, pos: Vector3<f32>) {
         let mesh_id = uuid::Uuid::new_v4().to_string();
         engine.initialize_model(&self.tiles, "tile-empty", mesh_id.clone());
-        entity.insert(components::Tile::new(mesh_id, vec![], pos, self.tile_size, 0.0, vec![]));
+        entity.insert(components::Tile::new(mesh_id, vec![], pos, self.tile_size, 0.0, vec![], vec![]));
     }
 
     fn tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, rng: &mut StdRng, tile: &mut generator::Tile, pos: Vector3<f32>) {
@@ -98,6 +102,8 @@ impl Map {
             .map(|d| self.add_decor(engine, d, pos, rot))
             .collect();
 
+        let hostiles = self.add_hostiles(rng, engine, pos);
+
         let collisions = self
             .tiles
             .collisions
@@ -107,7 +113,15 @@ impl Map {
 
         let mesh_id = uuid::Uuid::new_v4().to_string();
         engine.initialize_model(&self.tiles, t, mesh_id.clone());
-        entity.insert(components::Tile::new(mesh_id, collisions, pos, self.tile_size, -rot, decor));
+        entity.insert(components::Tile::new(
+            mesh_id,
+            collisions,
+            pos,
+            self.tile_size,
+            -rot,
+            decor,
+            hostiles,
+        ));
     }
 
     fn add_decor(&self, engine: &mut engine::Engine, d: &decor::Decor, tile_center: Vector3<f32>, tile_rotation: f32) -> components::Decor {
@@ -173,6 +187,24 @@ impl Map {
             position,
             rotation,
         }
+    }
+
+    fn add_hostiles(&self, rng: &mut StdRng, engine: &mut engine::Engine, tile_center: Vector3<f32>) -> Vec<components::Hostile> {
+        let mesh_id = uuid::Uuid::new_v4().to_string();
+        engine.initialize_model(&self.hostiles, "skeleton", mesh_id.clone());
+
+        let position = tile_center
+            + vec3(
+                (rng.gen::<f32>() - 0.5) * (self.tile_size - 2.0),
+                0.0,
+                (rng.gen::<f32>() - 0.5) * (self.tile_size - 2.0),
+            );
+
+        vec![components::Hostile {
+            mesh_id,
+            position,
+            health: 10.0,
+        }]
     }
 
     fn add_grid(&self, world: &mut World, center: Vector3<f32>) {

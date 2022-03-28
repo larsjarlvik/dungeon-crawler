@@ -39,7 +39,7 @@ impl ModelPipeline {
         let mut bundles = vec![];
         let mut shadow_bundles = vec![];
 
-        for (model, animation, render, shadow, transform) in components
+        for (model_instance, animation, render, shadow, transform) in components
             .query::<(
                 &components::Model,
                 Option<&components::Animations>,
@@ -52,8 +52,8 @@ impl ModelPipeline {
             let model_matrix = transform.to_matrix(alpha);
             let model = ctx
                 .model_instances
-                .get(&model.key)
-                .expect(format!("Could not find model \"{}\"!", model.key).as_str());
+                .get(&model_instance.key)
+                .expect(format!("Could not find model \"{}\"!", model_instance.key).as_str());
 
             if render.cull_frustum {
                 let transformed_bb = model.model.bounding_box.transform(model_matrix.into());
@@ -73,6 +73,7 @@ impl ModelPipeline {
                     model: model_matrix.into(),
                     inv_model,
                     joint_transforms: joint_transforms.clone().try_into().unwrap(),
+                    highlight: model_instance.highlight,
                     is_animated: animation.is_some() as u32,
                 }]),
             );
@@ -88,6 +89,7 @@ impl ModelPipeline {
                         model: model_matrix.into(),
                         inv_model,
                         joint_transforms: joint_transforms.clone().try_into().unwrap(),
+                        highlight: model_instance.highlight,
                         is_animated: animation.is_some() as u32,
                     }]),
                 );

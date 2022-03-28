@@ -32,13 +32,6 @@ impl Settings {
                 .num_columns(2)
                 .spacing([30.0, 15.0])
                 .show(ui, |ui| {
-                    ui.label("Brightness:");
-                    ui.horizontal(|ui| {
-                        ui.add(Slider::new(&mut self.settings.brightness, -0.5..=0.5).show_value(false));
-                        ui.label(format!("{:.2}", self.settings.brightness));
-                    });
-                    ui.end_row();
-
                     ui.label("Contrast:");
                     ui.horizontal(|ui| {
                         ui.add(Slider::new(&mut self.settings.contrast, 0.0..=10.0).show_value(false));

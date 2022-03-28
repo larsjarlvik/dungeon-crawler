@@ -19,7 +19,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
             components::TileState::Destroyed => {
                 if camera.frustum.test_bounding_box(&tile.bounding_box) {
                     let mut tile_entity = commands.spawn_bundle((
-                        components::Model::new(tile.mesh_id.as_str()),
+                        components::Model::new(tile.mesh_id.as_str(), 1.0),
                         components::Render { cull_frustum: true },
                         components::Transform::from_translation_angle(tile.center, tile.rotation),
                     ));
@@ -31,7 +31,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
 
                     for decor in tile.decor.iter() {
                         let mut decor_entity = commands.spawn_bundle((
-                            components::Model::new(decor.mesh_id.as_str()),
+                            components::Model::new(decor.mesh_id.as_str(), 1.0),
                             components::Transform::from_translation_angle(decor.position, decor.rotation),
                             components::Render { cull_frustum: true },
                             components::Shadow,
@@ -75,6 +75,16 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                             let emitter_entity_id = emitter_entity.id();
                             commands.entity(decor_id).push_children(&[emitter_entity_id]);
                         }
+                    }
+
+                    for h in tile.hostiles.iter() {
+                        commands.spawn_bundle((
+                            components::Model::new(h.mesh_id.as_str(), 1.5),
+                            components::Animations::new("base", "idle"),
+                            components::Transform::from_translation_scale(h.position, 0.8),
+                            components::Render { cull_frustum: true },
+                            components::Shadow,
+                        ));
                     }
 
                     tile.state = components::TileState::Active;
