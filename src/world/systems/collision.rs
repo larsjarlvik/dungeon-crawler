@@ -13,6 +13,8 @@ pub fn collision(
     collision_query: Query<(&components::Collision, &components::Transform)>,
 ) {
     for (mut movement, collider, transform) in movement_query.iter_mut() {
+        if movement.velocity == 0.0 { continue; }
+
         let mut velocity_dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * movement.velocity;
 
         let collisions: Vec<Polygon> = collision_query
@@ -45,7 +47,7 @@ fn get_collision_offset(velocity_dir: Vector3<f32>, collider: &Polygon, collisio
     let mut hits = 0;
 
     for collision in collisions.iter() {
-        if collision.center().distance(collider.center()) > 5.0 {
+        if collision.center().distance(collider.center()) > 3.0 {
             continue;
         }
 

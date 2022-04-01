@@ -44,6 +44,7 @@ pub fn actions(
                 movement.velocity *= 0.9;
             }
             components::CurrentAction::Attack => {
+                transform.translation.freeze();
                 transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
                 animation.set_animation("base", "attack", 2.0, false);
                 movement.velocity *= 0.85;

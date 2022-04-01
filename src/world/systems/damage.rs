@@ -1,9 +1,10 @@
 use crate::{
-    engine::collision::{Intersection, Polygon, PolygonMethods},
-    world::*,
+    engine::{collision::{Intersection, Polygon, PolygonMethods}, self},
+    world::components,
 };
 use bevy_ecs::prelude::*;
 use bevy_transform::hierarchy::DespawnRecursiveExt;
+use cgmath::*;
 
 pub fn damage(
     mut commands: Commands,
@@ -17,7 +18,7 @@ pub fn damage(
     )>,
 ) {
     for (entity, attack, transform) in attack_query.iter() {
-        for (collision_entity, mut health, mut action, collision, collision_transform) in target_query.iter_mut() {
+        for (target_entity, mut health, mut action, collision, target_transform) in target_query.iter_mut() {
             if collision.key == attack.collision_key {
                 continue;
             }
@@ -25,7 +26,7 @@ pub fn damage(
             let collider: Vec<Polygon> = collision
                 .polygons
                 .iter()
-                .map(|p| p.transform(collision_transform.translation.current, collision_transform.rotation.current))
+                .map(|p| p.transform(target_transform.translation.current, target_transform.rotation.current))
                 .collect();
 
             for polygon in collider {
@@ -36,12 +37,13 @@ pub fn damage(
                     if let Some(action) = &mut action {
                         if health.amount <= 0.0 {
                             action.set_action(components::CurrentAction::Death, 100.0, 0.5, true);
+                            commands.entity(target_entity).remove::<components::Target>();
                         } else {
                             // TODO: Damage
                             action.set_action(components::CurrentAction::Hit, 0.5, 0.5, true);
                         }
                     } else if health.amount <= 0.0 {
-                        commands.entity(collision_entity).despawn_recursive();
+                        commands.entity(target_entity).despawn_recursive();
                     }
 
                     break;
