@@ -53,8 +53,12 @@ impl Node {
         }
     }
 
-    pub fn apply_transform(&mut self, transform: Matrix4<f32>) {
-        let new_tranform = transform * compute_transform_matrix(&self.local_transform);
+    pub fn apply_transform(&mut self, transform: Option<Matrix4<f32>>) {
+        let new_tranform = if let Some(transform) = transform {
+            transform * compute_transform_matrix(&self.local_transform)
+        } else {
+            compute_transform_matrix(&self.local_transform)
+        };
         self.global_transform_matrix = new_tranform;
     }
 }

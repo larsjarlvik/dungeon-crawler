@@ -77,7 +77,6 @@ impl ModelPipeline {
                     is_animated: animation.is_some() as u32,
                 }]),
             );
-
             bundles.push(&model.model.display_render_bundle);
 
             if shadow.is_some() {
@@ -151,26 +150,19 @@ fn animate(
                 })
                 .or(Matrix4::identity().into());
 
-            if let Some(matrix) = parent_transform {
-                let node = &mut nodes.nodes[*index];
-                node.apply_transform(matrix);
-            }
+            let node = &mut nodes.nodes[*index];
+            node.apply_transform(parent_transform);
         }
 
-        let transforms: Vec<(usize, Matrix4<f32>)> = nodes
-            .nodes
-            .iter()
-            .filter(|n| n.skin_index.is_some())
-            .map(|n| {
-                (
-                    n.skin_index.unwrap(),
-                    n.global_transform_matrix.invert().expect("Transform matrix should be invertible"),
-                )
-            })
-            .collect();
+        for node in nodes.nodes.iter() {
+            let inverse_transform = node
+                .global_transform_matrix
+                .invert()
+                .expect("Transform matrix should be invertible");
 
-        for (s_index, inverse_transform) in transforms {
-            nodes.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
+            let skin_index = if let Some(skin_index) = node.skin_index { skin_index } else { 0 };
+
+            nodes.skins[skin_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
                 joint_matrices[j_index] = joint_matrices[j_index].lerp(
                     inverse_transform * nodes.nodes[joint.node_id].global_transform_matrix * joint.inverse_bind_matrix,
                     blend_factor,

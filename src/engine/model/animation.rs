@@ -11,7 +11,7 @@ struct NodesKeyFrame(
     Vec<(usize, Vector3<f32>)>,
 );
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Sampler<T> {
     interpolation: Interpolation,
     times: Vec<f32>,
@@ -51,7 +51,7 @@ impl<T: Interpolate> Sampler<T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Channel<T> {
     sampler: Sampler<T>,
     node_index: usize,
@@ -66,7 +66,7 @@ impl<T: Interpolate> Channel<T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Animation {
     translation_channels: Vec<Channel<Vector3<f32>>>,
     rotation_channels: Vec<Channel<Quaternion<f32>>>,
