@@ -109,17 +109,18 @@ impl Animation {
         }
     }
 
-    pub fn animate_nodes(&self, nodes: &mut Vec<node::Node>, time: f32) -> bool {
+    pub fn animate_nodes(&self, nodes: &mut Vec<node::Node>, time: f32, blend_factor: f32) -> bool {
         let NodesKeyFrame(translations, rotations, scale) = self.sample(time);
 
         translations.iter().for_each(|(node_index, translation)| {
-            nodes[*node_index].local_transform.translation = *translation;
+            nodes[*node_index].local_transform.translation =
+                nodes[*node_index].local_transform.translation.lerp(*translation, blend_factor);
         });
         rotations.iter().for_each(|(node_index, rotation)| {
-            nodes[*node_index].local_transform.rotation = *rotation;
+            nodes[*node_index].local_transform.rotation = nodes[*node_index].local_transform.rotation.slerp(*rotation, blend_factor);
         });
         scale.iter().for_each(|(node_index, scale)| {
-            nodes[*node_index].local_transform.scale = *scale;
+            nodes[*node_index].local_transform.scale = nodes[*node_index].local_transform.scale.lerp(*scale, blend_factor);
         });
 
         !translations.is_empty() || !rotations.is_empty() || !scale.is_empty()
