@@ -18,10 +18,6 @@ pub fn actions(
         let current_rot = transform.rotation.current;
         let current_trans = transform.translation.current;
 
-        if action.set.elapsed().as_secs_f32() > action.length {
-            action.reset();
-        }
-
         match action.current {
             components::CurrentAction::None => {
                 transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
@@ -46,7 +42,7 @@ pub fn actions(
             components::CurrentAction::Attack => {
                 transform.translation.freeze();
                 transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
-                animation.set_animation("base", "attack", 2.0, false);
+                animation.set_animation("base", "attack", 2.0, true);
                 movement.velocity *= 0.85;
 
                 if action.should_execute() {
@@ -68,6 +64,10 @@ pub fn actions(
             components::CurrentAction::Death => {
                 animation.set_animation("base", "death", 2.0, false);
             }
+        }
+
+        if action.set.elapsed().as_secs_f32() > action.length {
+            action.reset();
         }
     }
 }
