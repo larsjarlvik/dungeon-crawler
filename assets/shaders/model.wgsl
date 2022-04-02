@@ -54,10 +54,10 @@ fn vert_main(model: VertexInput) -> VertexOutput {
             var jx: mat4x4<f32> = uniforms.joint_transforms[j];
 
             skin_matrix = mat4x4<f32>(
-                vec4<f32>(skin_matrix[0][0] + w[i] * jx[0][0], skin_matrix[0][1] + w[i] * jx[0][1], skin_matrix[0][2] + w[i] * jx[0][2], skin_matrix[0][3] + w[i] * jx[0][3]),
-                vec4<f32>(skin_matrix[1][0] + w[i] * jx[1][0], skin_matrix[1][1] + w[i] * jx[1][1], skin_matrix[1][2] + w[i] * jx[1][2], skin_matrix[1][3] + w[i] * jx[1][3]),
-                vec4<f32>(skin_matrix[2][0] + w[i] * jx[2][0], skin_matrix[2][1] + w[i] * jx[2][1], skin_matrix[2][2] + w[i] * jx[2][2], skin_matrix[2][3] + w[i] * jx[2][3]),
-                vec4<f32>(skin_matrix[3][0] + w[i] * jx[3][0], skin_matrix[3][1] + w[i] * jx[3][1], skin_matrix[3][2] + w[i] * jx[3][2], skin_matrix[3][3] + w[i] * jx[3][3]),
+                skin_matrix[0] + w[i] * jx[0],
+                skin_matrix[1] + w[i] * jx[1],
+                skin_matrix[2] + w[i] * jx[2],
+                skin_matrix[3] + w[i] * jx[3],
             );
         }
     } else {
