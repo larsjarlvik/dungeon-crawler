@@ -113,13 +113,13 @@ impl Animation {
         let NodesKeyFrame(translations, rotations, scale) = self.sample(time);
 
         translations.iter().for_each(|(node_index, translation)| {
-            nodes[*node_index].set_translation(*translation);
+            nodes[*node_index].local_transform.translation = *translation;
         });
         rotations.iter().for_each(|(node_index, rotation)| {
-            nodes[*node_index].set_rotation(*rotation);
+            nodes[*node_index].local_transform.rotation = *rotation;
         });
         scale.iter().for_each(|(node_index, scale)| {
-            nodes[*node_index].set_scale(*scale);
+            nodes[*node_index].local_transform.scale = *scale;
         });
 
         !translations.is_empty() || !rotations.is_empty() || !scale.is_empty()
