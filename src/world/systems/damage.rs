@@ -1,5 +1,8 @@
 use crate::{
-    engine::{collision::{Intersection, Polygon, PolygonMethods}, self},
+    engine::{
+        self,
+        collision::{Intersection, Polygon, PolygonMethods},
+    },
     world::components,
 };
 use bevy_ecs::prelude::*;
@@ -37,7 +40,9 @@ pub fn damage(
                     if let Some(action) = &mut action {
                         if health.amount <= 0.0 {
                             action.set_action(components::CurrentAction::Death, 100.0, 0.5, true);
-                            commands.entity(target_entity).remove::<components::Target>();
+                            commands
+                                .entity(target_entity)
+                                .remove_bundle::<(components::Target, components::Collision)>();
                         } else {
                             // TODO: Damage
                             action.set_action(components::CurrentAction::Hit, 0.5, 0.5, true);

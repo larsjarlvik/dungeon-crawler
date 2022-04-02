@@ -5,15 +5,15 @@ use cgmath::*;
 pub fn actions(
     mut commands: Commands,
     time: Res<resources::Time>,
-    mut movement_query: Query<(
+    mut query: Query<(
         &mut components::Movement,
         &mut components::Transform,
         &mut components::Animations,
         &mut components::Action,
-        &components::Collision,
+        Option<&components::Collision>,
     )>,
 ) {
-    for (mut movement, mut transform, mut animation, mut action, collision) in movement_query.iter_mut() {
+    for (mut movement, mut transform, mut animation, mut action, collision) in query.iter_mut() {
         let new_rot = cgmath::Quaternion::from_angle_y(Rad(movement.direction));
         let current_rot = transform.rotation.current;
         let current_trans = transform.translation.current;
@@ -45,17 +45,19 @@ pub fn actions(
                 animation.set_animation("base", "attack", 2.0, true);
                 movement.velocity *= 0.85;
 
-                if action.should_execute() {
-                    // TODO: Range
-                    let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;
+                if let Some(collision) = collision {
+                    if action.should_execute() {
+                        // TODO: Range
+                        let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;
 
-                    commands.spawn().insert_bundle((
-                        components::Attack {
-                            collision_key: collision.key.clone(),
-                            damage: 1.0,
-                        },
-                        components::Transform::from_translation(transform.translation.current + dir),
-                    ));
+                        commands.spawn().insert_bundle((
+                            components::Attack {
+                                collision_key: collision.key.clone(),
+                                damage: 1.0,
+                            },
+                            components::Transform::from_translation(transform.translation.current + dir),
+                        ));
+                    }
                 }
             }
             components::CurrentAction::Hit => {
@@ -66,7 +68,7 @@ pub fn actions(
             }
         }
 
-        if action.set.elapsed().as_secs_f32() > action.length {
+        if action.set.elapsed().as_secs_f32() >= action.length {
             action.reset();
         }
     }

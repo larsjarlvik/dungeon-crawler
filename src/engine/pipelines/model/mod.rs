@@ -109,7 +109,7 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
         animation.channels.iter().for_each(|(_, channel)| {
             let blend_factor = channel.get_blend_factor();
 
-            let has_cur_animation = animate(&mut nodes, &Some(&channel.current), blend_factor);
+            let has_cur_animation = animate(&mut nodes, &Some(&channel.current), 1.0);
             let has_prev_animation = animate(&mut nodes, &channel.prev.as_ref(), 1.0 - blend_factor);
 
             if has_cur_animation || has_prev_animation {
