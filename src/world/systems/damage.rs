@@ -34,11 +34,10 @@ pub fn damage(
 
             for polygon in collider {
                 if did_hit(&polygon, collision, transform) {
-                    health.amount -= attack.damage;
-                    dbg!(health.amount);
+                    health.current -= attack.damage;
 
                     if let Some(action) = &mut action {
-                        if health.amount <= 0.0 {
+                        if health.current <= 0.0 {
                             action.set_action(components::CurrentAction::Death, 100.0, 0.5, true);
                             commands
                                 .entity(target_entity)
@@ -47,7 +46,7 @@ pub fn damage(
                             // TODO: Damage
                             action.set_action(components::CurrentAction::Hit, 0.5, 0.5, true);
                         }
-                    } else if health.amount <= 0.0 {
+                    } else if health.current <= 0.0 {
                         commands.entity(target_entity).despawn_recursive();
                     }
 

@@ -15,7 +15,7 @@ impl Loading {
         Self { texture_id }
     }
 
-    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, opacity: f32) -> Vec<Rect> {
+    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &egui::Context, opacity: f32) -> Vec<Rect> {
         let vh = ctx.viewport.height as f32 / ui_ctx.pixels_per_point();
 
         let menu = CentralPanel::default()

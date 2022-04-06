@@ -1,5 +1,4 @@
 use crate::{config, engine, world::World};
-use egui::*;
 use egui_wgpu_backend::{RenderPass, ScreenDescriptor};
 use std::{iter, time::Instant};
 use winit::*;
@@ -10,7 +9,7 @@ mod utils;
 mod views;
 
 pub struct Ui {
-    ctx: CtxRef,
+    ctx: egui::Context,
     pub platform: egui_winit::State,
     app: app::App,
     render_pass: RenderPass,
@@ -20,8 +19,8 @@ pub struct Ui {
 
 impl Ui {
     pub fn new(ctx: &engine::Context, window: &winit::window::Window) -> Self {
-        let ui_ctx = CtxRef::default();
-        let platform = egui_winit::State::new(window);
+        let ui_ctx = egui::Context::default();
+        let platform = egui_winit::State::new(4096, window);
         let mut render_pass = RenderPass::new(&ctx.device, config::COLOR_TEXTURE_FORMAT, 1);
         let app = app::App::new(&ctx, &ui_ctx, &mut render_pass);
 
@@ -48,8 +47,8 @@ impl Ui {
     pub fn render(&mut self, ctx: &engine::Context, window: &window::Window, target: &wgpu::TextureView) {
         let egui_start = Instant::now();
 
-        let (_, paint_commands) = self.ctx.end_frame();
-        let paint_jobs = self.ctx.tessellate(paint_commands);
+        let output = self.ctx.end_frame();
+        let paint_jobs = self.ctx.tessellate(output.shapes);
 
         let frame_time = (Instant::now() - egui_start).as_secs_f64() as f32;
         self.previous_frame_time = Some(frame_time);
@@ -64,13 +63,17 @@ impl Ui {
             scale_factor: window.scale_factor() as f32,
         };
 
-        self.render_pass.update_texture(&ctx.device, &ctx.queue, &self.ctx.font_image());
-        self.render_pass.update_user_textures(&ctx.device, &ctx.queue);
+        self.render_pass
+            .add_textures(&ctx.device, &ctx.queue, &output.textures_delta)
+            .expect("Failed to add UI textures!");
         self.render_pass
             .update_buffers(&ctx.device, &ctx.queue, &paint_jobs, &screen_descriptor);
         self.render_pass
             .execute(&mut encoder, &target, &paint_jobs, &screen_descriptor, None)
             .unwrap();
+        self.render_pass
+            .remove_textures(output.textures_delta)
+            .expect("Failed to remove UI textures!");
 
         ctx.queue.submit(iter::once(encoder.finish()));
     }

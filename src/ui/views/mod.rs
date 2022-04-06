@@ -1,3 +1,4 @@
+mod custom;
 mod in_game;
 mod loading;
 mod main_menu;
@@ -27,7 +28,7 @@ impl Views {
         }
     }
 
-    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, world: &mut World) -> Vec<Rect> {
+    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &egui::Context, world: &mut World) -> Vec<Rect> {
         self.ui_state.set(world.game_state.clone());
         let opacity = self.ui_state.tick();
 

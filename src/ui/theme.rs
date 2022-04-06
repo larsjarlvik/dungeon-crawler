@@ -1,7 +1,15 @@
+use std::collections::BTreeMap;
+
 use egui::*;
 
 pub fn apply_theme(ui: &mut Ui, opacity: f32) -> &mut Style {
     let style = ui.style_mut();
+    let mut text_styles = BTreeMap::new();
+    text_styles.insert(TextStyle::Heading, FontId::new(28.0, FontFamily::Proportional));
+    text_styles.insert(TextStyle::Button, FontId::new(18.0, FontFamily::Proportional));
+    text_styles.insert(TextStyle::Body, FontId::new(18.0, FontFamily::Proportional));
+
+    style.text_styles = text_styles;
 
     style.spacing.button_padding = vec2(16.0, 16.0);
     style.spacing.item_spacing = vec2(16.0, 16.0);
@@ -24,9 +32,11 @@ pub fn apply_theme(ui: &mut Ui, opacity: f32) -> &mut Style {
     style.visuals.widgets.active.bg_fill = style.visuals.widgets.hovered.bg_fill;
     style.visuals.widgets.active.bg_stroke = style.visuals.widgets.hovered.bg_stroke;
 
-    style.visuals.widgets.inactive.corner_radius = 8.0;
-    style.visuals.widgets.active.corner_radius = 8.0;
-    style.visuals.widgets.hovered.corner_radius = 8.0;
+    let rounding = egui::Rounding::from(8.0);
+
+    style.visuals.widgets.inactive.rounding = rounding;
+    style.visuals.widgets.active.rounding = rounding;
+    style.visuals.widgets.hovered.rounding = rounding;
 
     style
 }
@@ -52,7 +62,7 @@ pub fn apply_active(ui: &mut Ui, opacity: f32) {
 
 pub fn default_frame(padding: f32) -> Frame {
     Frame {
-        margin: vec2(padding, padding),
+        margin: egui::style::Margin::from(vec2(padding, padding)),
         fill: Color32::TRANSPARENT,
         ..Default::default()
     }
@@ -60,7 +70,7 @@ pub fn default_frame(padding: f32) -> Frame {
 
 pub fn default_frame_colored(padding: f32, fill: Color32, opacity: f32) -> Frame {
     Frame {
-        margin: vec2(padding, padding),
+        margin: egui::style::Margin::from(vec2(padding, padding)),
         fill: fill.linear_multiply(opacity),
         ..Default::default()
     }
