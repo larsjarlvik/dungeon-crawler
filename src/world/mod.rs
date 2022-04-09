@@ -53,6 +53,7 @@ impl<'a> World {
         post_schedule.add_stage(
             "post",
             SystemStage::parallel()
+                .with_system(systems::display)
                 .with_system(systems::tile)
                 .with_system(systems::camera)
                 .with_system(systems::animation),

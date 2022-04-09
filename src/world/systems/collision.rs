@@ -13,7 +13,9 @@ pub fn collision(
     collision_query: Query<(&components::Collision, &components::Transform)>,
 ) {
     for (mut movement, collider, transform) in movement_query.iter_mut() {
-        if movement.velocity == 0.0 { continue; }
+        if movement.velocity == 0.0 {
+            continue;
+        }
 
         let mut velocity_dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * movement.velocity;
 

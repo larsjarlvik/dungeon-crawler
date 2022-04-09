@@ -7,6 +7,7 @@ use crate::{
         GameState, World,
     },
 };
+use bevy_ecs::prelude::*;
 use egui::*;
 
 use super::custom;
@@ -22,38 +23,48 @@ impl InGame {
         let fps = { world.components.get_resource::<resources::Fps>().unwrap().fps };
         let mut blocking_elements = vec![];
 
-        TopBottomPanel::top("in_game_top").frame(default_frame(16.0)).show(ui_ctx, |ui| {
+        Area::new("in_game_top").show(ui_ctx, |ui| {
             apply_theme(ui, opacity);
 
-            ui.horizontal(|ui| {
-                ui.vertical(|ui| {
-                    for (_, health) in world
-                        .components
-                        .query::<(&components::UserControl, &components::Health)>()
-                        .iter(&world.components)
-                    {
-                        let health_bar = custom::HealthBar::new(
-                            health.current / health.max,
-                            format!("Health: {} / {}", health.current, health.max),
-                        )
-                        .desired_width(200.0);
-                        ui.add(health_bar);
-                    }
+            custom::Columns::new(&ui, 3)
+                .show(ui, |ui| {
+                    ui.vertical(|ui| {
+                        for health in world
+                            .components
+                            .query_filtered::<&components::Health, With<components::UserControl>>()
+                            .iter(&world.components)
+                        {
+                            let display_health = format!("{} / {}", health.current, health.max);
+                            let health_bar = custom::HealthBar::new(health.current / health.max, display_health).desired_width(200.0);
+                            ui.add(health_bar);
+                        }
 
-                    if ctx.settings.show_fps {
-                        ui.label(format!("FPS: {}", fps).to_string());
-                    }
+                        if ctx.settings.show_fps {
+                            ui.label(format!("FPS: {}", fps).to_string());
+                        }
+                    });
+                })
+                .show(ui, |ui| {
+                    ui.vertical_centered(|ui| {
+                        for (health, name) in world
+                            .components
+                            .query_filtered::<(&components::Health, &components::Name), With<components::Display>>()
+                            .iter(&world.components)
+                        {
+                            let health_bar = custom::HealthBar::new(health.current / health.max, name.name.as_str()).desired_width(200.0);
+                            ui.add(health_bar);
+                        }
+                    });
+                })
+                .show(ui, |ui| {
+                    ui.with_layout(Layout::right_to_left(), |ui| {
+                        let menu_button = ui.add_sized([50.0, 50.0], Button::new("\u{2630}"));
+                        if menu_button.clicked() {
+                            world.game_state = GameState::MainMenu;
+                        }
+                        blocking_elements.push(menu_button.rect);
+                    });
                 });
-
-                ui.with_layout(Layout::right_to_left(), |ui| {
-                    let menu_button = ui.add_sized([50.0, 50.0], Button::new("\u{2630}"));
-                    if menu_button.clicked() {
-                        world.game_state = GameState::MainMenu;
-                    }
-
-                    blocking_elements.push(menu_button.rect);
-                });
-            });
         });
 
         TopBottomPanel::bottom("in_game_bottom")

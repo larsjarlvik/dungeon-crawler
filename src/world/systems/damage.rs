@@ -41,7 +41,7 @@ pub fn damage(
                             action.set_action(components::CurrentAction::Death, 100.0, 0.5, true);
                             commands
                                 .entity(target_entity)
-                                .remove_bundle::<(components::Target, components::Collision)>();
+                                .remove_bundle::<(components::Agressor, components::Target, components::Collision)>();
                         } else {
                             // TODO: Damage
                             action.set_action(components::CurrentAction::Hit, 0.5, 0.5, true);
