@@ -18,6 +18,10 @@ pub fn actions(
         let current_rot = transform.rotation.current;
         let current_trans = transform.translation.current;
 
+        if action.set.elapsed().as_secs_f32() >= action.length {
+            action.reset();
+        }
+
         match action.current {
             components::CurrentAction::None => {
                 transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
@@ -28,13 +32,13 @@ pub fn actions(
 
                     let animation_velocity = velocity / 0.04;
                     if animation_velocity > 2.5 {
-                        animation.set_animation("base", "run", animation_velocity * 0.4, true);
+                        animation.set_animation("base", "run", animation_velocity * 0.4, components::AnimationRunType::Repeat);
                     } else if animation_velocity > 0.3 {
-                        animation.set_animation("base", "walk", animation_velocity, true);
+                        animation.set_animation("base", "walk", animation_velocity, components::AnimationRunType::Repeat);
                     }
                 } else {
                     transform.translation.freeze();
-                    animation.set_animation("base", "idle", 1.0, true);
+                    animation.set_animation("base", "idle", 1.0, components::AnimationRunType::Repeat);
                 }
 
                 movement.velocity *= 0.9;
@@ -42,7 +46,7 @@ pub fn actions(
             components::CurrentAction::Attack => {
                 transform.translation.freeze();
                 transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
-                animation.set_animation("base", "attack", 2.0, true);
+                animation.set_animation("base", "attack", 2.2, components::AnimationRunType::Default);
                 movement.velocity *= 0.85;
 
                 if let Some(collision) = collision {
@@ -61,15 +65,15 @@ pub fn actions(
                 }
             }
             components::CurrentAction::Hit => {
-                animation.set_animation("base", "hit", 2.0, false);
+                if action.should_execute() {
+                    animation.set_animation("base", "hit", 2.2, components::AnimationRunType::Default);
+                }
             }
             components::CurrentAction::Death => {
-                animation.set_animation("base", "death", 2.0, false);
+                if action.should_execute() {
+                    animation.set_animation("base", "death", 1.0, components::AnimationRunType::Default);
+                }
             }
-        }
-
-        if action.set.elapsed().as_secs_f32() >= action.length {
-            action.reset();
         }
     }
 }

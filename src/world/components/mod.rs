@@ -23,6 +23,8 @@ mod user_control;
 pub use action::Action;
 pub use action::CurrentAction;
 pub use aggression::*;
+pub use animation::Animation;
+pub use animation::AnimationRunType;
 pub use animation::Animations;
 pub use attack::Attack;
 pub use collision::Collision;

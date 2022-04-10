@@ -1,6 +1,7 @@
 use crate::engine::{
-    bounding_box,
+    self, bounding_box,
     collision::{self, Polygon},
+    ModelMetaData,
 };
 use bevy_ecs::prelude::Component;
 use cgmath::*;
@@ -33,7 +34,7 @@ pub struct DecorEmitter {
 }
 
 pub struct Decor {
-    pub mesh_id: String,
+    pub model: ModelMetaData,
     pub lights: Vec<DecorLight>,
     pub emitters: Vec<DecorEmitter>,
     pub rotation: f32,
@@ -42,7 +43,7 @@ pub struct Decor {
 }
 
 pub struct Hostile {
-    pub mesh_id: String,
+    pub model: ModelMetaData,
     pub collider: Vec<collision::Polygon>,
     pub health: f32,
     pub position: Vector3<f32>,
@@ -50,7 +51,7 @@ pub struct Hostile {
 
 #[derive(Component)]
 pub struct Tile {
-    pub mesh_id: String,
+    pub model: ModelMetaData,
     pub state: TileState,
     pub center: Vector3<f32>,
     pub rotation: f32,
@@ -62,7 +63,7 @@ pub struct Tile {
 
 impl Tile {
     pub fn new(
-        mesh_id: String,
+        model: engine::ModelMetaData,
         collisions: Vec<Polygon>,
         center: Vector3<f32>,
         size: f32,
@@ -73,7 +74,7 @@ impl Tile {
         let h_size = size / 2.0;
 
         Self {
-            mesh_id,
+            model,
             collisions,
             state: TileState::Destroyed,
             center,

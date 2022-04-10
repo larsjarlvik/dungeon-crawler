@@ -52,8 +52,8 @@ impl ModelPipeline {
             let model_matrix = transform.to_matrix(alpha);
             let model = ctx
                 .model_instances
-                .get(&model_instance.key)
-                .expect(format!("Could not find model \"{}\"!", model_instance.key).as_str());
+                .get(&model_instance.model.key)
+                .expect(format!("Could not find model \"{}\"!", model_instance.model.key).as_str());
 
             if render.cull_frustum {
                 let transformed_bb = model.model.bounding_box.transform(model_matrix.into());
@@ -155,13 +155,7 @@ fn animate(nodes: &mut GltfModelNodes, animation: &Option<&components::animation
                 .get(&animation.name)
                 .expect(format!("Could not find animation: {}", &animation.name).as_str());
 
-            let time = if animation.repeat {
-                animation.elapsed % cur_model_animation.total_time
-            } else {
-                animation.elapsed.min(cur_model_animation.total_time)
-            };
-
-            cur_model_animation.animate_nodes(&mut nodes.nodes, time, blend_factor)
+            cur_model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed, blend_factor)
         }
         None => false,
     }

@@ -71,7 +71,6 @@ impl<'a> World {
     pub fn load_resources(&mut self, engine: &mut engine::Engine) {
         let start = Instant::now();
         let character = engine.load_model("models/character.glb");
-        engine.initialize_model(&character, "character", "character".to_string());
 
         self.resources = Some(Resources {
             map: map::Map::new(engine, 42312, 3),
@@ -84,6 +83,7 @@ impl<'a> World {
         self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {
+            let character_model = engine.initialize_model(&resources.character, "character");
             let collider = resources
                 .character
                 .collisions
@@ -91,9 +91,9 @@ impl<'a> World {
                 .expect("Could not find character collider!");
 
             self.components.spawn().insert_bundle((
-                components::Model::new("character", 1.5),
+                components::Model::new(character_model, 1.5),
                 components::Collision::new(collider.clone()),
-                components::Animations::new("base", "idle", true),
+                components::Animations::new("base", "idle", components::AnimationRunType::Repeat),
                 components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),
                 components::Action::new(),

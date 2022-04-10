@@ -19,7 +19,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
             components::TileState::Destroyed => {
                 if camera.frustum.test_bounding_box(&tile.bounding_box) {
                     let mut tile_entity = commands.spawn_bundle((
-                        components::Model::new(tile.mesh_id.as_str(), 1.0),
+                        components::Model::new(tile.model.clone(), 1.0),
                         components::Render { cull_frustum: true },
                         components::Transform::from_translation_angle(tile.center, tile.rotation),
                     ));
@@ -31,7 +31,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
 
                     for decor in tile.decor.iter() {
                         let mut decor_entity = commands.spawn_bundle((
-                            components::Model::new(decor.mesh_id.as_str(), 1.0),
+                            components::Model::new(decor.model.clone(), 1.0),
                             components::Transform::from_translation_angle(decor.position, decor.rotation),
                             components::Render { cull_frustum: true },
                             components::Shadow,
@@ -77,13 +77,13 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                         }
                     }
 
-                    for h in tile.hostiles.iter() {
+                    for hostile in tile.hostiles.iter() {
                         commands.spawn_bundle((
                             components::Name::new("Skeleton Warrior"),
-                            components::Model::new(h.mesh_id.as_str(), 1.5),
-                            components::Collision::new(h.collider.clone()),
-                            components::Animations::new("base", "idle", true),
-                            components::Transform::from_translation_scale(h.position, 0.8),
+                            components::Model::new(hostile.model.clone(), 1.5),
+                            components::Collision::new(hostile.collider.clone()),
+                            components::Animations::new("base", "idle", components::AnimationRunType::Repeat),
+                            components::Transform::from_translation_scale(hostile.position, 0.8),
                             components::Render { cull_frustum: true },
                             components::Agressor::new(6.0),
                             components::Movement::new(10.0),

@@ -62,7 +62,6 @@ impl Map {
     }
 
     pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str) {
-        let mesh_id = uuid::Uuid::new_v4().to_string();
         let mut rng = StdRng::seed_from_u64(self.seed);
         let mut entity = world.spawn();
 
@@ -72,9 +71,9 @@ impl Map {
             .map(|d| self.add_decor(engine, d, Vector3::zero(), 0.0))
             .collect();
 
-        engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str(), mesh_id.clone());
+        let model = engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str());
         entity.insert(components::Tile::new(
-            mesh_id,
+            model,
             collisions,
             Vector3::zero(),
             self.tile_size,
@@ -87,9 +86,8 @@ impl Map {
     }
 
     fn empty_tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, pos: Vector3<f32>) {
-        let mesh_id = uuid::Uuid::new_v4().to_string();
-        engine.initialize_model(&self.tiles, "tile-empty", mesh_id.clone());
-        entity.insert(components::Tile::new(mesh_id, vec![], pos, self.tile_size, 0.0, vec![], vec![]));
+        let model = engine.initialize_model(&self.tiles, "tile-empty");
+        entity.insert(components::Tile::new(model, vec![], pos, self.tile_size, 0.0, vec![], vec![]));
     }
 
     fn tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, rng: &mut StdRng, tile: &mut generator::Tile, pos: Vector3<f32>) {
@@ -111,10 +109,9 @@ impl Map {
             .expect(format!("Could not find collision for: {}!", name).as_str())
             .clone();
 
-        let mesh_id = uuid::Uuid::new_v4().to_string();
-        engine.initialize_model(&self.tiles, t, mesh_id.clone());
+        let model = engine.initialize_model(&self.tiles, t);
         entity.insert(components::Tile::new(
-            mesh_id,
+            model,
             collisions,
             pos,
             self.tile_size,
@@ -174,13 +171,11 @@ impl Map {
             })
             .collect();
 
-        let mesh_id = uuid::Uuid::new_v4().to_string();
         let collisions = self.decor.collisions.get(&d.name).unwrap_or(&vec![]).clone();
-
-        engine.initialize_model(&self.decor, d.name.as_str(), mesh_id.clone());
+        let model = engine.initialize_model(&self.decor, d.name.as_str());
 
         components::Decor {
-            mesh_id,
+            model,
             collisions,
             lights,
             emitters,
@@ -190,8 +185,7 @@ impl Map {
     }
 
     fn add_hostiles(&self, rng: &mut StdRng, engine: &mut engine::Engine, tile_center: Vector3<f32>) -> Vec<components::Hostile> {
-        let mesh_id = uuid::Uuid::new_v4().to_string();
-        engine.initialize_model(&self.hostiles, "skeleton", mesh_id.clone());
+        let model = engine.initialize_model(&self.hostiles, "skeleton");
 
         let position = tile_center
             + vec3(
@@ -208,7 +202,7 @@ impl Map {
             .clone();
 
         vec![components::Hostile {
-            mesh_id,
+            model,
             collider,
             position,
             health: 10.0,

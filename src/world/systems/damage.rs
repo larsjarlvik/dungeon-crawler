@@ -38,13 +38,13 @@ pub fn damage(
 
                     if let Some(action) = &mut action {
                         if health.current <= 0.0 {
-                            action.set_action(components::CurrentAction::Death, 100.0, 0.5, true);
+                            action.set_action(components::CurrentAction::Death, 100.0, 0.0, true);
                             commands
                                 .entity(target_entity)
                                 .remove_bundle::<(components::Agressor, components::Target, components::Collision)>();
                         } else {
                             // TODO: Damage
-                            action.set_action(components::CurrentAction::Hit, 0.5, 0.5, true);
+                            action.set_action(components::CurrentAction::Hit, 0.5, 0.0, true);
                         }
                     } else if health.current <= 0.0 {
                         commands.entity(target_entity).despawn_recursive();

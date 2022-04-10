@@ -1,13 +1,37 @@
 use crate::world::*;
 use bevy_ecs::prelude::*;
 
-pub fn animation(time: Res<resources::Time>, mut query: Query<&mut components::Animations>) {
-    for mut animation in query.iter_mut() {
+pub fn animation(time: Res<resources::Time>, mut query: Query<(&components::Model, &mut components::Animations)>) {
+    for (model, mut animation) in query.iter_mut() {
         for (_, channel) in animation.channels.iter_mut() {
-            channel.current.elapsed += time.last_frame * channel.current.speed;
+            animate_channel(&model, &mut channel.current, time.last_frame);
+
             if let Some(previous) = &mut channel.prev {
-                previous.elapsed += time.last_frame * previous.speed;
+                animate_channel(&model, previous, time.last_frame);
             }
         }
     }
+}
+
+fn animate_channel(model: &components::Model, channel: &mut components::Animation, last_frame: f32) {
+    let total_time = *model
+        .model
+        .animation_times
+        .get(&channel.name)
+        .expect(format!("Could not find animation: {}", &channel.name).as_str());
+
+    channel.elapsed = match channel.run_type {
+        components::AnimationRunType::Default => {
+            let new_elapsed = channel.elapsed + last_frame * channel.speed;
+
+            if new_elapsed >= total_time {
+                channel.run_type = components::AnimationRunType::Stopped;
+                total_time
+            } else {
+                new_elapsed
+            }
+        }
+        components::AnimationRunType::Repeat => (channel.elapsed + last_frame * channel.speed) % total_time,
+        components::AnimationRunType::Stopped => total_time,
+    };
 }
