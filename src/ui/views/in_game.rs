@@ -34,7 +34,8 @@ impl InGame {
                             .query_filtered::<&components::Health, With<components::UserControl>>()
                             .iter(&world.components)
                         {
-                            let display_health = format!("{} / {}", health.current, health.max);
+                            let current = health.current.floor();
+                            let display_health = format!("{} / {}", current, health.max);
                             let health_bar = custom::HealthBar::new(health.current / health.max, display_health).desired_width(200.0);
                             ui.add(health_bar);
                         }
@@ -74,15 +75,22 @@ impl InGame {
 
                 ui.with_layout(Layout::right_to_left(), |ui| {
                     let mut input = world.components.get_resource_mut::<world::resources::Input>().unwrap();
-                    let attack = ui.add_sized([80.0, 80.0], Button::new("Attack"));
 
+                    let attack = ui.add_sized([80.0, 80.0], Button::new("Attack"));
                     let pressed = match ui_ctx.input().pointer.hover_pos() {
                         Some(pos) => ui_ctx.input().pointer.any_down() && attack.rect.contains(pos),
                         None => false,
                     };
-
                     input.set_ui(UiActionCode::Attack, pressed);
                     blocking_elements.push(attack.rect);
+
+                    let health = ui.add_sized([80.0, 80.0], Button::new("Health"));
+                    let pressed = match ui_ctx.input().pointer.hover_pos() {
+                        Some(pos) => ui_ctx.input().pointer.any_down() && health.rect.contains(pos),
+                        None => false,
+                    };
+                    input.set_ui(UiActionCode::Health, pressed);
+                    blocking_elements.push(health.rect);
                 });
             });
 

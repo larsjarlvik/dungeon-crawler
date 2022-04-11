@@ -8,20 +8,17 @@ use crate::{
 use bevy_ecs::prelude::*;
 use bevy_transform::hierarchy::DespawnRecursiveExt;
 use cgmath::*;
+use rand::Rng;
 
 pub fn damage(
     mut commands: Commands,
     attack_query: Query<(Entity, &components::Attack, &components::Transform)>,
-    mut target_query: Query<(
-        Entity,
-        &mut components::Health,
-        Option<&mut components::Action>,
-        &components::Collision,
-        &components::Transform,
-    )>,
+    mut target_query: Query<(&mut components::Health, &components::Collision, &components::Transform)>,
 ) {
+    let mut rng = rand::thread_rng();
+
     for (entity, attack, transform) in attack_query.iter() {
-        for (target_entity, mut health, mut action, collision, target_transform) in target_query.iter_mut() {
+        for (mut health, collision, target_transform) in target_query.iter_mut() {
             if collision.key == attack.collision_key {
                 continue;
             }
@@ -34,26 +31,15 @@ pub fn damage(
 
             for polygon in collider {
                 if did_hit(&polygon, collision, transform) {
-                    health.current -= attack.damage;
-
-                    if let Some(action) = &mut action {
-                        if health.current <= 0.0 {
-                            action.set_action(components::CurrentAction::Death, 100.0, 0.0, true);
-                            commands
-                                .entity(target_entity)
-                                .remove_bundle::<(components::Agressor, components::Target, components::Collision)>();
-                        } else {
-                            // TODO: Damage
-                            action.set_action(components::CurrentAction::Hit, 0.5, 0.0, true);
-                        }
-                    } else if health.current <= 0.0 {
-                        commands.entity(target_entity).despawn_recursive();
-                    }
-
+                    health.changes.push(components::HealthChange::new(
+                        -rng.gen_range(attack.min..attack.max).round(),
+                        components::HealthChangeType::Once,
+                    ));
                     break;
                 }
             }
         }
+
         commands.entity(entity).despawn_recursive();
     }
 }

@@ -46,7 +46,8 @@ impl<'a> World {
                 .with_system(systems::actions.label("movement"))
                 .with_system(systems::collision.after("movement"))
                 .with_system(systems::damage.after("movement"))
-                .with_system(systems::aggression),
+                .with_system(systems::aggression)
+                .with_system(systems::health),
         );
 
         let mut post_schedule = Schedule::default();
@@ -97,12 +98,17 @@ impl<'a> World {
                 components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),
                 components::Action::new(),
+                components::Weapon {
+                    min: 2.0,
+                    max: 7.0,
+                    time: 1.0,
+                },
                 components::UserControl,
                 components::Render { cull_frustum: false },
                 components::Shadow,
                 components::Follow,
                 components::Target,
-                components::Health::new(10.0),
+                components::Health::new(40.0),
             ));
 
             if let Some(tile) = &map::edit_mode() {

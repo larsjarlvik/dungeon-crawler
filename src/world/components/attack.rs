@@ -3,5 +3,6 @@ use bevy_ecs::prelude::*;
 #[derive(Component)]
 pub struct Attack {
     pub collision_key: String,
-    pub damage: f32,
+    pub min: f32,
+    pub max: f32,
 }

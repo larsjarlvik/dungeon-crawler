@@ -10,10 +10,11 @@ pub fn actions(
         &mut components::Transform,
         &mut components::Animations,
         &mut components::Action,
+        Option<&components::Weapon>,
         Option<&components::Collision>,
     )>,
 ) {
-    for (mut movement, mut transform, mut animation, mut action, collision) in query.iter_mut() {
+    for (mut movement, mut transform, mut animation, mut action, weapon, collision) in query.iter_mut() {
         let new_rot = cgmath::Quaternion::from_angle_y(Rad(movement.direction));
         let current_rot = transform.rotation.current;
         let current_trans = transform.translation.current;
@@ -22,7 +23,7 @@ pub fn actions(
             action.reset();
         }
 
-        match action.current {
+        match &action.current {
             components::CurrentAction::None => {
                 transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
 
@@ -46,21 +47,24 @@ pub fn actions(
             components::CurrentAction::Attack => {
                 transform.translation.freeze();
                 transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
-                animation.set_animation("base", "attack", 2.2, components::AnimationRunType::Default);
                 movement.velocity *= 0.85;
 
-                if let Some(collision) = collision {
-                    if action.should_execute() {
-                        // TODO: Range
-                        let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;
+                if action.should_execute() {
+                    if let Some(collision) = collision {
+                        animation.set_animation("base", "attack", 2.2, components::AnimationRunType::Default);
 
-                        commands.spawn().insert_bundle((
-                            components::Attack {
-                                collision_key: collision.key.clone(),
-                                damage: 1.0,
-                            },
-                            components::Transform::from_translation(transform.translation.current + dir),
-                        ));
+                        if let Some(weapon) = weapon {
+                            let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;
+
+                            commands.spawn().insert_bundle((
+                                components::Attack {
+                                    collision_key: collision.key.clone(),
+                                    min: weapon.min,
+                                    max: weapon.max,
+                                },
+                                components::Transform::from_translation(transform.translation.current + dir),
+                            ));
+                        }
                     }
                 }
             }
