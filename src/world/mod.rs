@@ -41,16 +41,20 @@ impl<'a> World {
         schedule.add_stage(
             "update",
             SystemStage::parallel()
-                .with_system(systems::action)
                 .with_system(systems::flicker)
-                .with_system(systems::user_control.label("user_control"))
-                .with_system(systems::movement.after("user_control")),
+                .with_system(systems::user_control)
+                .with_system(systems::actions.label("movement"))
+                .with_system(systems::collision.after("movement"))
+                .with_system(systems::damage.after("movement"))
+                .with_system(systems::aggression)
+                .with_system(systems::health),
         );
 
         let mut post_schedule = Schedule::default();
         post_schedule.add_stage(
             "post",
             SystemStage::parallel()
+                .with_system(systems::display)
                 .with_system(systems::tile)
                 .with_system(systems::camera)
                 .with_system(systems::animation),
@@ -68,7 +72,6 @@ impl<'a> World {
     pub fn load_resources(&mut self, engine: &mut engine::Engine) {
         let start = Instant::now();
         let character = engine.load_model("models/character.glb");
-        engine.initialize_model(&character, "character", "character".to_string());
 
         self.resources = Some(Resources {
             map: map::Map::new(engine, 42312, 3),
@@ -81,20 +84,31 @@ impl<'a> World {
         self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {
-            let collision = resources.character.collisions.get("character").unwrap();
+            let character_model = engine.initialize_model(&resources.character, "character");
+            let collider = resources
+                .character
+                .collisions
+                .get("character")
+                .expect("Could not find character collider!");
 
             self.components.spawn().insert_bundle((
-                components::Model::new("character"),
-                components::Collider::new(collision.clone()),
-                components::Animations::new("base", "idle"),
+                components::Model::new(character_model, 1.5),
+                components::Collision::new(collider.clone()),
+                components::Animations::new("base", "idle", components::AnimationRunType::Repeat),
                 components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
-                components::Light::new(vec3(1.0, 1.0, 0.72), 0.6, Some(10.0), vec3(0.0, 2.5, 0.0), 0.0),
                 components::Movement::new(15.0),
                 components::Action::new(),
+                components::Weapon {
+                    min: 2.0,
+                    max: 7.0,
+                    time: 1.0,
+                },
                 components::UserControl,
                 components::Render { cull_frustum: false },
                 components::Shadow,
                 components::Follow,
+                components::Target,
+                components::Health::new(40.0),
             ));
 
             if let Some(tile) = &map::edit_mode() {

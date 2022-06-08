@@ -39,7 +39,7 @@ impl ModelPipeline {
         let mut bundles = vec![];
         let mut shadow_bundles = vec![];
 
-        for (model, animation, render, shadow, transform) in components
+        for (model_instance, animation, render, shadow, transform) in components
             .query::<(
                 &components::Model,
                 Option<&components::Animations>,
@@ -52,8 +52,8 @@ impl ModelPipeline {
             let model_matrix = transform.to_matrix(alpha);
             let model = ctx
                 .model_instances
-                .get(&model.key)
-                .expect(format!("Could not find model \"{}\"!", model.key).as_str());
+                .get(&model_instance.model.key)
+                .expect(format!("Could not find model \"{}\"!", model_instance.model.key).as_str());
 
             if render.cull_frustum {
                 let transformed_bb = model.model.bounding_box.transform(model_matrix.into());
@@ -73,10 +73,10 @@ impl ModelPipeline {
                     model: model_matrix.into(),
                     inv_model,
                     joint_transforms: joint_transforms.clone().try_into().unwrap(),
+                    highlight: model_instance.highlight,
                     is_animated: animation.is_some() as u32,
                 }]),
             );
-
             bundles.push(&model.model.display_render_bundle);
 
             if shadow.is_some() {
@@ -88,6 +88,7 @@ impl ModelPipeline {
                         model: model_matrix.into(),
                         inv_model,
                         joint_transforms: joint_transforms.clone().try_into().unwrap(),
+                        highlight: model_instance.highlight,
                         is_animated: animation.is_some() as u32,
                     }]),
                 );
@@ -103,17 +104,41 @@ impl ModelPipeline {
 fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::Animations>) -> Vec<[[f32; 4]; 4]> {
     if let Some(animation) = animation {
         let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
+        let mut nodes = nodes.clone();
 
         animation.channels.iter().for_each(|(_, channel)| {
             let blend_factor = channel.get_blend_factor();
 
-            if blend_factor < 1.0 {
-                if let Some(prev) = &channel.prev {
-                    animate(nodes, &prev, &mut joint_transforms, 1.0 - blend_factor);
+            let has_cur_animation = animate(&mut nodes, &Some(&channel.current), 1.0);
+            let has_prev_animation = animate(&mut nodes, &channel.prev.as_ref(), 1.0 - blend_factor);
+
+            if has_cur_animation || has_prev_animation {
+                for (index, parent_index) in &nodes.depth_first_taversal_indices {
+                    let parent_transform = parent_index
+                        .map(|id| {
+                            let parent = &nodes.nodes[id];
+                            parent.global_transform_matrix
+                        })
+                        .or(Matrix4::identity().into());
+
+                    let node = &mut nodes.nodes[*index];
+                    node.apply_transform(parent_transform);
                 }
             }
 
-            animate(nodes, &channel.current, &mut joint_transforms, blend_factor);
+            for node in nodes.nodes.iter() {
+                let inverse_transform = node
+                    .global_transform_matrix
+                    .invert()
+                    .expect("Transform matrix should be invertible");
+
+                let skin_index = if let Some(skin_index) = node.skin_index { skin_index } else { 0 };
+
+                nodes.skins[skin_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
+                    joint_transforms[j_index] =
+                        inverse_transform * nodes.nodes[joint.node_id].global_transform_matrix * joint.inverse_bind_matrix;
+                });
+            }
         });
 
         joint_transforms.iter().map(|jm| jm.clone().into()).collect()
@@ -122,52 +147,16 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
     }
 }
 
-fn animate(
-    nodes: &GltfModelNodes,
-    animation: &components::animation::Animation,
-    joint_matrices: &mut Vec<Matrix4<f32>>,
-    blend_factor: f32,
-) {
-    let mut nodes = nodes.clone();
-    let model_animation = nodes
-        .animations
-        .get(&animation.name)
-        .expect(format!("Could not find animation: {}", &animation.name).as_str());
+fn animate(nodes: &mut GltfModelNodes, animation: &Option<&components::animation::Animation>, blend_factor: f32) -> bool {
+    match animation {
+        Some(animation) => {
+            let cur_model_animation = nodes
+                .animations
+                .get(&animation.name)
+                .expect(format!("Could not find animation: {}", &animation.name).as_str());
 
-    if model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed % model_animation.total_time) {
-        for (index, parent_index) in &nodes.depth_first_taversal_indices {
-            let parent_transform = parent_index
-                .map(|id| {
-                    let parent = &nodes.nodes[id];
-                    parent.global_transform_matrix
-                })
-                .or(Matrix4::identity().into());
-
-            if let Some(matrix) = parent_transform {
-                let node = &mut nodes.nodes[*index];
-                node.apply_transform(matrix);
-            }
+            cur_model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed, blend_factor)
         }
-
-        let transforms: Vec<(usize, Matrix4<f32>)> = nodes
-            .nodes
-            .iter()
-            .filter(|n| n.skin_index.is_some())
-            .map(|n| {
-                (
-                    n.skin_index.unwrap(),
-                    n.global_transform_matrix.invert().expect("Transform matrix should be invertible"),
-                )
-            })
-            .collect();
-
-        for (s_index, inverse_transform) in transforms {
-            nodes.skins[s_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
-                joint_matrices[j_index] = joint_matrices[j_index].lerp(
-                    inverse_transform * nodes.nodes[joint.node_id].global_transform_matrix * joint.inverse_bind_matrix,
-                    blend_factor,
-                );
-            });
-        }
+        None => false,
     }
 }

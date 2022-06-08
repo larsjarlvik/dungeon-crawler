@@ -13,6 +13,12 @@ mod viewport;
 pub use settings::Settings;
 use smaa::{SmaaMode, SmaaTarget};
 
+#[derive(Clone)]
+pub struct ModelMetaData {
+    pub key: String,
+    pub animation_times: HashMap<String, f32>,
+}
+
 pub struct ModelInstance {
     pub key: String,
     pub model: pipelines::model::Model,
@@ -184,15 +190,25 @@ impl Engine {
         model::GltfModel::new(&self.ctx, bytes.as_slice())
     }
 
-    pub fn initialize_model(&mut self, model: &model::GltfModel, name: &str, key: String) {
+    pub fn initialize_model(&mut self, gltf_model: &model::GltfModel, name: &str) -> ModelMetaData {
+        let model = pipelines::model::Model::new(&self.ctx, &self.model_pipeline, gltf_model, name);
+        let nodes = gltf_model.nodes.clone();
+        let animation_times = nodes.animations.iter().map(|(a, b)| (a.clone(), b.total_time)).collect();
+        let key = uuid::Uuid::new_v4().to_string();
+
         self.ctx.model_instances.insert(
             key.to_string(),
             ModelInstance {
-                key,
-                model: pipelines::model::Model::new(&self.ctx, &self.model_pipeline, model, name),
-                nodes: model.nodes.clone(),
+                key: key.clone(),
+                model,
+                nodes,
             },
         );
+
+        ModelMetaData {
+            key: key.to_string(),
+            animation_times,
+        }
     }
 
     pub fn initialize_particle(&mut self, emitter: pipelines::ParticleEmitter, key: String) {

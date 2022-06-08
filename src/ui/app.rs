@@ -9,20 +9,17 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(ctx: &engine::Context, ui_ctx: &egui::CtxRef, render_pass: &mut RenderPass) -> Self {
+    pub fn new(ctx: &engine::Context, ui_ctx: &egui::Context, render_pass: &mut RenderPass) -> Self {
         let mut fonts = FontDefinitions::default();
         fonts
             .font_data
             .insert("font".to_owned(), FontData::from_owned(utils::read_bytes("exo2-medium.ttf")));
+
         fonts
-            .fonts_for_family
+            .families
             .get_mut(&FontFamily::Proportional)
             .unwrap()
             .insert(0, "font".to_owned());
-
-        fonts.family_and_size.insert(TextStyle::Heading, (FontFamily::Proportional, 28.0));
-        fonts.family_and_size.insert(TextStyle::Button, (FontFamily::Proportional, 18.0));
-        fonts.family_and_size.insert(TextStyle::Body, (FontFamily::Proportional, 18.0));
 
         ui_ctx.set_fonts(fonts);
 
@@ -32,7 +29,7 @@ impl App {
         }
     }
 
-    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &egui::CtxRef, world: &mut World) {
+    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &egui::Context, world: &mut World) {
         self.blocking_elements = self.views.update(ctx, ui_ctx, world);
     }
 }

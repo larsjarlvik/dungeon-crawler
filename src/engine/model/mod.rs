@@ -12,11 +12,13 @@ mod mesh;
 pub mod node;
 mod primitive;
 pub mod skin;
+mod transform;
 mod vertex;
 use super::collision;
 pub use emitter::Emitter;
 pub use mesh::Mesh;
 pub use primitive::Primitive;
+pub use transform::Transform;
 pub use vertex::*;
 
 #[derive(Clone)]

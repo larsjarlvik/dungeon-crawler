@@ -13,6 +13,7 @@ pub enum KeyState {
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum UiActionCode {
     Attack,
+    Health,
 }
 
 pub struct Joystick {

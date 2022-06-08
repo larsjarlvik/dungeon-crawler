@@ -1,12 +1,44 @@
+use std::time::{Duration, Instant};
+
 use bevy_ecs::prelude::*;
+
+#[derive(Clone)]
+pub enum HealthChangeType {
+    Once,
+    Forever,
+    OverTime(Duration),
+}
+
+#[derive(Clone)]
+pub struct HealthChange {
+    pub amount: f32,
+    pub change_type: HealthChangeType,
+    pub start: Instant,
+}
+
+impl HealthChange {
+    pub fn new(amount: f32, change_type: HealthChangeType) -> Self {
+        Self {
+            amount,
+            change_type,
+            start: Instant::now(),
+        }
+    }
+}
 
 #[derive(Component)]
 pub struct Health {
-    pub amount: f32,
+    pub max: f32,
+    pub current: f32,
+    pub changes: Vec<HealthChange>,
 }
 
 impl Health {
     pub fn new(amount: f32) -> Self {
-        Self { amount }
+        Self {
+            max: amount,
+            current: amount,
+            changes: vec![],
+        }
     }
 }

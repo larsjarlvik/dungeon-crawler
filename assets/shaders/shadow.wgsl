@@ -4,6 +4,7 @@ struct Uniforms {
     model: mat4x4<f32>;
     inv_model: mat4x4<f32>;
     joint_transforms: array<mat4x4<f32>, 64>;
+    highlight: f32;
     is_animated: bool;
 };
 
@@ -17,15 +18,15 @@ struct VertexInput {
 
 [[stage(vertex)]]
 fn vert_main(model: VertexInput) -> [[builtin(position)]] vec4<f32> {
-    var skin_matrix: mat4x4<f32> = mat4x4<f32>(
-        vec4<f32>(0.0, 0.0, 0.0, 0.0),
-        vec4<f32>(0.0, 0.0, 0.0, 0.0),
-        vec4<f32>(0.0, 0.0, 0.0, 0.0),
-        vec4<f32>(0.0, 0.0, 0.0, 0.0),
-    );
-
     if (uniforms.is_animated) {
         let w = model.weights;
+        var skin_matrix: mat4x4<f32> = mat4x4<f32>(
+            vec4<f32>(0.0, 0.0, 0.0, 0.0),
+            vec4<f32>(0.0, 0.0, 0.0, 0.0),
+            vec4<f32>(0.0, 0.0, 0.0, 0.0),
+            vec4<f32>(0.0, 0.0, 0.0, 0.0),
+        );
+
 
         for (var i: i32 = 0; i < 4; i = i + 1) {
             let j = model.joints[i];
@@ -38,14 +39,9 @@ fn vert_main(model: VertexInput) -> [[builtin(position)]] vec4<f32> {
                 vec4<f32>(skin_matrix[3][0] + w[i] * jx[3][0], skin_matrix[3][1] + w[i] * jx[3][1], skin_matrix[3][2] + w[i] * jx[3][2], skin_matrix[3][3] + w[i] * jx[3][3]),
             );
         }
-    } else {
-        skin_matrix = mat4x4<f32>(
-            vec4<f32>(1.0, 0.0, 0.0, 0.0),
-            vec4<f32>(0.0, 1.0, 0.0, 0.0),
-            vec4<f32>(0.0, 0.0, 1.0, 0.0),
-            vec4<f32>(0.0, 0.0, 0.0, 1.0),
-        );
+
+        return uniforms.view_proj * uniforms.model * skin_matrix * vec4<f32>(model.position, 1.0);
     }
 
-    return uniforms.view_proj * uniforms.model * skin_matrix * vec4<f32>(model.position, 1.0);
+    return uniforms.view_proj * uniforms.model * vec4<f32>(model.position, 1.0);
 }

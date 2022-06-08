@@ -5,7 +5,7 @@ use crate::{
 };
 use bevy_ecs::{prelude::World, world::EntityMut};
 use cgmath::*;
-use rand::{prelude::StdRng, SeedableRng};
+use rand::{prelude::StdRng, Rng, SeedableRng};
 use std::env;
 mod decor;
 mod generator;
@@ -17,12 +17,14 @@ pub struct Map {
     number_of_tiles: usize,
     tiles: engine::model::GltfModel,
     decor: engine::model::GltfModel,
+    hostiles: engine::model::GltfModel,
 }
 
 impl Map {
     pub fn new(engine: &mut engine::Engine, seed: u64, grid_size: usize) -> Self {
         let tiles = engine.load_model("models/catacombs.glb");
         let decor = engine.load_model("models/decor.glb");
+        let hostiles = engine.load_model("models/skeleton.glb");
         let number_of_tiles = 25;
 
         Self {
@@ -32,6 +34,7 @@ impl Map {
             number_of_tiles,
             tiles,
             decor,
+            hostiles,
         }
     }
 
@@ -59,7 +62,6 @@ impl Map {
     }
 
     pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str) {
-        let mesh_id = uuid::Uuid::new_v4().to_string();
         let mut rng = StdRng::seed_from_u64(self.seed);
         let mut entity = world.spawn();
 
@@ -69,23 +71,23 @@ impl Map {
             .map(|d| self.add_decor(engine, d, Vector3::zero(), 0.0))
             .collect();
 
-        engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str(), mesh_id.clone());
+        let model = engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str());
         entity.insert(components::Tile::new(
-            mesh_id,
+            model,
             collisions,
             Vector3::zero(),
             self.tile_size,
             0.0,
             decor,
+            vec![],
         ));
 
         self.add_grid(world, Vector3::zero());
     }
 
     fn empty_tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, pos: Vector3<f32>) {
-        let mesh_id = uuid::Uuid::new_v4().to_string();
-        engine.initialize_model(&self.tiles, "tile-empty", mesh_id.clone());
-        entity.insert(components::Tile::new(mesh_id, vec![], pos, self.tile_size, 0.0, vec![]));
+        let model = engine.initialize_model(&self.tiles, "tile-empty");
+        entity.insert(components::Tile::new(model, vec![], pos, self.tile_size, 0.0, vec![], vec![]));
     }
 
     fn tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, rng: &mut StdRng, tile: &mut generator::Tile, pos: Vector3<f32>) {
@@ -98,6 +100,8 @@ impl Map {
             .map(|d| self.add_decor(engine, d, pos, rot))
             .collect();
 
+        let hostiles = self.add_hostiles(rng, engine, pos);
+
         let collisions = self
             .tiles
             .collisions
@@ -105,9 +109,16 @@ impl Map {
             .expect(format!("Could not find collision for: {}!", name).as_str())
             .clone();
 
-        let mesh_id = uuid::Uuid::new_v4().to_string();
-        engine.initialize_model(&self.tiles, t, mesh_id.clone());
-        entity.insert(components::Tile::new(mesh_id, collisions, pos, self.tile_size, -rot, decor));
+        let model = engine.initialize_model(&self.tiles, t);
+        entity.insert(components::Tile::new(
+            model,
+            collisions,
+            pos,
+            self.tile_size,
+            -rot,
+            decor,
+            hostiles,
+        ));
     }
 
     fn add_decor(&self, engine: &mut engine::Engine, d: &decor::Decor, tile_center: Vector3<f32>, tile_rotation: f32) -> components::Decor {
@@ -160,19 +171,42 @@ impl Map {
             })
             .collect();
 
-        let mesh_id = uuid::Uuid::new_v4().to_string();
         let collisions = self.decor.collisions.get(&d.name).unwrap_or(&vec![]).clone();
-
-        engine.initialize_model(&self.decor, d.name.as_str(), mesh_id.clone());
+        let model = engine.initialize_model(&self.decor, d.name.as_str());
 
         components::Decor {
-            mesh_id,
+            model,
             collisions,
             lights,
             emitters,
             position,
             rotation,
         }
+    }
+
+    fn add_hostiles(&self, rng: &mut StdRng, engine: &mut engine::Engine, tile_center: Vector3<f32>) -> Vec<components::Hostile> {
+        let model = engine.initialize_model(&self.hostiles, "skeleton");
+
+        let position = tile_center
+            + vec3(
+                (rng.gen::<f32>() - 0.5) * (self.tile_size - 2.0),
+                0.0,
+                (rng.gen::<f32>() - 0.5) * (self.tile_size - 2.0),
+            );
+
+        let collider = self
+            .hostiles
+            .collisions
+            .get("skeleton")
+            .expect("Could not find skeleton collider!")
+            .clone();
+
+        vec![components::Hostile {
+            model,
+            collider,
+            position,
+            health: 10.0,
+        }]
     }
 
     fn add_grid(&self, world: &mut World, center: Vector3<f32>) {

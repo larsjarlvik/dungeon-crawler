@@ -22,15 +22,16 @@ cgmath = "0.18.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 bevy_ecs = "0.6.1"
 bevy_transform = "0.6.0"
+bevy_tasks = "0.6.0"
 rand = "0.8.4"
 gltf = { version = "1.0.0", features = [ "extras", "KHR_lights_punctual" ]}
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = { features = ["raw_value"], version = "1.0" }
-egui_wgpu_backend = "0.16"
-egui = "0.16"
-epi = "0.16"
-egui-winit = "0.16"
+egui_wgpu_backend = "0.17"
+egui = "0.17"
+epi = "0.17"
+egui-winit = "0.17"
 image = { version = "0.24", default-features = false, features = ["jpeg", "png"] }
 rayon = "1.5.1"
 uuid = "0.8.2"

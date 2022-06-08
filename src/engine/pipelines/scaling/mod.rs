@@ -30,7 +30,7 @@ impl ScalingPipeline {
             1,
             "texture_bind_group_layout",
             &[
-                builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT),
+                builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT, true),
                 builder.create_sampler_entry(1, wgpu::ShaderStages::FRAGMENT, false),
             ],
         );

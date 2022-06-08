@@ -4,7 +4,9 @@ use std::time::Instant;
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum CurrentAction {
     None,
-    Attack(f32),
+    Attack,
+    Hit,
+    Death,
 }
 
 #[derive(Component)]
@@ -27,8 +29,8 @@ impl Action {
         }
     }
 
-    pub fn set_action(&mut self, action: CurrentAction, min_action_time: f32, activation_time: f32) {
-        if self.current != CurrentAction::None {
+    pub fn set_action(&mut self, action: CurrentAction, min_action_time: f32, activation_time: f32, force: bool) {
+        if !force && self.current != CurrentAction::None {
             return;
         }
 

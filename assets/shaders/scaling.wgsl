@@ -27,7 +27,7 @@ struct Uniforms {
 fn sharp(pix_coord: f32) -> f32 {
     let norm = (fract(pix_coord) - 0.5) * 2.0;
     let norm2 = norm * norm;
-    return floor(pix_coord) + norm * pow(norm2, 200.0) / 2.0 + 0.5;
+    return floor(pix_coord) + norm * pow(norm2, 2.0) / 2.0 + 0.5;
 }
 
 [[stage(fragment)]]

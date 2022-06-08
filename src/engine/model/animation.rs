@@ -11,7 +11,7 @@ struct NodesKeyFrame(
     Vec<(usize, Vector3<f32>)>,
 );
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Sampler<T> {
     interpolation: Interpolation,
     times: Vec<f32>,
@@ -24,7 +24,7 @@ impl<T: Interpolate> Sampler<T> {
             let mut index = None;
             for i in 0..self.times.len() {
                 index = Some(i);
-                if t >= self.times[i] && t < self.times[i + 1] {
+                if t >= self.times[i] && t < self.times[(i + 1) % self.times.len()] {
                     break;
                 }
             }
@@ -51,7 +51,7 @@ impl<T: Interpolate> Sampler<T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Channel<T> {
     sampler: Sampler<T>,
     node_index: usize,
@@ -66,7 +66,7 @@ impl<T: Interpolate> Channel<T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Animation {
     translation_channels: Vec<Channel<Vector3<f32>>>,
     rotation_channels: Vec<Channel<Quaternion<f32>>>,
@@ -109,17 +109,18 @@ impl Animation {
         }
     }
 
-    pub fn animate_nodes(&self, nodes: &mut Vec<node::Node>, time: f32) -> bool {
+    pub fn animate_nodes(&self, nodes: &mut Vec<node::Node>, time: f32, blend_factor: f32) -> bool {
         let NodesKeyFrame(translations, rotations, scale) = self.sample(time);
 
         translations.iter().for_each(|(node_index, translation)| {
-            nodes[*node_index].set_translation(*translation);
+            nodes[*node_index].local_transform.translation =
+                nodes[*node_index].local_transform.translation.lerp(*translation, blend_factor);
         });
         rotations.iter().for_each(|(node_index, rotation)| {
-            nodes[*node_index].set_rotation(*rotation);
+            nodes[*node_index].local_transform.rotation = nodes[*node_index].local_transform.rotation.slerp(*rotation, blend_factor);
         });
         scale.iter().for_each(|(node_index, scale)| {
-            nodes[*node_index].set_scale(*scale);
+            nodes[*node_index].local_transform.scale = nodes[*node_index].local_transform.scale.lerp(*scale, blend_factor);
         });
 
         !translations.is_empty() || !rotations.is_empty() || !scale.is_empty()

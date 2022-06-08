@@ -6,6 +6,7 @@ pub struct Movement {
     pub max_velocity: f32,
     pub velocity: f32,
     pub direction: f32,
+    pub velocity_dir: Vector3<f32>,
 }
 
 impl Movement {
@@ -14,6 +15,7 @@ impl Movement {
             max_velocity,
             velocity: 0.0,
             direction: 0.0,
+            velocity_dir: Vector3::zero(),
         }
     }
 

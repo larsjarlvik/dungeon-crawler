@@ -4,6 +4,7 @@ struct Uniforms {
     model: mat4x4<f32>;
     inv_model: mat4x4<f32>;
     joint_transforms: array<mat4x4<f32>, 64>;
+    highlight: f32;
     is_animated: bool;
 };
 
@@ -31,6 +32,7 @@ struct VertexOutput {
     [[location(1)]] normal_w: vec3<f32>;
     [[location(2)]] tangent_w: vec3<f32>;
     [[location(3)]] bitangent_w: vec3<f32>;
+    [[location(4)]] highlight: f32;
 };
 
 [[stage(vertex)]]
@@ -52,10 +54,10 @@ fn vert_main(model: VertexInput) -> VertexOutput {
             var jx: mat4x4<f32> = uniforms.joint_transforms[j];
 
             skin_matrix = mat4x4<f32>(
-                vec4<f32>(skin_matrix[0][0] + w[i] * jx[0][0], skin_matrix[0][1] + w[i] * jx[0][1], skin_matrix[0][2] + w[i] * jx[0][2], skin_matrix[0][3] + w[i] * jx[0][3]),
-                vec4<f32>(skin_matrix[1][0] + w[i] * jx[1][0], skin_matrix[1][1] + w[i] * jx[1][1], skin_matrix[1][2] + w[i] * jx[1][2], skin_matrix[1][3] + w[i] * jx[1][3]),
-                vec4<f32>(skin_matrix[2][0] + w[i] * jx[2][0], skin_matrix[2][1] + w[i] * jx[2][1], skin_matrix[2][2] + w[i] * jx[2][2], skin_matrix[2][3] + w[i] * jx[2][3]),
-                vec4<f32>(skin_matrix[3][0] + w[i] * jx[3][0], skin_matrix[3][1] + w[i] * jx[3][1], skin_matrix[3][2] + w[i] * jx[3][2], skin_matrix[3][3] + w[i] * jx[3][3]),
+                skin_matrix[0] + w[i] * jx[0],
+                skin_matrix[1] + w[i] * jx[1],
+                skin_matrix[2] + w[i] * jx[2],
+                skin_matrix[3] + w[i] * jx[3],
             );
         }
     } else {
@@ -73,6 +75,7 @@ fn vert_main(model: VertexInput) -> VertexOutput {
 
     out.clip_position = uniforms.view_proj * uniforms.model * skin_matrix * vec4<f32>(model.position, 1.0);
     out.tex_coord = model.tex_coord;
+    out.highlight = uniforms.highlight;
     return out;
 }
 
@@ -98,11 +101,11 @@ fn frag_main(in: VertexOutput) -> GBufferOutput {
 
         var tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
         var normal: vec3<f32> = textureSample(t_normal, t_sampler, in.tex_coord).xyz;
-        output.normal = vec4<f32>(tangent * normalize(2.0 * normal - 1.0), 1.0);
+        output.normal = vec4<f32>(tangent * normalize(2.0 * normal - 1.0), in.highlight);
     } else {
         output.color = primitive_uniforms.base_color;
         output.orm = vec4<f32>(1.0);
-        output.normal = vec4<f32>(in.normal_w, 0.0);
+        output.normal = vec4<f32>(in.normal_w, -1.0);
     }
 
     return output;

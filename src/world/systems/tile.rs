@@ -19,7 +19,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
             components::TileState::Destroyed => {
                 if camera.frustum.test_bounding_box(&tile.bounding_box) {
                     let mut tile_entity = commands.spawn_bundle((
-                        components::Model::new(tile.mesh_id.as_str()),
+                        components::Model::new(tile.model.clone(), 1.0),
                         components::Render { cull_frustum: true },
                         components::Transform::from_translation_angle(tile.center, tile.rotation),
                     ));
@@ -31,11 +31,11 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
 
                     for decor in tile.decor.iter() {
                         let mut decor_entity = commands.spawn_bundle((
-                            components::Model::new(decor.mesh_id.as_str()),
+                            components::Model::new(decor.model.clone(), 1.0),
                             components::Transform::from_translation_angle(decor.position, decor.rotation),
                             components::Render { cull_frustum: true },
                             components::Shadow,
-                            components::Health::new(10.0),
+                            components::Health::new(2.0),
                         ));
 
                         if decor.collisions.len() > 0 {
@@ -75,6 +75,27 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                             let emitter_entity_id = emitter_entity.id();
                             commands.entity(decor_id).push_children(&[emitter_entity_id]);
                         }
+                    }
+
+                    for hostile in tile.hostiles.iter() {
+                        commands.spawn_bundle((
+                            components::Name::new("Skeleton Warrior"),
+                            components::Model::new(hostile.model.clone(), 1.5),
+                            components::Collision::new(hostile.collider.clone()),
+                            components::Animations::new("base", "idle", components::AnimationRunType::Repeat),
+                            components::Transform::from_translation_scale(hostile.position, 0.8),
+                            components::Render { cull_frustum: true },
+                            components::Weapon {
+                                min: 2.0,
+                                max: 5.0,
+                                time: 1.0,
+                            },
+                            components::Agressor::new(6.0),
+                            components::Movement::new(10.0),
+                            components::Shadow,
+                            components::Action::new(),
+                            components::Health::new(20.0),
+                        ));
                     }
 
                     tile.state = components::TileState::Active;

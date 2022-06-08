@@ -4,7 +4,6 @@ use crate::utils;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct Settings {
-    pub brightness: f32,
     pub contrast: f32,
     pub bloom: f32,
     pub render_scale: f32,
@@ -20,7 +19,6 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            brightness: 0.0,
             contrast: 2.2,
             bloom: 2.5,
             render_scale: 1.0,

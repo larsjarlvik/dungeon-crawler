@@ -25,7 +25,7 @@ impl MainMenu {
         }
     }
 
-    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &CtxRef, world: &mut World, opacity: f32) -> Vec<Rect> {
+    pub fn update(&mut self, ctx: &engine::Context, ui_ctx: &egui::Context, world: &mut World, opacity: f32) -> Vec<Rect> {
         let vw = ctx.viewport.width as f32 / ui_ctx.pixels_per_point();
         let center_opacity = self.menu_state.tick();
 

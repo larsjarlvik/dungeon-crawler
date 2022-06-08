@@ -1,6 +1,6 @@
 use cgmath::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Interpolation {
     Linear,
     Step,
