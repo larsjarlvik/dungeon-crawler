@@ -82,7 +82,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                             components::Name::new("Skeleton Warrior"),
                             components::Model::new(hostile.model.clone(), 1.5),
                             components::Collision::new(hostile.collider.clone()),
-                            components::Animations::new("base", "idle", components::AnimationRunType::Repeat),
+                            components::Animations::new(&hostile.model, "base", "idle", components::AnimationRunType::Repeat),
                             components::Transform::from_translation_scale(hostile.position, 0.8),
                             components::Render { cull_frustum: true },
                             components::Weapon {

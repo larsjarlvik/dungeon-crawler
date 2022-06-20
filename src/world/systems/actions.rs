@@ -1,4 +1,7 @@
-use crate::world::*;
+use crate::world::{
+    components::{AnimationRunType, AnimationSpeed},
+    *,
+};
 use bevy_ecs::prelude::*;
 use cgmath::*;
 
@@ -6,6 +9,7 @@ pub fn actions(
     mut commands: Commands,
     time: Res<resources::Time>,
     mut query: Query<(
+        &components::Model,
         &mut components::Movement,
         &mut components::Transform,
         &mut components::Animations,
@@ -14,7 +18,7 @@ pub fn actions(
         Option<&components::Collision>,
     )>,
 ) {
-    for (mut movement, mut transform, mut animation, mut action, weapon, collision) in query.iter_mut() {
+    for (model, mut movement, mut transform, mut animation, mut action, weapon, collision) in query.iter_mut() {
         let new_rot = cgmath::Quaternion::from_angle_y(Rad(movement.direction));
         let current_rot = transform.rotation.current;
         let current_trans = transform.translation.current;
@@ -33,13 +37,25 @@ pub fn actions(
 
                     let animation_velocity = velocity / 0.04;
                     if animation_velocity > 2.5 {
-                        animation.set_animation("base", "run", animation_velocity * 0.4, components::AnimationRunType::Repeat);
+                        animation.set_animation(
+                            &model.model,
+                            "base",
+                            "run",
+                            AnimationSpeed::Speed(animation_velocity * 0.4),
+                            AnimationRunType::Repeat,
+                        );
                     } else if animation_velocity > 0.3 {
-                        animation.set_animation("base", "walk", animation_velocity, components::AnimationRunType::Repeat);
+                        animation.set_animation(
+                            &model.model,
+                            "base",
+                            "walk",
+                            AnimationSpeed::Speed(animation_velocity),
+                            AnimationRunType::Repeat,
+                        );
                     }
                 } else {
                     transform.translation.freeze();
-                    animation.set_animation("base", "idle", 1.0, components::AnimationRunType::Repeat);
+                    animation.set_animation(&model.model, "base", "idle", AnimationSpeed::Original, AnimationRunType::Repeat);
                 }
 
                 movement.velocity *= 0.9;
@@ -51,7 +67,13 @@ pub fn actions(
 
                 if action.should_execute() {
                     if let Some(collision) = collision {
-                        animation.set_animation("base", "attack", 2.2, components::AnimationRunType::Default);
+                        animation.set_animation(
+                            &model.model,
+                            "base",
+                            "attack",
+                            AnimationSpeed::Length(action.length),
+                            AnimationRunType::Default,
+                        );
 
                         if let Some(weapon) = weapon {
                             let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;
@@ -70,12 +92,24 @@ pub fn actions(
             }
             components::CurrentAction::Hit => {
                 if action.should_execute() {
-                    animation.set_animation("base", "hit", 2.2, components::AnimationRunType::Default);
+                    animation.set_animation(
+                        &model.model,
+                        "base",
+                        "hit",
+                        AnimationSpeed::Length(action.length),
+                        AnimationRunType::Default,
+                    );
                 }
             }
             components::CurrentAction::Death => {
                 if action.should_execute() {
-                    animation.set_animation("base", "death", 1.0, components::AnimationRunType::Default);
+                    animation.set_animation(
+                        &model.model,
+                        "base",
+                        "death",
+                        AnimationSpeed::Original,
+                        AnimationRunType::Default,
+                    );
                 }
             }
         }

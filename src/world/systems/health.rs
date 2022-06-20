@@ -36,7 +36,6 @@ pub fn health(mut commands: Commands, mut query: Query<(Entity, &mut components:
                         .entity(entity)
                         .remove_bundle::<(components::Agressor, components::Target, components::Collision)>();
                 } else {
-                    // TODO: Damage
                     action.set_action(components::CurrentAction::Hit, 0.5, 0.0, true);
                 }
             } else if health.current <= 0.0 {

@@ -1,10 +1,15 @@
+use crate::{config, engine::ModelMetaData};
 use bevy_ecs::prelude::*;
 use std::{
     collections::HashMap,
     time::{Duration, Instant},
 };
 
-use crate::config;
+pub enum AnimationSpeed {
+    Original,
+    Length(f32),
+    Speed(f32),
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum AnimationRunType {
@@ -19,6 +24,7 @@ pub struct Animation {
     pub elapsed: f32,
     pub speed: f32,
     pub run_type: AnimationRunType,
+    pub total_time: f32,
 }
 
 #[derive(Debug)]
@@ -43,8 +49,14 @@ pub struct Animations {
 }
 
 impl Animations {
-    pub fn new(key: &str, animation: &str, run_type: AnimationRunType) -> Self {
+    pub fn new(model: &ModelMetaData, key: &str, animation: &str, run_type: AnimationRunType) -> Self {
         let mut channels = HashMap::new();
+
+        let total_time = *model
+            .animation_times
+            .get(&animation.to_string())
+            .expect(format!("Could not find animation: {}", &animation).as_str());
+
         channels.insert(
             key.to_string(),
             Channel {
@@ -54,6 +66,7 @@ impl Animations {
                     elapsed: 0.0,
                     speed: 1.0,
                     run_type,
+                    total_time,
                 },
                 updated: Instant::now(),
             },
@@ -62,7 +75,18 @@ impl Animations {
         Self { channels }
     }
 
-    pub fn set_animation(&mut self, channel: &str, animation: &str, speed: f32, run: AnimationRunType) {
+    pub fn set_animation(&mut self, model: &ModelMetaData, channel: &str, animation: &str, speed: AnimationSpeed, run: AnimationRunType) {
+        let total_time = *model
+            .animation_times
+            .get(&animation.to_string())
+            .expect(format!("Could not find animation: {}", &animation).as_str());
+
+        let speed = match speed {
+            AnimationSpeed::Original => 1.0,
+            AnimationSpeed::Length(length) => total_time / length,
+            AnimationSpeed::Speed(speed) => speed,
+        };
+
         if let Some(channel) = self.channels.get_mut(&channel.to_string()) {
             if channel.current.name == animation.to_string() && channel.current.run_type != AnimationRunType::Stopped {
                 channel.current.speed = speed;
@@ -77,6 +101,7 @@ impl Animations {
                 speed,
                 elapsed: 0.0,
                 run_type: run,
+                total_time,
             };
             channel.updated = Instant::now() - Duration::from_secs_f32((config::ANIMATION_BLEND_SECONDS - current_elapsed).max(0.0));
         } else {
@@ -89,6 +114,7 @@ impl Animations {
                         speed,
                         elapsed: 0.0,
                         run_type: run,
+                        total_time,
                     },
                     updated: Instant::now(),
                 },
