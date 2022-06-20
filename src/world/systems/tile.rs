@@ -86,8 +86,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                             components::Transform::from_translation_scale(hostile.position, 0.8),
                             components::Render { cull_frustum: true },
                             components::Weapon {
-                                min: 2.0,
-                                max: 5.0,
+                                damage: 2.0..5.0,
                                 time: 1.0,
                             },
                             components::Agressor::new(6.0),

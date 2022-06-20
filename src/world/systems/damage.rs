@@ -32,7 +32,7 @@ pub fn damage(
             for polygon in collider {
                 if did_hit(&polygon, collision, transform) {
                     health.changes.push(components::HealthChange::new(
-                        -rng.gen_range(attack.min..attack.max).round(),
+                        -rng.gen_range(attack.damage.clone()).round(),
                         components::HealthChangeType::Once,
                     ));
                     break;

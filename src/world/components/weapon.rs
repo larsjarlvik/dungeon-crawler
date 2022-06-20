@@ -1,8 +1,8 @@
 use bevy_ecs::prelude::*;
+use std::ops::Range;
 
 #[derive(Component)]
 pub struct Weapon {
-    pub min: f32,
-    pub max: f32,
+    pub damage: Range<f32>,
     pub time: f32,
 }

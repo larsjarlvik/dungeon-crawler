@@ -81,8 +81,7 @@ pub fn actions(
                             commands.spawn().insert_bundle((
                                 components::Attack {
                                     collision_key: collision.key.clone(),
-                                    min: weapon.min,
-                                    max: weapon.max,
+                                    damage: weapon.damage.clone(),
                                 },
                                 components::Transform::from_translation(transform.translation.current + dir),
                             ));

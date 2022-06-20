@@ -99,8 +99,7 @@ impl<'a> World {
                 components::Movement::new(15.0),
                 components::Action::new(),
                 components::Weapon {
-                    min: 2.0,
-                    max: 7.0,
+                    damage: 2.0..7.0,
                     time: 1.0,
                 },
                 components::UserControl,
