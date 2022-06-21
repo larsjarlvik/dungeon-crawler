@@ -13,12 +13,12 @@ use rand::Rng;
 pub fn damage(
     mut commands: Commands,
     attack_query: Query<(Entity, &components::Attack, &components::Transform)>,
-    mut target_query: Query<(&mut components::Health, &components::Collision, &components::Transform)>,
+    mut target_query: Query<(&mut components::Stats, &components::Collision, &components::Transform)>,
 ) {
     let mut rng = rand::thread_rng();
 
     for (entity, attack, transform) in attack_query.iter() {
-        for (mut health, collision, target_transform) in target_query.iter_mut() {
+        for (mut stats, collision, target_transform) in target_query.iter_mut() {
             if collision.key == attack.collision_key {
                 continue;
             }
@@ -31,7 +31,7 @@ pub fn damage(
 
             for polygon in collider {
                 if did_hit(&polygon, collision, transform) {
-                    health.changes.push(components::HealthChange::new(
+                    stats.health.changes.push(components::HealthChange::new(
                         -rng.gen_range(attack.damage.clone()).round(),
                         components::HealthChangeType::Once,
                     ));

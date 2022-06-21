@@ -37,7 +37,7 @@ impl Action {
         self.current = action;
         self.set = Instant::now();
         self.length = min_action_time;
-        self.activation_time = activation_time;
+        self.activation_time = min_action_time * activation_time;
         self.executed = false;
     }
 

@@ -100,7 +100,10 @@ impl Map {
             .map(|d| self.add_decor(engine, d, pos, rot))
             .collect();
 
-        let hostiles = self.add_hostiles(rng, engine, pos);
+        let mut hostiles = vec![];
+        for _ in 0..(rng.gen::<f32>() * 3.0) as usize {
+            hostiles.push(self.add_hostile(rng, engine, pos));
+        }
 
         let collisions = self
             .tiles
@@ -184,7 +187,7 @@ impl Map {
         }
     }
 
-    fn add_hostiles(&self, rng: &mut StdRng, engine: &mut engine::Engine, tile_center: Vector3<f32>) -> Vec<components::Hostile> {
+    fn add_hostile(&self, rng: &mut StdRng, engine: &mut engine::Engine, tile_center: Vector3<f32>) -> components::Hostile {
         let model = engine.initialize_model(&self.hostiles, "skeleton");
 
         let position = tile_center
@@ -201,12 +204,12 @@ impl Map {
             .expect("Could not find skeleton collider!")
             .clone();
 
-        vec![components::Hostile {
+        components::Hostile {
             model,
             collider,
             position,
             health: 10.0,
-        }]
+        }
     }
 
     fn add_grid(&self, world: &mut World, center: Vector3<f32>) {

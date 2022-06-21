@@ -29,15 +29,29 @@ impl InGame {
             custom::Columns::new(&ui, 3)
                 .show(ui, |ui| {
                     ui.vertical(|ui| {
-                        for health in world
+                        for stats in world
                             .components
-                            .query_filtered::<&components::Health, With<components::UserControl>>()
+                            .query_filtered::<&components::Stats, With<components::UserControl>>()
                             .iter(&world.components)
                         {
-                            let current = health.current.floor();
-                            let display_health = format!("{} / {}", current, health.max);
-                            let health_bar = custom::HealthBar::new(health.current / health.max, display_health).desired_width(200.0);
+                            let current = stats.health.current.floor();
+                            let display_health = format!("{} / {}", current, stats.get_base_health());
+                            let health_bar = custom::Bar::new(
+                                stats.health.current / stats.get_base_health(),
+                                display_health,
+                                Color32::from_rgba_premultiplied(150, 0, 0, 255),
+                            )
+                            .desired_width(200.0);
                             ui.add(health_bar);
+
+                            let level = components::stats::get_level(stats.experience);
+                            let experience_bar = custom::Bar::new(
+                                stats.get_level_progress(),
+                                format!("Level: {}", level),
+                                Color32::from_rgba_premultiplied(80, 80, 80, 55),
+                            )
+                            .desired_width(200.0);
+                            ui.add(experience_bar);
                         }
 
                         if ctx.settings.show_fps {
@@ -47,12 +61,17 @@ impl InGame {
                 })
                 .show(ui, |ui| {
                     ui.vertical_centered(|ui| {
-                        for (health, name) in world
+                        for (stats, name) in world
                             .components
-                            .query_filtered::<(&components::Health, &components::Name), With<components::Display>>()
+                            .query_filtered::<(&components::Stats, &components::Name), With<components::Display>>()
                             .iter(&world.components)
                         {
-                            let health_bar = custom::HealthBar::new(health.current / health.max, name.name.as_str()).desired_width(200.0);
+                            let health_bar = custom::Bar::new(
+                                stats.health.current / stats.get_base_health(),
+                                name.name.as_str(),
+                                Color32::from_rgba_premultiplied(150, 0, 0, 255),
+                            )
+                            .desired_width(200.0);
                             ui.add(health_bar);
                         }
                     });

@@ -1,5 +1,5 @@
+mod bar;
 mod columns;
-mod health_bar;
 
+pub use bar::Bar;
 pub use columns::Columns;
-pub use health_bar::HealthBar;

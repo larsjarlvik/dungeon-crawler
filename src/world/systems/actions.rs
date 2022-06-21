@@ -10,6 +10,7 @@ pub fn actions(
     time: Res<resources::Time>,
     mut query: Query<(
         &components::Model,
+        &components::Stats,
         &mut components::Movement,
         &mut components::Transform,
         &mut components::Animations,
@@ -18,7 +19,7 @@ pub fn actions(
         Option<&components::Collision>,
     )>,
 ) {
-    for (model, mut movement, mut transform, mut animation, mut action, weapon, collision) in query.iter_mut() {
+    for (model, stats, mut movement, mut transform, mut animation, mut action, weapon, collision) in query.iter_mut() {
         let new_rot = cgmath::Quaternion::from_angle_y(Rad(movement.direction));
         let current_rot = transform.rotation.current;
         let current_trans = transform.translation.current;
@@ -78,10 +79,13 @@ pub fn actions(
                         if let Some(weapon) = weapon {
                             let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;
 
+                            let base = stats.get_attack_damage();
+                            let weapon = weapon.damage.clone();
+
                             commands.spawn().insert_bundle((
                                 components::Attack {
                                     collision_key: collision.key.clone(),
-                                    damage: weapon.damage.clone(),
+                                    damage: (base.start * weapon.start)..(base.end * weapon.end),
                                 },
                                 components::Transform::from_translation(transform.translation.current + dir),
                             ));

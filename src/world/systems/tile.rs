@@ -35,7 +35,6 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                             components::Transform::from_translation_angle(decor.position, decor.rotation),
                             components::Render { cull_frustum: true },
                             components::Shadow,
-                            components::Health::new(2.0),
                         ));
 
                         if decor.collisions.len() > 0 {
@@ -85,6 +84,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                             components::Animations::new(&hostile.model, "base", "idle", components::AnimationRunType::Repeat),
                             components::Transform::from_translation_scale(hostile.position, 0.8),
                             components::Render { cull_frustum: true },
+                            components::Stats::new(10, 10, 12, components::stats::get_level_experience(3)),
                             components::Weapon {
                                 damage: 2.0..5.0,
                                 time: 1.0,
@@ -93,7 +93,6 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                             components::Movement::new(10.0),
                             components::Shadow,
                             components::Action::new(),
-                            components::Health::new(20.0),
                         ));
                     }
 

@@ -8,6 +8,7 @@ pub fn aggression(
             &mut components::Agressor,
             &mut components::Movement,
             &mut components::Action,
+            &components::Stats,
             Option<&components::Weapon>,
             &components::Transform,
         )>,
@@ -15,7 +16,7 @@ pub fn aggression(
 ) {
     let targets: Vec<Vector3<f32>> = query.q0().iter().map(|t| t.1.translation.current.clone()).collect();
 
-    for (mut agressor, mut movement, mut action, weapon, transform) in query.q1().iter_mut() {
+    for (mut agressor, mut movement, mut action, stats, weapon, transform) in query.q1().iter_mut() {
         for target_transform in targets.iter() {
             let distance = transform.translation.current.distance(*target_transform);
             let range = if agressor.is_aggressive {
@@ -30,7 +31,12 @@ pub fn aggression(
                 // TODO: Attack range
                 if distance < 1.0 {
                     if let Some(weapon) = weapon {
-                        action.set_action(components::CurrentAction::Attack, weapon.time, 0.35, false);
+                        action.set_action(
+                            components::CurrentAction::Attack,
+                            weapon.time * stats.get_attack_time(),
+                            0.3,
+                            false,
+                        );
                     }
                 } else if transform.translation.current.distance(*target_transform) < range {
                     movement.velocity = 0.07;

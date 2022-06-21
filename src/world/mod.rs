@@ -98,6 +98,7 @@ impl<'a> World {
                 components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),
                 components::Action::new(),
+                components::Stats::new(15, 15, 15, 0),
                 components::Weapon {
                     damage: 2.0..7.0,
                     time: 1.0,
@@ -107,7 +108,6 @@ impl<'a> World {
                 components::Shadow,
                 components::Follow,
                 components::Target,
-                components::Health::new(40.0),
             ));
 
             if let Some(tile) = &map::edit_mode() {

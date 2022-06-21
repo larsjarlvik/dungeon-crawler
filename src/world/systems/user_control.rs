@@ -13,7 +13,7 @@ pub fn user_control(
                 &components::Transform,
                 &mut components::Movement,
                 &mut components::Action,
-                &mut components::Health,
+                &mut components::Stats,
                 Option<&components::Weapon>,
             ),
             With<components::UserControl>,
@@ -24,7 +24,7 @@ pub fn user_control(
     let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
     let targets: Vec<Vector3<f32>> = query.q1().iter().map(|(_, t)| t.translation.current.clone()).collect();
 
-    for (transform, mut movement, mut action, mut health, weapon) in query.q0().iter_mut() {
+    for (transform, mut movement, mut action, mut stats, weapon) in query.q0().iter_mut() {
         if let Some(joystick) = &input.joystick {
             movement.velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
 
@@ -47,14 +47,19 @@ pub fn user_control(
             };
 
             if let Some(weapon) = weapon {
-                action.set_action(components::CurrentAction::Attack, weapon.time, 0.35, false);
+                action.set_action(
+                    components::CurrentAction::Attack,
+                    (weapon.time + stats.get_attack_time()) / 2.0,
+                    (weapon.time + stats.get_attack_time()) / 2.0 * 0.3,
+                    false,
+                );
             }
         }
 
         if input.is_pressed(VirtualKeyCode::H) || input.ui.contains_key(&resources::input::UiActionCode::Health) {
-            if health.changes.len() == 0 {
+            if stats.health.changes.len() == 0 {
                 // TODO: Health value
-                health.changes.push(components::HealthChange::new(
+                stats.health.changes.push(components::HealthChange::new(
                     2.0,
                     components::HealthChangeType::OverTime(Duration::from_secs(10)),
                 ));
