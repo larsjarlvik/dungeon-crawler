@@ -180,13 +180,15 @@ impl DeferredPipeline {
             .query::<(&components::Light, &components::Transform)>()
             .iter(&components)
             .filter(|(light, transform)| {
-                if let Some(bounding_box) = &light.bounding_box {
-                    frustum.test_bounding_box(&bounding_box.transform(transform.to_matrix(alpha).into()))
+                if let Some(bounding_sphere) = &light.bounding_sphere {
+                    frustum.test_bounding_sphere(&bounding_sphere.transform(transform.to_matrix(alpha).into()))
                 } else {
                     true
                 }
             })
             .collect();
+
+        dbg!(visible_lights.len());
 
         visible_lights.sort_by(|a, b| {
             a.1.translation

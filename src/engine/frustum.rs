@@ -1,5 +1,5 @@
 extern crate cgmath;
-use super::bounding_box;
+use super::{bounding_box, bounding_sphere};
 use cgmath::*;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -15,12 +15,12 @@ impl Frustum {
     pub fn from_matrix(m: Matrix4<f32>) -> Self {
         Self {
             f: [
-                vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x).normalize(),
-                vec4(m.x.w - m.x.x, m.y.w - m.y.x, m.z.w - m.z.x, m.w.w - m.w.x).normalize(),
-                vec4(m.x.w + m.x.y, m.y.w + m.y.y, m.z.w + m.z.y, m.w.w + m.w.y).normalize(),
-                vec4(m.x.w - m.x.y, m.y.w - m.y.y, m.z.w - m.z.y, m.w.w - m.w.y).normalize(),
-                vec4(m.x.w + m.x.z, m.y.w + m.y.z, m.z.w + m.z.z, m.w.w + m.w.z).normalize(),
-                vec4(m.x.w - m.x.z, m.y.w - m.y.z, m.z.w - m.z.z, m.w.w - m.w.z).normalize(),
+                vec4(m.x.w + m.x.x, m.y.w + m.y.x, m.z.w + m.z.x, m.w.w + m.w.x),
+                vec4(m.x.w - m.x.x, m.y.w - m.y.x, m.z.w - m.z.x, m.w.w - m.w.x),
+                vec4(m.x.w + m.x.y, m.y.w + m.y.y, m.z.w + m.z.y, m.w.w + m.w.y),
+                vec4(m.x.w - m.x.y, m.y.w - m.y.y, m.z.w - m.z.y, m.w.w - m.w.y),
+                vec4(m.x.w + m.x.z, m.y.w + m.y.z, m.z.w + m.z.z, m.w.w + m.w.z),
+                vec4(m.x.w - m.x.z, m.y.w - m.y.z, m.z.w - m.z.z, m.w.w - m.w.z),
             ],
         }
     }
@@ -65,5 +65,14 @@ impl Frustum {
         }
 
         false
+    }
+
+    pub fn test_bounding_sphere(&self, bs: &bounding_sphere::BoundingSphere) -> bool {
+        for plane in &self.f {
+            if plane.truncate().dot(bs.center.to_vec()) + plane.w <= -bs.radius {
+                return false;
+            }
+        }
+        true
     }
 }

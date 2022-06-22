@@ -148,7 +148,7 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
     pbr.reflectance0 = pbr.specular.rgb;
     pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 5.0, 0.0, 1.0);
 
-    var total_light: vec3<f32> = vec3<f32>(smoothStep(0.1, 0.0, distance(uniforms.target, position) * 0.015) * 0.1);
+    var total_light: vec3<f32> = vec3<f32>(pow(smoothStep(60.0, 0.0, distance(uniforms.target, position)), 150.0) * 0.1);
 
     pbr.n_dot_v = clamp(abs(dot(normal, view_dir)), 0.001, 1.0);
     let reflection = -normalize(reflect(view_dir, normal));
@@ -156,9 +156,15 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];
         let light_dist = distance(light.position, position);
-        if (light_dist > light.radius / 1.1) { continue; }
 
-        let attenuation = clamp(pow(1.0 - light_dist / light.radius, 2.0), 0.0, 1.0);
+        let dist = distance(position, uniforms.eye_pos.xyz);
+        let dir = (position - uniforms.eye_pos.xyz) / dist;
+        let bloom = light.color * apply_point_glow(uniforms.eye_pos, dir, dist, light.position, light.bloom);
+        total_light = total_light + bloom;
+
+        let attenuation = smoothStep(light.radius, 0.0, light_dist);
+        if (attenuation <= 0.05) { continue; }
+
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(light_dir + view_dir);
 
@@ -178,11 +184,8 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
             let light_contrib = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
             let new_light = attenuation * light.color * light_contrib;
 
-            let dist = distance(position, uniforms.eye_pos.xyz);
-            let dir = (position - uniforms.eye_pos.xyz) / dist;
-            let bloom = light.color * apply_point_glow(uniforms.eye_pos, dir, dist, light.position, light.bloom);
 
-            total_light = total_light + new_light + bloom;
+            total_light = total_light + new_light;
         }
     }
 
