@@ -148,12 +148,7 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
     pbr.reflectance0 = pbr.specular.rgb;
     pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 5.0, 0.0, 1.0);
 
-    var total_light: vec3<f32> = vec3<f32>(0.05);
-    let view_dist = clamp(1.0 - (distance(uniforms.target, position) * 0.08), 0.0, 1.0) * 1.5;
-
-    if (view_dist <= 0.0) {
-        return vec4<f32>(0.0);
-    }
+    var total_light: vec3<f32> = vec3<f32>(smoothStep(0.1, 0.0, distance(uniforms.target, position) * 0.015) * 0.1);
 
     pbr.n_dot_v = clamp(abs(dot(normal, view_dir)), 0.001, 1.0);
     let reflection = -normalize(reflect(view_dir, normal));
@@ -161,7 +156,7 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
     for (var i: i32 = 0; i < uniforms.light_count; i = i + 1) {
         let light = uniforms.light[i];
         let light_dist = distance(light.position, position);
-        if (light_dist > light.radius / 1.5) { continue; }
+        if (light_dist > light.radius / 1.1) { continue; }
 
         let attenuation = clamp(pow(1.0 - light_dist / light.radius, 2.0), 0.0, 1.0);
         let light_dir = normalize(light.position - position);
@@ -181,7 +176,6 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
             let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
             let light_contrib = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
-
             let new_light = attenuation * light.color * light_contrib;
 
             let dist = distance(position, uniforms.eye_pos.xyz);
@@ -192,7 +186,7 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
         }
     }
 
-    total_light = total_light * view_dist * normal_t.w;
+    total_light = total_light * normal_t.w;
     let shadow = get_shadow_factor(position) * (1.0 - min_shadow) + min_shadow;
     return contrast_matrix(uniforms.contrast) * vec4<f32>(total_light * color.rgb * orm.r * shadow, color.a);
 }
