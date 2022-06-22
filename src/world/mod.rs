@@ -93,7 +93,7 @@ impl<'a> World {
 
             self.components.spawn().insert_bundle((
                 components::Animations::new(&character_model, "base", "idle", components::AnimationRunType::Repeat),
-                components::Model::new(character_model, 1.5),
+                components::Model::new(character_model, 1.3),
                 components::Collision::new(collider.clone()),
                 components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),

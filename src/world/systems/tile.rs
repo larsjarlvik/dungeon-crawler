@@ -79,7 +79,7 @@ pub fn tile(mut commands: Commands, camera: Res<resources::Camera>, mut query: Q
                     for hostile in tile.hostiles.iter() {
                         commands.spawn_bundle((
                             components::Name::new("Skeleton Warrior"),
-                            components::Model::new(hostile.model.clone(), 1.5),
+                            components::Model::new(hostile.model.clone(), 1.3),
                             components::Collision::new(hostile.collider.clone()),
                             components::Animations::new(&hostile.model, "base", "idle", components::AnimationRunType::Repeat),
                             components::Transform::from_translation_scale(hostile.position, 0.8),
