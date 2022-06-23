@@ -4,11 +4,7 @@ mod pipeline_shadow;
 mod uniforms;
 use crate::{
     config,
-    engine::{
-        self,
-        model::GltfModelNodes,
-        pipelines::{self},
-    },
+    engine::{self, model::GltfModelNodes},
     world::*,
 };
 use cgmath::*;
@@ -29,7 +25,13 @@ impl ModelPipeline {
         }
     }
 
-    pub fn render(&self, ctx: &engine::Context, components: &mut bevy_ecs::world::World, target: &pipelines::DeferredPipeline) {
+    pub fn render(
+        &self,
+        ctx: &engine::Context,
+        components: &mut bevy_ecs::world::World,
+        target: &wgpu::TextureView,
+        depth_target: &wgpu::TextureView,
+    ) {
         let alpha = { components.get_resource::<resources::Time>().unwrap().alpha };
         let (frustum, view_proj, shadow_matrix) = {
             let camera = components.get_resource::<resources::Camera>().unwrap();
@@ -96,8 +98,8 @@ impl ModelPipeline {
             }
         }
 
-        self.display.execute_bundles(ctx, bundles, target);
-        self.shadows.execute_bundles(ctx, shadow_bundles, target);
+        self.display.execute_bundles(ctx, bundles, target, depth_target);
+        self.shadows.execute_bundles(ctx, shadow_bundles, depth_target);
     }
 }
 

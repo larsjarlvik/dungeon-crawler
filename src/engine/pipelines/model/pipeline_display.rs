@@ -1,10 +1,6 @@
 use crate::{
     config,
-    engine::{
-        self,
-        pipelines::{self, builders},
-        texture,
-    },
+    engine::{self, pipelines::builders, texture},
 };
 
 pub struct PipelineDisplay {
@@ -45,11 +41,7 @@ impl PipelineDisplay {
 
         let render_pipeline = builder
             .with_shader("shaders/model.wgsl")
-            .with_color_targets(vec![
-                wgpu::TextureFormat::Rgba16Float,
-                config::COLOR_TEXTURE_FORMAT,
-                config::COLOR_TEXTURE_FORMAT,
-            ])
+            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
             .with_depth_target(config::DEPTH_FORMAT)
             .with_buffer_layouts(vec![engine::model::Vertex::desc()])
             .with_bind_group_layout(&uniform_bind_group_layout)
@@ -66,12 +58,16 @@ impl PipelineDisplay {
         }
     }
 
-    pub fn execute_bundles(&self, ctx: &engine::Context, bundles: Vec<&wgpu::RenderBundle>, target: &pipelines::DeferredPipeline) {
+    pub fn execute_bundles(
+        &self,
+        ctx: &engine::Context,
+        bundles: Vec<&wgpu::RenderBundle>,
+        target: &wgpu::TextureView,
+        depth_target: &wgpu::TextureView,
+    ) {
         builders::RenderTargetBuilder::new(ctx, "model")
-            .with_color_attachment(&target.normal_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-            .with_color_attachment(&target.color_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-            .with_color_attachment(&target.orm_texture.view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-            .with_depth_attachment(&target.depth_texture.view, wgpu::LoadOp::Clear(1.0))
+            .with_color_attachment(&target, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
+            .with_depth_attachment(&depth_target, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
     }
 }

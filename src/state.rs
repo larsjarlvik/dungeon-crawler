@@ -100,13 +100,12 @@ impl State {
                 .smaa_target
                 .start_frame(&self.engine.ctx.device, &self.engine.ctx.queue, &view);
 
-            self.engine
-                .model_pipeline
-                .render(&self.engine.ctx, &mut self.world.components, &self.engine.deferred_pipeline);
-
-            self.engine
-                .deferred_pipeline
-                .render(&self.engine.ctx, &self.engine.scaling_pipeline.texture.view);
+            self.engine.model_pipeline.render(
+                &self.engine.ctx,
+                &mut self.world.components,
+                &self.engine.scaling_pipeline.texture.view,
+                &self.engine.scaling_pipeline.depth_texture.view,
+            );
 
             self.engine.particle_pipeline.render(
                 &self.engine.ctx,

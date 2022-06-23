@@ -80,33 +80,31 @@ fn vert_main(model: VertexInput) -> VertexOutput {
 }
 
 // Fragment shader
-struct GBufferOutput {
-  [[location(0)]] normal : vec4<f32>;
-  [[location(1)]] color : vec4<f32>;
-  [[location(2)]] orm : vec4<f32>;
-};
-
 [[group(2), binding(0)]] var t_base_color: texture_2d<f32>;
 [[group(2), binding(1)]] var t_normal: texture_2d<f32>;
 [[group(2), binding(2)]] var t_occlusion_roughness_metallic: texture_2d<f32>;
 [[group(2), binding(3)]] var t_sampler: sampler;
 
 [[stage(fragment)]]
-fn frag_main(in: VertexOutput) -> GBufferOutput {
-    var output : GBufferOutput;
+fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    var color: vec4<f32>;
+    var orm: vec4<f32>;
+    var tangent: vec4<f32>;
+    var normal: vec4<f32>;
+
 
     if (primitive_uniforms.has_textures) {
-        output.color = textureSample(t_base_color, t_sampler, in.tex_coord);
-        output.orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord) * primitive_uniforms.orm_factor;
+        color = textureSample(t_base_color, t_sampler, in.tex_coord);
+        orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord) * primitive_uniforms.orm_factor;
 
         var tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
-        var normal: vec3<f32> = textureSample(t_normal, t_sampler, in.tex_coord).xyz;
-        output.normal = vec4<f32>(tangent * normalize(2.0 * normal - 1.0), in.highlight);
+        let normal_texture = textureSample(t_normal, t_sampler, in.tex_coord).xyz;
+        normal = vec4<f32>(tangent * normalize(2.0 * normal_texture - 1.0), in.highlight);
     } else {
-        output.color = primitive_uniforms.base_color;
-        output.orm = vec4<f32>(1.0);
-        output.normal = vec4<f32>(in.normal_w, -1.0);
+        color = primitive_uniforms.base_color;
+        orm = vec4<f32>(1.0);
+        normal = vec4<f32>(in.normal_w, -1.0);
     }
 
-    return output;
+    return color;
 }

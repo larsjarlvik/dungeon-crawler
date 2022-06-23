@@ -13,6 +13,7 @@ pub struct ScalingPipeline {
     texture_bind_group_layout: builders::MappedBindGroupLayout,
     sampler: wgpu::Sampler,
     pub texture: texture::Texture,
+    pub depth_texture: texture::Texture,
 }
 
 impl ScalingPipeline {
@@ -45,7 +46,9 @@ impl ScalingPipeline {
         let render_bundle_builder = builders::RenderBundleBuilder::new(ctx, "scaling");
 
         let (width, height) = ctx.viewport.get_render_size();
-        let texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "texture");
+        let texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "scaling_texture");
+        let depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "scaling_depth_texture");
+
         let uniform_buffer = render_bundle_builder.create_uniform_buffer_init(bytemuck::cast_slice(&[Uniforms {
             viewport: [ctx.viewport.width as f32, ctx.viewport.height as f32],
             sharpen: (ctx.settings.render_scale < 1.0 && ctx.settings.sharpen) as u32,
@@ -70,6 +73,7 @@ impl ScalingPipeline {
 
         Self {
             texture,
+            depth_texture,
             render_pipeline,
             render_bundle,
             uniform_bind_group_layout,

@@ -1,9 +1,6 @@
 use crate::{
     config,
-    engine::{
-        self,
-        pipelines::{self, builders},
-    },
+    engine::{self, pipelines::builders},
 };
 
 pub struct PipelineShadow {
@@ -35,9 +32,9 @@ impl PipelineShadow {
         }
     }
 
-    pub fn execute_bundles(&self, ctx: &engine::Context, bundles: Vec<&wgpu::RenderBundle>, target: &pipelines::DeferredPipeline) {
+    pub fn execute_bundles(&self, ctx: &engine::Context, bundles: Vec<&wgpu::RenderBundle>, depth_target: &wgpu::TextureView) {
         builders::RenderTargetBuilder::new(ctx, "model_shadows")
-            .with_depth_attachment(&target.shadow_texture.view, wgpu::LoadOp::Clear(1.0))
+            .with_depth_attachment(&depth_target, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
     }
 }
