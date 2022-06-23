@@ -28,7 +28,6 @@ impl State {
     pub fn resize(&mut self, window: &Window, active: bool) {
         if active {
             self.engine.set_viewport(window);
-            self.engine.deferred_pipeline.resize(&self.engine.ctx);
 
             let size = window.inner_size();
             let pos = window.inner_position().unwrap_or(winit::dpi::PhysicalPosition::new(100, 100));
@@ -40,6 +39,7 @@ impl State {
             }
             self.engine.ctx.settings.fullscreen = window.fullscreen().is_some();
             self.engine.ctx.settings.store();
+            self.engine.shadow_pipeline.resize(&self.engine.ctx);
 
             self.world.components.remove_resource::<world::resources::Camera>().unwrap();
             self.world
@@ -87,7 +87,7 @@ impl State {
 
     pub fn update(&mut self, window: &Window) {
         self.world.update();
-        self.engine.deferred_pipeline.update(&self.engine.ctx, &mut self.world.components);
+        self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
         self.ui.update(window, &self.engine.ctx, &mut self.world)
     }
@@ -100,19 +100,23 @@ impl State {
                 .smaa_target
                 .start_frame(&self.engine.ctx.device, &self.engine.ctx.queue, &view);
 
-            self.engine
-                .model_pipeline
-                .render(&self.engine.ctx, &mut self.world.components, &self.engine.deferred_pipeline);
+            self.engine.model_pipeline.render(
+                &self.engine.ctx,
+                &mut self.world.components,
+                &self.engine.shadow_pipeline.texture.view,
+                &self.engine.shadow_pipeline.depth_texture.view,
+                &self.engine.shadow_pipeline.shadow_texture.view,
+            );
 
             self.engine
-                .deferred_pipeline
+                .shadow_pipeline
                 .render(&self.engine.ctx, &self.engine.scaling_pipeline.texture.view);
 
             self.engine.particle_pipeline.render(
                 &self.engine.ctx,
                 &mut self.world.components,
                 &self.engine.scaling_pipeline.texture.view,
-                &self.engine.deferred_pipeline.depth_texture.view,
+                &self.engine.shadow_pipeline.depth_texture.view,
             );
 
             self.engine.scaling_pipeline.render(&self.engine.ctx, &anti_aliasing);

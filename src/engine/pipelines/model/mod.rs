@@ -4,17 +4,17 @@ mod pipeline_shadow;
 mod uniforms;
 use crate::{
     config,
-    engine::{
-        self,
-        model::GltfModelNodes,
-        pipelines::{self},
-    },
+    engine::{self, model::GltfModelNodes},
+    utils::Interpolate,
     world::*,
 };
+use bevy_ecs::prelude::World;
 use cgmath::*;
 pub use model::Model;
 use std::convert::TryInto;
 pub use uniforms::Uniforms;
+
+use self::uniforms::EnvironmentUniforms;
 
 pub struct ModelPipeline {
     pub display: pipeline_display::PipelineDisplay,
@@ -29,15 +29,29 @@ impl ModelPipeline {
         }
     }
 
-    pub fn render(&self, ctx: &engine::Context, components: &mut bevy_ecs::world::World, target: &pipelines::DeferredPipeline) {
+    pub fn render(
+        &self,
+        ctx: &engine::Context,
+        components: &mut bevy_ecs::world::World,
+        target: &wgpu::TextureView,
+        depth_target: &wgpu::TextureView,
+        shadow_target: &wgpu::TextureView,
+    ) {
         let alpha = { components.get_resource::<resources::Time>().unwrap().alpha };
-        let (frustum, view_proj, shadow_matrix) = {
+        let (frustum, view_proj, shadow_matrix, eye, eye_target) = {
             let camera = components.get_resource::<resources::Camera>().unwrap();
-            (camera.frustum, camera.view_proj, camera.get_shadow_matrix())
+            (
+                camera.frustum,
+                camera.view_proj,
+                camera.get_shadow_matrix(),
+                camera.eye,
+                camera.target,
+            )
         };
 
         let mut bundles = vec![];
         let mut shadow_bundles = vec![];
+        let (lights_count, lights) = self.get_lights(ctx, components);
 
         for (model_instance, animation, render, shadow, transform) in components
             .query::<(
@@ -67,7 +81,7 @@ impl ModelPipeline {
 
             ctx.queue.write_buffer(
                 &model.model.display_uniform_buffer,
-                self.display.uniform_bind_group_layout.index as u64,
+                0,
                 bytemuck::cast_slice(&[Uniforms {
                     view_proj: view_proj.into(),
                     model: model_matrix.into(),
@@ -77,12 +91,25 @@ impl ModelPipeline {
                     is_animated: animation.is_some() as u32,
                 }]),
             );
+
+            ctx.queue.write_buffer(
+                &model.model.display_environment_uniform_buffer,
+                0,
+                bytemuck::cast_slice(&[EnvironmentUniforms {
+                    eye_pos: eye.to_vec().extend(0.0).into(),
+                    target: eye_target.extend(0.0).into(),
+                    lights,
+                    lights_count,
+                    contrast: ctx.settings.contrast,
+                }]),
+            );
+
             bundles.push(&model.model.display_render_bundle);
 
             if shadow.is_some() {
                 ctx.queue.write_buffer(
                     &model.model.shadow_uniform_buffer,
-                    self.shadows.uniform_bind_group_layout.index as u64,
+                    0,
                     bytemuck::cast_slice(&[Uniforms {
                         view_proj: shadow_matrix.into(),
                         model: model_matrix.into(),
@@ -96,8 +123,57 @@ impl ModelPipeline {
             }
         }
 
-        self.display.execute_bundles(ctx, bundles, target);
-        self.shadows.execute_bundles(ctx, shadow_bundles, target);
+        self.display.execute_bundles(ctx, bundles, target, depth_target);
+        self.shadows.execute_bundles(ctx, shadow_bundles, shadow_target);
+    }
+
+    fn get_lights(&self, ctx: &engine::Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 16]) {
+        let alpha = {
+            let time = components.get_resource::<resources::Time>().unwrap();
+            time.alpha
+        };
+        let (frustum, target) = {
+            let camera = components.get_resource::<resources::Camera>().unwrap();
+            (camera.frustum, camera.target)
+        };
+
+        let mut lights: [uniforms::LightUniforms; 16] = Default::default();
+
+        let mut visible_lights: Vec<(&components::Light, &components::Transform)> = components
+            .query::<(&components::Light, &components::Transform)>()
+            .iter(&components)
+            .filter(|(light, transform)| {
+                if let Some(bounding_box) = &light.bounding_box {
+                    frustum.test_bounding_box(&bounding_box.transform(transform.to_matrix(alpha).into()))
+                } else {
+                    true
+                }
+            })
+            .collect();
+
+        visible_lights.sort_by(|a, b| {
+            a.1.translation
+                .get(alpha)
+                .distance(target)
+                .partial_cmp(&b.1.translation.get(alpha).distance(target))
+                .unwrap()
+        });
+
+        for (i, (light, transform)) in visible_lights.iter().enumerate() {
+            let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
+            if i >= lights.len() {
+                break;
+            }
+
+            lights[i] = uniforms::LightUniforms {
+                position: (transform.translation.get(alpha) + light.offset.get(alpha)).into(),
+                radius,
+                color: (light.color * light.intensity.get(alpha)).into(),
+                bloom: light.bloom * ctx.settings.bloom,
+            };
+        }
+
+        (visible_lights.len() as i32, lights)
     }
 }
 

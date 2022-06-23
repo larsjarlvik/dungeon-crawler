@@ -39,8 +39,8 @@ pub struct Context {
 pub struct Engine {
     pub ctx: Context,
     pub model_pipeline: pipelines::ModelPipeline,
+    pub shadow_pipeline: pipelines::ShadowPipeline,
     pub joystick_pipeline: pipelines::JoystickPipeline,
-    pub deferred_pipeline: pipelines::DeferredPipeline,
     pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
     pub glyph_pipeline: pipelines::GlyphPipeline,
@@ -100,7 +100,7 @@ impl Engine {
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
-        let deferred_pipeline = pipelines::DeferredPipeline::new(&ctx);
+        let shadow_pipeline = pipelines::ShadowPipeline::new(&ctx);
         let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
@@ -117,7 +117,7 @@ impl Engine {
         Self {
             ctx,
             model_pipeline,
-            deferred_pipeline,
+            shadow_pipeline,
             particle_pipeline,
             scaling_pipeline,
             joystick_pipeline,
@@ -128,7 +128,6 @@ impl Engine {
 
     pub fn reload_pipelines(&mut self) {
         self.model_pipeline = pipelines::ModelPipeline::new(&self.ctx);
-        self.deferred_pipeline = pipelines::DeferredPipeline::new(&self.ctx);
         self.particle_pipeline = pipelines::ParticlePipeline::new(&self.ctx);
         self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);
         self.joystick_pipeline = pipelines::JoystickPipeline::new(&self.ctx);
