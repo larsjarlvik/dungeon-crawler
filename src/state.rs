@@ -28,7 +28,6 @@ impl State {
     pub fn resize(&mut self, window: &Window, active: bool) {
         if active {
             self.engine.set_viewport(window);
-            self.engine.deferred_pipeline.resize(&self.engine.ctx);
 
             let size = window.inner_size();
             let pos = window.inner_position().unwrap_or(winit::dpi::PhysicalPosition::new(100, 100));
@@ -87,7 +86,6 @@ impl State {
 
     pub fn update(&mut self, window: &Window) {
         self.world.update();
-        self.engine.deferred_pipeline.update(&self.engine.ctx, &mut self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
         self.ui.update(window, &self.engine.ctx, &mut self.world)
     }
@@ -111,7 +109,7 @@ impl State {
                 &self.engine.ctx,
                 &mut self.world.components,
                 &self.engine.scaling_pipeline.texture.view,
-                &self.engine.deferred_pipeline.depth_texture.view,
+                &self.engine.scaling_pipeline.depth_texture.view,
             );
 
             self.engine.scaling_pipeline.render(&self.engine.ctx, &anti_aliasing);

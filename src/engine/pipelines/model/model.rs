@@ -8,11 +8,14 @@ use crate::engine::{
     },
 };
 
+use super::uniforms::EnvironmentUniforms;
+
 pub struct Model {
     pub mesh_name: String,
     pub bounding_box: bounding_box::BoundingBox,
     pub display_render_bundle: wgpu::RenderBundle,
     pub display_uniform_buffer: wgpu::Buffer,
+    pub display_environment_uniform_buffer: wgpu::Buffer,
     pub display_primitive_buffers: Vec<wgpu::Buffer>,
     pub shadow_uniform_buffer: wgpu::Buffer,
     pub shadow_render_bundle: wgpu::RenderBundle,
@@ -27,11 +30,16 @@ impl Model {
         let shadow_builder = builders::RenderBundleBuilder::new(ctx, &shadow_builder_name.as_str());
 
         let display_uniform_buffer = builder.create_uniform_buffer(mem::size_of::<Uniforms>() as u64);
+        let display_environment_uniform_buffer = builder.create_uniform_buffer(mem::size_of::<EnvironmentUniforms>() as u64);
         let shadow_uniform_buffer = builder.create_uniform_buffer(mem::size_of::<Uniforms>() as u64);
 
         let mut display_builder = builder
             .with_pipeline(&pipeline.display.render_pipeline)
-            .with_uniform_bind_group(&pipeline.display.uniform_bind_group_layout, &display_uniform_buffer);
+            .with_uniform_bind_group(&pipeline.display.uniform_bind_group_layout, &display_uniform_buffer)
+            .with_uniform_bind_group(
+                &pipeline.display.environment_uniform_bind_group_layout,
+                &display_environment_uniform_buffer,
+            );
 
         let mut shadow_builder = shadow_builder
             .with_pipeline(&pipeline.shadows.render_pipeline)
@@ -99,6 +107,7 @@ impl Model {
             bounding_box: mesh.bounding_box.clone(),
             display_render_bundle: display_builder.build(),
             display_uniform_buffer,
+            display_environment_uniform_buffer,
             display_primitive_buffers,
             shadow_render_bundle: shadow_builder.build(),
             shadow_uniform_buffer,

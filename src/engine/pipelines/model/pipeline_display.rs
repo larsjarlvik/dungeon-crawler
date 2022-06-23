@@ -6,6 +6,7 @@ use crate::{
 pub struct PipelineDisplay {
     pub render_pipeline: builders::Pipeline,
     pub uniform_bind_group_layout: builders::MappedBindGroupLayout,
+    pub environment_uniform_bind_group_layout: builders::MappedBindGroupLayout,
     pub primitive_uniform_bind_group_layout: builders::MappedBindGroupLayout,
     pub texture_bind_group_layout: builders::MappedBindGroupLayout,
     pub sampler: wgpu::Sampler,
@@ -22,14 +23,20 @@ impl PipelineDisplay {
             &[builder.create_uniform_entry(0, wgpu::ShaderStages::VERTEX)],
         );
 
-        let primitive_uniform_bind_group_layout = builder.create_bindgroup_layout(
+        let environment_uniform_bind_group_layout = builder.create_bindgroup_layout(
             1,
-            "model_uniform_bind_group_layout",
+            "model_environment_uniform_bind_group_layout",
+            &[builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT)],
+        );
+
+        let primitive_uniform_bind_group_layout = builder.create_bindgroup_layout(
+            2,
+            "model_primitive_uniform_bind_group_layout",
             &[builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT | wgpu::ShaderStages::VERTEX)],
         );
 
         let texture_bind_group_layout = builder.create_bindgroup_layout(
-            2,
+            3,
             "texture_bind_group_layout",
             &[
                 builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT, true),
@@ -45,6 +52,7 @@ impl PipelineDisplay {
             .with_depth_target(config::DEPTH_FORMAT)
             .with_buffer_layouts(vec![engine::model::Vertex::desc()])
             .with_bind_group_layout(&uniform_bind_group_layout)
+            .with_bind_group_layout(&environment_uniform_bind_group_layout)
             .with_bind_group_layout(&primitive_uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
@@ -52,6 +60,7 @@ impl PipelineDisplay {
         Self {
             render_pipeline,
             uniform_bind_group_layout,
+            environment_uniform_bind_group_layout,
             primitive_uniform_bind_group_layout,
             texture_bind_group_layout,
             sampler,
