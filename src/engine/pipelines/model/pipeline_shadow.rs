@@ -19,7 +19,7 @@ impl PipelineShadow {
         );
 
         let render_pipeline = builder
-            .with_shader("shaders/shadow.wgsl")
+            .with_shader("shaders/model-shadow.wgsl")
             .with_depth_bias()
             .with_depth_target(config::DEPTH_FORMAT)
             .with_buffer_layouts(vec![engine::model::VertexPosition::desc()])

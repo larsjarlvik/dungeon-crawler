@@ -39,6 +39,7 @@ impl State {
             }
             self.engine.ctx.settings.fullscreen = window.fullscreen().is_some();
             self.engine.ctx.settings.store();
+            self.engine.shadow_pipeline.resize(&self.engine.ctx);
 
             self.world.components.remove_resource::<world::resources::Camera>().unwrap();
             self.world
@@ -86,6 +87,7 @@ impl State {
 
     pub fn update(&mut self, window: &Window) {
         self.world.update();
+        self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
         self.engine.joystick_pipeline.update(&self.engine.ctx, &self.world.components);
         self.ui.update(window, &self.engine.ctx, &mut self.world)
     }
@@ -101,9 +103,14 @@ impl State {
             self.engine.model_pipeline.render(
                 &self.engine.ctx,
                 &mut self.world.components,
-                &self.engine.scaling_pipeline.texture.view,
-                &self.engine.scaling_pipeline.depth_texture.view,
+                &self.engine.shadow_pipeline.texture.view,
+                &self.engine.shadow_pipeline.depth_texture.view,
+                &self.engine.shadow_pipeline.shadow_texture.view,
             );
+
+            self.engine
+                .shadow_pipeline
+                .render(&self.engine.ctx, &self.engine.scaling_pipeline.texture.view);
 
             self.engine.particle_pipeline.render(
                 &self.engine.ctx,

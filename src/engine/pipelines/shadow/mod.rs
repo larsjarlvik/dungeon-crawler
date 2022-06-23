@@ -35,7 +35,7 @@ impl ShadowPipeline {
             &ctx,
             (base_shadow_size * ctx.settings.shadow_map_scale) as u32,
             (base_shadow_size * ctx.settings.shadow_map_scale) as u32,
-            "hadow_texture",
+            "shadow_texture",
         );
 
         let shadow_sampler = texture::Texture::create_sampler(
@@ -66,7 +66,6 @@ impl ShadowPipeline {
             .with_shader("shaders/shadow.wgsl")
             .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
             .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
-            .with_depth_target(config::DEPTH_FORMAT)
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
@@ -123,11 +122,11 @@ impl ShadowPipeline {
         ];
 
         self.render_bundle = Some(
-            builders::RenderBundleBuilder::new(ctx, "deferred")
+            builders::RenderBundleBuilder::new(ctx, "shadow")
                 .with_pipeline(&self.render_pipeline)
                 .with_uniform_bind_group(&self.uniform_bind_group_layout, &self.uniform_buffer)
                 .with_primitive(
-                    builders::PrimitiveBuilder::new(ctx, "deferred")
+                    builders::PrimitiveBuilder::new(ctx, "shadow")
                         .with_texture_bind_group(&self.texture_bind_group_layout, texture_entries)
                         .with_length(4),
                 )
@@ -135,11 +134,10 @@ impl ShadowPipeline {
         );
     }
 
-    pub fn render(&self, ctx: &engine::Context, view: &wgpu::TextureView, depth_view: &wgpu::TextureView) {
+    pub fn render(&self, ctx: &engine::Context, view: &wgpu::TextureView) {
         if let Some(render_bundle) = &self.render_bundle {
-            builders::RenderTargetBuilder::new(ctx, "deferred")
+            builders::RenderTargetBuilder::new(ctx, "shadow")
                 .with_color_attachment(view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-                .with_depth_attachment(depth_view, wgpu::LoadOp::Load)
                 .execute_bundles(vec![&render_bundle]);
         }
     }

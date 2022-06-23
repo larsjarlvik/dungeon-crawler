@@ -35,6 +35,7 @@ impl ModelPipeline {
         components: &mut bevy_ecs::world::World,
         target: &wgpu::TextureView,
         depth_target: &wgpu::TextureView,
+        shadow_target: &wgpu::TextureView,
     ) {
         let alpha = { components.get_resource::<resources::Time>().unwrap().alpha };
         let (frustum, view_proj, shadow_matrix, eye, eye_target) = {
@@ -123,7 +124,7 @@ impl ModelPipeline {
         }
 
         self.display.execute_bundles(ctx, bundles, target, depth_target);
-        self.shadows.execute_bundles(ctx, shadow_bundles, depth_target);
+        self.shadows.execute_bundles(ctx, shadow_bundles, shadow_target);
     }
 
     fn get_lights(&self, ctx: &engine::Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 32]) {

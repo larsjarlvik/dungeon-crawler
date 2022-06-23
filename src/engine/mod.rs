@@ -39,6 +39,7 @@ pub struct Context {
 pub struct Engine {
     pub ctx: Context,
     pub model_pipeline: pipelines::ModelPipeline,
+    pub shadow_pipeline: pipelines::ShadowPipeline,
     pub joystick_pipeline: pipelines::JoystickPipeline,
     pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
@@ -99,6 +100,7 @@ impl Engine {
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
+        let shadow_pipeline = pipelines::ShadowPipeline::new(&ctx);
         let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
@@ -115,6 +117,7 @@ impl Engine {
         Self {
             ctx,
             model_pipeline,
+            shadow_pipeline,
             particle_pipeline,
             scaling_pipeline,
             joystick_pipeline,

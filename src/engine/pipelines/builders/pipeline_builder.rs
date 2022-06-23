@@ -92,6 +92,19 @@ impl<'a> PipelineBuilder<'a> {
         }
     }
 
+    pub fn create_shadow_texture_entry(&self, binding: u32, visibility: wgpu::ShaderStages) -> wgpu::BindGroupLayoutEntry {
+        wgpu::BindGroupLayoutEntry {
+            binding,
+            visibility,
+            ty: wgpu::BindingType::Texture {
+                multisampled: false,
+                sample_type: wgpu::TextureSampleType::Depth,
+                view_dimension: wgpu::TextureViewDimension::D2,
+            },
+            count: None,
+        }
+    }
+
     pub fn create_sampler_entry(&self, binding: u32, visibility: wgpu::ShaderStages, comparison: bool) -> wgpu::BindGroupLayoutEntry {
         wgpu::BindGroupLayoutEntry {
             binding,
