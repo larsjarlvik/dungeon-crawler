@@ -85,7 +85,11 @@ impl ScalingPipeline {
 
     pub fn resize(&mut self, ctx: &engine::Context) {
         let (width, height) = ctx.viewport.get_render_size();
-        self.texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "texture");
+        if width == 0 || height == 0 {
+            return;
+        }
+
+        self.texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "scaling_texture");
         ctx.queue.write_buffer(
             &self.uniform_buffer,
             0,

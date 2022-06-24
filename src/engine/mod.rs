@@ -80,16 +80,6 @@ impl Engine {
             .unwrap();
 
         configure_surface(&surface, &device, size);
-        surface.configure(
-            &device,
-            &wgpu::SurfaceConfiguration {
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                format: config::COLOR_TEXTURE_FORMAT,
-                width: size.width,
-                height: size.height,
-                present_mode: wgpu::PresentMode::Immediate,
-            },
-        );
 
         let ctx = Context {
             instance,
