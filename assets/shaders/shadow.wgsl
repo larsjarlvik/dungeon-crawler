@@ -53,5 +53,5 @@ fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32
 
     let shadow_factor = textureSampleCompareLevel(t_shadow, t_shadow_sampler, light_local, shadow_coords.z * proj_correction);
     let shadow = shadow_factor * (1.0 - min_shadow) + min_shadow;
-    return color * shadow_factor;
+    return color * shadow;
 }
