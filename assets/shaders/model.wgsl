@@ -231,11 +231,15 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
             let light_contrib = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
             let new_light = attenuation * light.color * light_contrib;
 
-            let dist = distance(position, env_uniforms.eye_pos.xyz);
-            let dir = (position - env_uniforms.eye_pos.xyz) / dist;
-            let bloom = light.color * apply_point_glow(env_uniforms.eye_pos, dir, dist, light.position, light.bloom);
 
-            total_light = total_light + new_light + bloom;
+            total_light = total_light + new_light;
+
+            if (light.bloom > 0.1) {
+                let dist = distance(position, env_uniforms.eye_pos.xyz);
+                let dir = (position - env_uniforms.eye_pos.xyz) / dist;
+                let bloom = light.color * apply_point_glow(env_uniforms.eye_pos, dir, dist, light.position, light.bloom);
+                total_light = total_light + bloom;
+            }
         }
     }
 
