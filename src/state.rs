@@ -27,9 +27,6 @@ impl State {
 
     pub fn resize(&mut self, window: &Window, active: bool) {
         let size = window.inner_size();
-        if size.width == self.engine.ctx.viewport.width && size.height == self.engine.ctx.viewport.height {
-            return;
-        }
 
         if active {
             self.engine.set_viewport(window);
