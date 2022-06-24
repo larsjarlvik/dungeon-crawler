@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 #[derive(Clone)]
 pub enum HealthChangeType {
     Once,
+    #[allow(dead_code)]
     Forever,
     OverTime(Duration),
 }

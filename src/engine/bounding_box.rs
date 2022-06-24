@@ -19,16 +19,8 @@ impl BoundingBox {
         let b2: Point3<f32> = transform.transform_point(self.max);
 
         Self {
-            min: Point3::new(
-                if b1.x < b2.x { b1.x } else { b2.x },
-                if b1.y < b2.y { b1.y.max(0.0) } else { b2.y.max(0.0) },
-                if b1.z < b2.z { b1.z } else { b2.z },
-            ),
-            max: Point3::new(
-                if b1.x > b2.x { b1.x } else { b2.x },
-                if b1.y > b2.y { b1.y.min(2.5) } else { b2.y.min(2.5) },
-                if b1.z > b2.z { b1.z } else { b2.z },
-            ),
+            min: Point3::new(b1.x.min(b2.x), b1.y.min(b2.y), b1.z.min(b2.z)),
+            max: Point3::new(b1.x.max(b2.x), b1.y.max(b2.y), b1.z.max(b2.z)),
         }
     }
 

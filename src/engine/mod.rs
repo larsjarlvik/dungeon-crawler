@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::{config, utils};
 
 pub mod bounding_box;
+pub mod bounding_sphere;
 pub mod collision;
 pub mod frustum;
 pub mod model;

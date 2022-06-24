@@ -13,6 +13,11 @@ pub const JOYSTICK_RADIUS: f32 = 0.12;
 pub const CAMERA_ROTATION: f32 = 45.0;
 pub const Z_FAR: f32 = 25.0;
 
+#[cfg(not(target_os = "android"))]
+pub const CAMERA_DISTANCE: f32 = 10.0;
+#[cfg(target_os = "android")]
+pub const CAMERA_DISTANCE: f32 = 8.0;
+
 pub const GRID_COUNT: i32 = 10;
 pub const GRID_DIST: f32 = 0.635;
 

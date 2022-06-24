@@ -19,7 +19,7 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            contrast: 2.2,
+            contrast: 4.5,
             bloom: 2.5,
             render_scale: 1.0,
             shadow_map_scale: 2.0,

@@ -52,6 +52,7 @@ impl ModelPipeline {
         let mut bundles = vec![];
         let mut shadow_bundles = vec![];
         let (lights_count, lights) = self.get_lights(ctx, components);
+        dbg!(lights_count);
 
         for (model_instance, animation, render, shadow, transform) in components
             .query::<(
@@ -143,8 +144,8 @@ impl ModelPipeline {
             .query::<(&components::Light, &components::Transform)>()
             .iter(&components)
             .filter(|(light, transform)| {
-                if let Some(bounding_box) = &light.bounding_box {
-                    frustum.test_bounding_box(&bounding_box.transform(transform.to_matrix(alpha).into()))
+                if let Some(bounding_sphere) = &light.bounding_sphere {
+                    frustum.test_bounding_sphere(&bounding_sphere.transform(transform.to_matrix(alpha).into()))
                 } else {
                     true
                 }

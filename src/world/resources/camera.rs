@@ -62,7 +62,9 @@ impl Camera {
         self.target = target;
 
         let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
-        let dist = rot.rotate_point(point3(0.0, 10.0, 6.0)).to_vec();
+        let dist = rot
+            .rotate_point(point3(0.0, config::CAMERA_DISTANCE, config::CAMERA_DISTANCE * 0.6))
+            .to_vec();
 
         self.eye = Point3::from_vec(target + dist);
         self.proj = perspective(Deg(45.0), self.aspect, 1.0, config::Z_FAR);

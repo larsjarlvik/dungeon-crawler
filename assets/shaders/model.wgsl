@@ -209,9 +209,9 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     for (var i: i32 = 0; i < env_uniforms.light_count; i = i + 1) {
         let light = env_uniforms.light[i];
         let light_dist = distance(light.position, position);
-        if (light_dist > light.radius / 1.1) { continue; }
+        if (light_dist > light.radius) { continue; }
 
-        let attenuation = clamp(pow(1.0 - light_dist / light.radius, 2.0), 0.0, 1.0);
+        let attenuation = smoothStep(light.radius, 0.0, light_dist);
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(light_dir + view_dir);
 
