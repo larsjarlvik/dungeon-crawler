@@ -26,10 +26,14 @@ impl State {
     }
 
     pub fn resize(&mut self, window: &Window, active: bool) {
+        let size = window.inner_size();
+        if size.width == self.engine.ctx.viewport.width && size.height == self.engine.ctx.viewport.height {
+            return;
+        }
+
         if active {
             self.engine.set_viewport(window);
 
-            let size = window.inner_size();
             let pos = window.inner_position().unwrap_or(winit::dpi::PhysicalPosition::new(100, 100));
             let fullscreen = window.fullscreen().is_some();
 

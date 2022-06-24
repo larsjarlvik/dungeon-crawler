@@ -13,6 +13,7 @@ pub mod texture;
 mod viewport;
 pub use settings::Settings;
 use smaa::{SmaaMode, SmaaTarget};
+use winit::dpi::PhysicalSize;
 
 #[derive(Clone)]
 pub struct ModelMetaData {
@@ -78,6 +79,7 @@ impl Engine {
             .await
             .unwrap();
 
+        configure_surface(&surface, &device, size);
         surface.configure(
             &device,
             &wgpu::SurfaceConfiguration {
@@ -214,4 +216,17 @@ impl Engine {
     pub fn initialize_particle(&mut self, emitter: pipelines::ParticleEmitter, key: String) {
         self.ctx.emitter_instances.insert(key.to_string(), emitter);
     }
+}
+
+pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, size: PhysicalSize<u32>) {
+    surface.configure(
+        &device,
+        &wgpu::SurfaceConfiguration {
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            format: config::COLOR_TEXTURE_FORMAT,
+            width: size.width,
+            height: size.height,
+            present_mode: wgpu::PresentMode::Immediate,
+        },
+    );
 }

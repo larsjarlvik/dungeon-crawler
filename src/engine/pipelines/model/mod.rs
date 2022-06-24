@@ -52,7 +52,6 @@ impl ModelPipeline {
         let mut bundles = vec![];
         let mut shadow_bundles = vec![];
         let (lights_count, lights) = self.get_lights(ctx, components);
-        dbg!(lights_count);
 
         for (model_instance, animation, render, shadow, transform) in components
             .query::<(

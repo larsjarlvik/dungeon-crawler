@@ -130,8 +130,15 @@ pub fn main() {
             }
             Event::Resumed => {
                 if let Some(state) = &mut state {
+                    if state.engine.ctx.surface.is_none() {
+                        let surface = unsafe { state.engine.ctx.instance.create_surface(&window) };
+                        engine::configure_surface(&surface, &state.engine.ctx.device, window.inner_size());
+                        state.engine.ctx.surface = Some(surface);
+                    }
+
                     state.resize(&window, true);
                 } else {
+                    dbg!("No State");
                     state = Some(pollster::block_on(state::State::new(&window)));
                 }
             }
