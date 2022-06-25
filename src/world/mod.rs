@@ -69,17 +69,6 @@ impl<'a> World {
         }
     }
 
-    pub fn load_resources(&mut self, engine: &mut engine::Engine) {
-        let start = Instant::now();
-        let character = engine.load_model("models/character.glb");
-
-        self.resources = Some(Resources {
-            map: map::Map::new(engine, 42312, 3),
-            character,
-        });
-        println!("Load resources {} ms", start.elapsed().as_millis());
-    }
-
     pub fn init(&mut self, engine: &mut engine::Engine) {
         self.components.clear_entities();
 
@@ -166,4 +155,13 @@ pub fn create_components(ctx: &Context) -> bevy_ecs::world::World {
     components.insert_resource(resources::Fps::default());
 
     components
+}
+
+pub fn load_resources(ctx: &engine::Context) -> Resources {
+    let start = Instant::now();
+    let character = engine::load_model(ctx, "models/character.glb");
+    let map = map::Map::new(ctx, 42312, 3);
+
+    println!("Load resources {} ms", start.elapsed().as_millis());
+    Resources { map, character }
 }

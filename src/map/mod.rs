@@ -21,10 +21,10 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(engine: &mut engine::Engine, seed: u64, grid_size: usize) -> Self {
-        let tiles = engine.load_model("models/catacombs.glb");
-        let decor = engine.load_model("models/decor.glb");
-        let hostiles = engine.load_model("models/skeleton.glb");
+    pub fn new(ctx: &engine::Context, seed: u64, grid_size: usize) -> Self {
+        let tiles = engine::load_model(ctx, "models/catacombs.glb");
+        let decor = engine::load_model(ctx, "models/decor.glb");
+        let hostiles = engine::load_model(ctx, "models/skeleton.glb");
         let number_of_tiles = 25;
 
         Self {

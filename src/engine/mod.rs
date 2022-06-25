@@ -177,11 +177,6 @@ impl Engine {
         None
     }
 
-    pub fn load_model(&mut self, path: &str) -> model::GltfModel {
-        let bytes = utils::read_bytes(path);
-        model::GltfModel::new(&self.ctx, bytes.as_slice())
-    }
-
     pub fn initialize_model(&mut self, gltf_model: &model::GltfModel, name: &str) -> ModelMetaData {
         let model = pipelines::model::Model::new(&self.ctx, &self.model_pipeline, gltf_model, name);
         let nodes = gltf_model.nodes.clone();
@@ -219,4 +214,9 @@ pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, size: P
             present_mode: wgpu::PresentMode::Immediate,
         },
     );
+}
+
+pub fn load_model(ctx: &Context, path: &str) -> model::GltfModel {
+    let bytes = utils::read_bytes(path);
+    model::GltfModel::new(ctx, bytes.as_slice())
 }

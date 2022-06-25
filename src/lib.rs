@@ -22,6 +22,9 @@ pub fn main() {
     #[cfg(not(target_os = "android"))]
     env_logger::init();
 
+    #[cfg(target_os = "android")]
+    utils::aquire_wakelock();
+
     let settings = Settings::load();
     let mut window = WindowBuilder::new().with_title("Dungeon Crawler").with_decorations(true);
 
@@ -38,9 +41,6 @@ pub fn main() {
 
     #[allow(unused_assignments)]
     let mut state: Option<state::State> = None;
-
-    #[cfg(target_os = "android")]
-    utils::aquire_wakelock();
 
     event_loop.run(move |event, _, control_flow| {
         if let Some(state) = &mut state {
@@ -164,7 +164,7 @@ pub fn main() {
 
                 if let Some(state) = &mut state {
                     if state.world.resources.is_none() {
-                        state.world.load_resources(&mut state.engine);
+                        state.world.resources = Some(world::load_resources(&state.engine.ctx));
                         state.world.init(&mut state.engine);
                         state.world.game_state = GameState::Running;
                     }
