@@ -149,12 +149,14 @@ pub fn main() {
             }
             Event::MainEventsCleared => {
                 if let Some(state) = &mut state {
-                    state.update(&window);
-                    match state.render(&window) {
-                        Ok(_) => {}
-                        Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
-                        Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                        Err(e) => eprintln!("{:?}", e),
+                    if state.engine.ctx.surface.is_some() {
+                        state.update(&window);
+                        match state.render(&window) {
+                            Ok(_) => {}
+                            Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
+                            Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                            Err(e) => eprintln!("{:?}", e),
+                        }
                     }
                 }
 
