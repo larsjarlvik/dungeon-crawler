@@ -25,8 +25,8 @@ impl State {
         Self { engine, world, ui }
     }
 
-    pub fn resize(&mut self, window: &Window, active: bool) {
-        if active && self.engine.ctx.surface.is_some() {
+    pub fn resize(&mut self, window: &Window) {
+        if self.engine.ctx.surface.is_some() {
             self.engine.set_viewport(window);
 
             let size = window.inner_size();
@@ -45,8 +45,6 @@ impl State {
             self.world
                 .components
                 .insert_resource(world::resources::Camera::new(self.engine.ctx.viewport.get_aspect()));
-        } else {
-            self.engine.ctx.surface = None;
         }
     }
 

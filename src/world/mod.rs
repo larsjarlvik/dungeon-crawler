@@ -118,6 +118,12 @@ impl<'a> World {
         }
     }
 
+    pub fn reset_time(&mut self) {
+        let mut time = self.components.get_resource_mut::<resources::Time>().unwrap();
+        time.accumulator = 0.0;
+        time.time = Instant::now();
+    }
+
     pub fn update(&mut self) {
         let time_step = config::time_step().as_secs_f32();
         let mut accumulator = {

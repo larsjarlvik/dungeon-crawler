@@ -50,7 +50,7 @@ pub fn main() {
                 }
                 GameState::Reload => {
                     state.engine.ctx.settings = Settings::load();
-                    state.resize(&window, true);
+                    state.resize(&window);
                     state.engine.reload_pipelines();
                     state.world.game_state = GameState::Running;
                 }
@@ -66,13 +66,13 @@ pub fn main() {
                             *control_flow = ControlFlow::Exit;
                         }
                         WindowEvent::Resized(..) => {
-                            state.resize(&window, true);
+                            state.resize(&window);
                         }
                         WindowEvent::Moved(..) => {
-                            state.resize(&window, true);
+                            state.resize(&window);
                         }
                         WindowEvent::ScaleFactorChanged { .. } => {
-                            state.resize(&window, true);
+                            state.resize(&window);
                         }
                         WindowEvent::KeyboardInput { input, .. } => {
                             state.keyboard(input);
@@ -136,15 +136,15 @@ pub fn main() {
                         state.engine.ctx.surface = Some(surface);
                     }
 
-                    state.resize(&window, true);
+                    state.resize(&window);
+                    state.world.reset_time();
                 } else {
-                    dbg!("No State");
                     state = Some(pollster::block_on(state::State::new(&window)));
                 }
             }
             Event::Suspended => {
                 if let Some(state) = &mut state {
-                    state.resize(&window, false);
+                    state.engine.ctx.surface = None;
                 }
             }
             Event::MainEventsCleared => {
@@ -153,7 +153,7 @@ pub fn main() {
                         state.update(&window);
                         match state.render(&window) {
                             Ok(_) => {}
-                            Err(wgpu::SurfaceError::Lost) => state.resize(&window, false),
+                            Err(wgpu::SurfaceError::Lost) => state.resize(&window),
                             Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                             Err(e) => eprintln!("{:?}", e),
                         }
