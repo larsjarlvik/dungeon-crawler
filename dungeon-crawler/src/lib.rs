@@ -1,3 +1,4 @@
+use cgmath::Point2;
 use engine::{file, Settings};
 use winit::{
     event::*,
@@ -125,7 +126,11 @@ pub fn main() {
                 if let Some(state) = &mut state {
                     if state.engine.ctx.surface.is_none() {
                         let surface = unsafe { state.engine.ctx.instance.create_surface(&window) };
-                        engine::configure_surface(&surface, &state.engine.ctx.device, window.inner_size());
+                        engine::configure_surface(
+                            &surface,
+                            &state.engine.ctx.device,
+                            Point2::new(window.inner_size().width, window.inner_size().height),
+                        );
                         state.engine.ctx.surface = Some(surface);
                     }
 
@@ -144,12 +149,7 @@ pub fn main() {
                 if let Some(state) = &mut state {
                     if state.engine.ctx.surface.is_some() {
                         state.update();
-                        match state.render() {
-                            Ok(_) => {}
-                            Err(wgpu::SurfaceError::Lost) => state.resize(&window),
-                            Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                            Err(e) => eprintln!("{:?}", e),
-                        }
+                        state.render();
                     }
                 }
 

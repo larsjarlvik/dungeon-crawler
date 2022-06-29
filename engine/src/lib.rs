@@ -1,5 +1,5 @@
+use cgmath::*;
 use std::collections::HashMap;
-
 pub mod bounding_box;
 pub mod bounding_sphere;
 pub mod camera;
@@ -17,7 +17,6 @@ pub mod transform;
 mod viewport;
 pub use settings::Settings;
 use smaa::{SmaaMode, SmaaTarget};
-use winit::dpi::PhysicalSize;
 
 #[derive(Clone)]
 pub struct ModelMetaData {
@@ -54,13 +53,17 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub async fn new(window: &winit::window::Window, font_data: Vec<u8>) -> Self {
-        let size = window.inner_size();
+    pub async fn new<W: raw_window_handle::HasRawWindowHandle>(
+        window: &W,
+        size: Point2<u32>,
+        scale_factor: f32,
+        font_data: Vec<u8>,
+    ) -> Self {
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
         let settings = settings::Settings::load();
 
-        let viewport = viewport::Viewport::new(size.width, size.height, window.scale_factor() as f32, settings.render_scale);
+        let viewport = viewport::Viewport::new(size.x, size.y, scale_factor, settings.render_scale);
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -105,8 +108,8 @@ impl Engine {
         let smaa_target = SmaaTarget::new(
             &ctx.device,
             &ctx.queue,
-            window.inner_size().width,
-            window.inner_size().height,
+            size.x,
+            size.y,
             config::COLOR_TEXTURE_FORMAT,
             if ctx.settings.smaa { SmaaMode::Smaa1X } else { SmaaMode::Disabled },
         );
@@ -143,14 +146,8 @@ impl Engine {
         );
     }
 
-    pub fn set_viewport(&mut self, window: &winit::window::Window) {
-        let size = window.inner_size();
-        self.ctx.viewport = viewport::Viewport::new(
-            size.width,
-            size.height,
-            window.scale_factor() as f32,
-            self.ctx.settings.render_scale,
-        );
+    pub fn set_viewport<W: raw_window_handle::HasRawWindowHandle>(&mut self, window: &W, size: Point2<u32>, scale_factor: f32) {
+        self.ctx.viewport = viewport::Viewport::new(size.x, size.y, scale_factor, self.ctx.settings.render_scale);
         self.scaling_pipeline.resize(&mut self.ctx);
 
         if self.ctx.surface.is_none() {
@@ -170,12 +167,15 @@ impl Engine {
             );
         }
 
-        self.smaa_target.resize(&self.ctx.device, size.width, size.height);
+        self.smaa_target.resize(&self.ctx.device, size.x, size.y);
     }
 
-    pub fn get_output_frame(&self) -> Option<wgpu::SurfaceTexture> {
+    pub fn get_output_frame(&self) -> Option<(wgpu::SurfaceTexture, wgpu::TextureView)> {
         if let Some(surface) = &self.ctx.surface {
-            return Some(surface.get_current_texture().expect("Failed to get output frame!"));
+            let frame = surface.get_current_texture().expect("Failed to get output frame!");
+            let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+            return Some((frame, view));
         }
 
         None
@@ -207,14 +207,14 @@ impl Engine {
     }
 }
 
-pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, size: PhysicalSize<u32>) {
+pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, size: Point2<u32>) {
     surface.configure(
         &device,
         &wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: config::COLOR_TEXTURE_FORMAT,
-            width: size.width,
-            height: size.height,
+            width: size.x,
+            height: size.y,
             present_mode: wgpu::PresentMode::Immediate,
         },
     );

@@ -15,8 +15,13 @@ pub struct State {
 impl State {
     pub async fn new(window: &Window) -> Self {
         let start = Instant::now();
-
-        let engine = engine::Engine::new(window, file::read_bytes("exo2-medium.ttf")).await;
+        let engine = engine::Engine::new(
+            &window,
+            Point2::new(window.inner_size().width, window.inner_size().height),
+            window.scale_factor() as f32,
+            file::read_bytes("exo2-medium.ttf"),
+        )
+        .await;
         let world = world::World::new(&engine);
 
         println!("Startup {} ms", start.elapsed().as_millis());
@@ -25,7 +30,11 @@ impl State {
 
     pub fn resize(&mut self, window: &Window) {
         if self.engine.ctx.surface.is_some() {
-            self.engine.set_viewport(window);
+            self.engine.set_viewport(
+                window,
+                Point2::new(window.inner_size().width, window.inner_size().height),
+                window.scale_factor() as f32,
+            );
 
             let size = window.inner_size();
             let pos = window.inner_position().unwrap_or(winit::dpi::PhysicalPosition::new(100, 100));
@@ -89,9 +98,8 @@ impl State {
             .update(&self.engine.ctx, &self.world.components, center, current, touch);
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        if let Some(frame) = self.engine.get_output_frame() {
-            let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
+    pub fn render(&mut self) {
+        if let Some((frame, view)) = self.engine.get_output_frame() {
             let anti_aliasing = self
                 .engine
                 .smaa_target
@@ -126,7 +134,5 @@ impl State {
 
             frame.present();
         }
-
-        Ok(())
     }
 }

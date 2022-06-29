@@ -61,14 +61,6 @@ impl Stats {
         (self.experience as f32 * 0.02) as u32
     }
 
-    pub fn get_level_progress(&self) -> f32 {
-        let level = self.get_level();
-        let level_experience = get_level_experience(level);
-        let next_level_experience = get_level_experience(level + 1);
-
-        (self.experience - level_experience) as f32 / (next_level_experience - level_experience) as f32
-    }
-
     pub fn get_level(&self) -> u32 {
         get_level(self.experience)
     }

@@ -756,7 +756,6 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "uuid 1.1.2",
- "wgpu",
  "winit",
 ]
 
@@ -775,11 +774,10 @@ dependencies = [
  "bevy_transform",
  "bytemuck",
  "cgmath",
- "env_logger 0.9.0",
  "gltf",
  "image 0.24.2",
- "pollster",
  "rand",
+ "raw-window-handle",
  "rayon",
  "serde",
  "serde_derive",
@@ -788,7 +786,6 @@ dependencies = [
  "uuid 1.1.2",
  "wgpu",
  "wgpu_glyph",
- "winit",
 ]
 
 [[package]]
