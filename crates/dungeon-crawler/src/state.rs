@@ -100,7 +100,7 @@ impl State {
             .joystick_pipeline
             .update(&self.engine.ctx, &self.world.components, center, current, touch);
 
-        ui::update(&mut self.engine);
+        ui::update(&mut self.engine.ctx, &self.world.components);
     }
 
     pub fn render(&mut self) {
