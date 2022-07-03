@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "engine",
-    "dungeon-crawler"
+    "dungeon-crawler",
+    "gui"
 ]
 resolver = "2"

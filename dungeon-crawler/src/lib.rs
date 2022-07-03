@@ -38,6 +38,8 @@ pub fn main() {
     let event_loop = EventLoop::new();
     let window = window.build(&event_loop).unwrap();
 
+    gui::build_ui();
+
     #[allow(unused_assignments)]
     let mut state: Option<state::State> = None;
 
