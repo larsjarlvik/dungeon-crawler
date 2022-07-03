@@ -1,7 +1,10 @@
 [workspace]
 members = [
-    "engine",
-    "dungeon-crawler",
-    "gui"
+    "crates/engine",
+    "crates/dungeon-crawler",
+    "crates/ui"
 ]
 resolver = "2"
+
+[profile.release]
+incremental = true

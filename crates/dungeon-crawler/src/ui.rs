@@ -1,5 +1,5 @@
 use engine::pipelines::GlyphPipeline;
-use gui::{prelude::*, widgets::*};
+use ui::{prelude::*, widgets::*};
 
 pub fn update(engine: &mut engine::Engine) {
     let ui_scale = 100.0;
@@ -53,7 +53,7 @@ pub fn update(engine: &mut engine::Engine) {
     );
 
     let ui_scale_x = ui_scale * engine.ctx.viewport.get_aspect();
-    let nodes = gui::render(&mut engine.ctx, &mut root, ui_scale_x, ui_scale);
+    let nodes = ui::render(&mut engine.ctx, &mut root, ui_scale_x, ui_scale);
 
     let sx = engine.ctx.viewport.width as f32 / ui_scale_x;
     let sy = engine.ctx.viewport.height as f32 / ui_scale;

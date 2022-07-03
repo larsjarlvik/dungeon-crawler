@@ -13,7 +13,7 @@ crate-type = ["lib", "cdylib"]
 
 [dependencies]
 engine = { path = "../engine" }
-gui = { path = "../gui" }
+ui = { path = "../ui" }
 winit = "0.26.1"
 env_logger = "0.9"
 bevy_ecs = "0.6.1"
