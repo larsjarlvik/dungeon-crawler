@@ -54,6 +54,3 @@ orientation = "landscape"
 [package.metadata.android.sdk]
 min_sdk_version = 17
 target_sdk_version = 29
-
-[profile.release]
-incremental = true

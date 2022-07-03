@@ -1,6 +1,9 @@
-use crate::world::{
-    self,
-    resources::{self, input::KeyState},
+use crate::{
+    ui,
+    world::{
+        self,
+        resources::{self, input::KeyState},
+    },
 };
 use cgmath::*;
 use engine::file;
@@ -96,6 +99,8 @@ impl State {
         self.engine
             .joystick_pipeline
             .update(&self.engine.ctx, &self.world.components, center, current, touch);
+
+        ui::update(&mut self.engine);
     }
 
     pub fn render(&mut self) {
@@ -127,9 +132,7 @@ impl State {
             self.engine.scaling_pipeline.render(&self.engine.ctx, &anti_aliasing);
             anti_aliasing.resolve();
 
-            self.engine
-                .glyph_pipeline
-                .render(&self.engine.ctx, &mut self.world.components, &view);
+            self.engine.glyph_pipeline.draw_queued(&self.engine.ctx, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
 
             frame.present();

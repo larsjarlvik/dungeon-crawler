@@ -1,4 +1,7 @@
-use super::base;
+use super::{
+    base::{self, RenderWidget},
+    NodeLayout,
+};
 use taffy::prelude::*;
 
 pub struct TextWidget {
@@ -7,11 +10,11 @@ pub struct TextWidget {
 }
 
 impl TextWidget {
-    pub fn new(value: &str) -> Self {
-        Self {
+    pub fn new(value: &str) -> Box<Self> {
+        Box::new(Self {
             value: value.to_string(),
             node: None,
-        }
+        })
     }
 }
 
@@ -20,8 +23,8 @@ impl base::BaseWidget for TextWidget {
         let node = taffy
             .new_leaf(FlexboxLayout {
                 size: Size {
-                    width: Dimension::Points(50.0),
-                    height: Dimension::Points(10.0),
+                    width: Dimension::Points(500.0),
+                    height: Dimension::Points(30.0),
                 },
                 ..Default::default()
             })
@@ -30,7 +33,15 @@ impl base::BaseWidget for TextWidget {
         node
     }
 
-    fn get_nodes(&self) -> Vec<Node> {
-        vec![self.node.unwrap()]
+    fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+        let layout = taffy.layout(self.node.unwrap()).unwrap();
+        let layout = NodeLayout {
+            x: parent_layout.x + layout.location.x,
+            y: parent_layout.y + layout.location.y,
+            width: parent_layout.width + layout.size.width,
+            height: parent_layout.height + layout.size.height,
+        };
+
+        vec![(layout, RenderWidget::Text(self.value.clone()))]
     }
 }

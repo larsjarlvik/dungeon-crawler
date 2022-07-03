@@ -26,7 +26,3 @@ raw-window-handle = "0.4.3"
 [dependencies.uuid]
 version = "1.1.2"
 features = ["v4", "fast-rng"]
-
-[profile.release]
-incremental = true
-
