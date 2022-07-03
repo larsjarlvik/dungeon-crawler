@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 cgmath = "0.18.0"
-stretch = "0.3.2"
+taffy = { git = "https://github.com/DioxusLabs/taffy" }
 
 [profile.release]
 incremental = true

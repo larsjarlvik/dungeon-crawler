@@ -1,25 +1,38 @@
-use components::*;
-use stretch::geometry::Size;
-use stretch::style::*;
-pub mod components;
+use taffy::prelude::*;
+use widgets::BaseWidget;
+mod widgets;
 
 pub fn build_ui() {
-    let mut stretch = stretch::node::Stretch::new();
+    let mut taffy = Taffy::new();
 
-    let text = Text::new("this is the text");
-    let node = Node::new(
-        Style {
+    let mut root = widgets::NodeWidget::new(
+        FlexboxLayout {
             size: Size {
-                width: Dimension::Points(100.0),
-                height: Dimension::Points(100.0),
+                width: Dimension::Percent(1.0),
+                height: Dimension::Percent(1.0),
             },
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Column,
             ..Default::default()
         },
-        vec![&text],
+        vec![
+            Box::new(widgets::TextWidget::new("This is a text")),
+            Box::new(widgets::TextWidget::new("This is a text")),
+        ],
     );
 
-    let root = node.render(&mut stretch).expect("Failed to generate layout!");
-    let result = node.get_layout(&mut stretch, Size::undefined());
+    let root_node = root.render(&mut taffy);
+
+    taffy
+        .compute_layout(
+            root_node,
+            Size {
+                height: Some(100.0),
+                width: Some(100.0),
+            },
+        )
+        .unwrap();
+
+    for node in root.get_nodes() {
+        dbg!(taffy.layout(node).unwrap());
+    }
 }
