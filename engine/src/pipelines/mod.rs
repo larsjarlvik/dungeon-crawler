@@ -1,5 +1,5 @@
 pub mod builders;
-mod glyph;
+pub mod glyph;
 mod joystick;
 pub mod mipmap;
 pub mod model;

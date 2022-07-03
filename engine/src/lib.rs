@@ -1,5 +1,6 @@
 use cgmath::*;
 use std::collections::HashMap;
+use wgpu_glyph::{ab_glyph::FontArc, GlyphBrush, GlyphBrushBuilder};
 pub mod bounding_box;
 pub mod bounding_sphere;
 pub mod camera;
@@ -39,6 +40,7 @@ pub struct Context {
     pub settings: settings::Settings,
     pub model_instances: HashMap<String, ModelInstance>,
     pub emitter_instances: HashMap<String, pipelines::ParticleEmitter>,
+    pub glyph_brush: GlyphBrush<()>,
 }
 
 pub struct Engine {
@@ -88,6 +90,9 @@ impl Engine {
 
         configure_surface(&surface, &device, size);
 
+        let font = FontArc::try_from_vec(font_data).expect("Failed to load font!");
+        let glyph_brush = GlyphBrushBuilder::using_font(font.clone()).build(&device, config::COLOR_TEXTURE_FORMAT);
+
         let ctx = Context {
             instance,
             viewport,
@@ -97,6 +102,7 @@ impl Engine {
             settings,
             model_instances: HashMap::new(),
             emitter_instances: HashMap::new(),
+            glyph_brush,
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
@@ -104,7 +110,7 @@ impl Engine {
         let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
-        let glyph_pipeline = pipelines::GlyphPipeline::new(&ctx, font_data);
+        let glyph_pipeline = pipelines::GlyphPipeline::new();
         let smaa_target = SmaaTarget::new(
             &ctx.device,
             &ctx.queue,
@@ -126,12 +132,12 @@ impl Engine {
         }
     }
 
-    pub fn reload_pipelines(&mut self, font_data: Vec<u8>) {
+    pub fn reload_pipelines(&mut self) {
         self.model_pipeline = pipelines::ModelPipeline::new(&self.ctx);
         self.particle_pipeline = pipelines::ParticlePipeline::new(&self.ctx);
         self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);
         self.joystick_pipeline = pipelines::JoystickPipeline::new(&self.ctx);
-        self.glyph_pipeline = pipelines::GlyphPipeline::new(&self.ctx, font_data);
+        self.glyph_pipeline = pipelines::GlyphPipeline::new();
         self.smaa_target = SmaaTarget::new(
             &self.ctx.device,
             &self.ctx.queue,

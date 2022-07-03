@@ -4,27 +4,32 @@ use super::{
 };
 use taffy::prelude::*;
 
+#[derive(Debug, Clone)]
+pub struct TextData {
+    pub text: String,
+    pub size: f32,
+}
+
 pub struct TextWidget {
-    pub value: String,
+    pub data: TextData,
     node: Option<Node>,
 }
 
 impl TextWidget {
-    pub fn new(value: &str) -> Box<Self> {
-        Box::new(Self {
-            value: value.to_string(),
-            node: None,
-        })
+    pub fn new(data: TextData) -> Box<Self> {
+        Box::new(Self { data, node: None })
     }
 }
 
 impl base::BaseWidget for TextWidget {
-    fn render(&mut self, taffy: &mut Taffy) -> Node {
+    fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
+        let size = engine::pipelines::glyph::get_bounds(ctx, &self.data.text, self.data.size);
+
         let node = taffy
             .new_leaf(FlexboxLayout {
                 size: Size {
-                    width: Dimension::Points(500.0),
-                    height: Dimension::Points(30.0),
+                    width: Dimension::Points(size.width()),
+                    height: Dimension::Points(size.height()),
                 },
                 ..Default::default()
             })
@@ -35,13 +40,8 @@ impl base::BaseWidget for TextWidget {
 
     fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
-        let layout = NodeLayout {
-            x: parent_layout.x + layout.location.x,
-            y: parent_layout.y + layout.location.y,
-            width: parent_layout.width + layout.size.width,
-            height: parent_layout.height + layout.size.height,
-        };
+        let layout = NodeLayout::new(parent_layout, layout);
 
-        vec![(layout, RenderWidget::Text(self.value.clone()))]
+        vec![(layout, RenderWidget::Text(self.data.clone()))]
     }
 }

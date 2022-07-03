@@ -1,24 +1,21 @@
-use crate::{config, Context};
-use wgpu_glyph::{ab_glyph, GlyphBrush, GlyphBrushBuilder, Section, Text};
+use crate::Context;
+use wgpu_glyph::{ab_glyph::Rect, GlyphCruncher, HorizontalAlign, Layout, Section, Text};
 
 pub struct GlyphPipeline {
-    brush: GlyphBrush<()>,
     staging_belt: wgpu::util::StagingBelt,
 }
 
 impl GlyphPipeline {
-    pub fn new(ctx: &Context, font_data: Vec<u8>) -> Self {
-        let font = ab_glyph::FontArc::try_from_vec(font_data).expect("Failed to load font!");
-        let brush = GlyphBrushBuilder::using_font(font.clone()).build(&ctx.device, config::COLOR_TEXTURE_FORMAT);
+    pub fn new() -> Self {
         let staging_belt = wgpu::util::StagingBelt::new(1024);
-        Self { brush, staging_belt }
+        Self { staging_belt }
     }
 
-    pub fn queue(&mut self, text: String, screen_position: (f32, f32), bounds: (f32, f32)) {
-        self.brush.queue(Section {
+    pub fn queue(ctx: &mut Context, text: String, scale: f32, screen_position: (f32, f32), bounds: (f32, f32)) {
+        ctx.glyph_brush.queue(Section {
             screen_position,
             bounds,
-            text: vec![Text::new(text.as_str()).with_color([1.0, 1.0, 1.0, 1.0]).with_scale(20.0)],
+            text: vec![Text::new(text.as_str()).with_color([1.0, 1.0, 1.0, 1.0]).with_scale(scale)],
             layout: wgpu_glyph::Layout::default_single_line()
                 .h_align(wgpu_glyph::HorizontalAlign::Left)
                 .v_align(wgpu_glyph::VerticalAlign::Top),
@@ -26,12 +23,12 @@ impl GlyphPipeline {
         });
     }
 
-    pub fn draw_queued(&mut self, ctx: &Context, target: &wgpu::TextureView) {
+    pub fn draw_queued(&mut self, ctx: &mut Context, target: &wgpu::TextureView) {
         let mut encoder = ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("glyph_encoder"),
         });
 
-        self.brush
+        ctx.glyph_brush
             .draw_queued(
                 &ctx.device,
                 &mut self.staging_belt,
@@ -45,4 +42,14 @@ impl GlyphPipeline {
         self.staging_belt.finish();
         ctx.queue.submit(Some(encoder.finish()));
     }
+}
+
+pub fn get_bounds(ctx: &mut Context, text: &str, scale: f32) -> Rect {
+    ctx.glyph_brush
+        .glyph_bounds(
+            Section::default()
+                .add_text(Text::new(text).with_scale(scale))
+                .with_layout(Layout::default().h_align(HorizontalAlign::Left)),
+        )
+        .unwrap()
 }

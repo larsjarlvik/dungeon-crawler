@@ -132,7 +132,7 @@ impl State {
             self.engine.scaling_pipeline.render(&self.engine.ctx, &anti_aliasing);
             anti_aliasing.resolve();
 
-            self.engine.glyph_pipeline.draw_queued(&self.engine.ctx, &view);
+            self.engine.glyph_pipeline.draw_queued(&mut self.engine.ctx, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
 
             frame.present();

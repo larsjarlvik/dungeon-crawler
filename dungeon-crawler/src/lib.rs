@@ -1,5 +1,5 @@
 use cgmath::Point2;
-use engine::{file, Settings};
+use engine::Settings;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -51,7 +51,7 @@ pub fn main() {
                 GameState::Reload => {
                     state.engine.ctx.settings = Settings::load();
                     state.resize(&window);
-                    state.engine.reload_pipelines(file::read_bytes("exo2-medium.ttf"));
+                    state.engine.reload_pipelines();
                     state.world.game_state = GameState::Running;
                 }
                 _ => {}

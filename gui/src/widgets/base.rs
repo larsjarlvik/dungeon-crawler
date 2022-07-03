@@ -1,8 +1,9 @@
+use super::text::TextData;
 use taffy::prelude::*;
 
 #[derive(Debug, Clone)]
 pub enum RenderWidget {
-    Text(String),
+    Text(TextData),
     None,
 }
 
@@ -14,7 +15,18 @@ pub struct NodeLayout {
     pub y: f32,
 }
 
+impl NodeLayout {
+    pub fn new(parent_layout: &NodeLayout, layout: &Layout) -> Self {
+        Self {
+            x: parent_layout.x + layout.location.x,
+            y: parent_layout.y + layout.location.y,
+            width: parent_layout.width + layout.size.width,
+            height: parent_layout.height + layout.size.height,
+        }
+    }
+}
+
 pub trait BaseWidget {
-    fn render(&mut self, taffy: &mut Taffy) -> Node;
+    fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node;
     fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)>;
 }
