@@ -21,8 +21,8 @@ impl NodeLayout {
         Self {
             x: parent_layout.x + layout.location.x,
             y: parent_layout.y + layout.location.y,
-            width: parent_layout.width + layout.size.width,
-            height: parent_layout.height + layout.size.height,
+            width: layout.size.width,
+            height: layout.size.height,
         }
     }
 }

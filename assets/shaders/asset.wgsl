@@ -22,15 +22,12 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     var result: VertexOutput;
     result.coord = tc;
 
-    let tc_pos = tc * 2.0 * ((uniforms.size * 2.0 - 1.0) / uniforms.viewport_size)
-        + ((uniforms.position * 2.0 - 1.0) / uniforms.viewport_size);
-
+    let tc_pos = tc * 2.0 * (uniforms.size / uniforms.viewport_size) + ((uniforms.position * 2.0 - 1.0) / uniforms.viewport_size);
     result.position = vec4<f32>(
         tc_pos.x - 1.0,
         1.0 - tc_pos.y,
         0.0, 1.0
     );
-
     return result;
 }
 
@@ -41,5 +38,5 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
 
 [[stage(fragment)]]
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    return vec4<f32>(in.coord, 0.0, 1.0); // textureSample(t_texture, t_sampler, in.coord);
+    return textureSample(t_texture, t_sampler, in.coord);
 }

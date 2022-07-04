@@ -33,17 +33,18 @@ impl Views {
             let fps = components.get_resource::<resources::Fps>().unwrap();
             top_left.children.push(TextWidget::new(TextData {
                 text: format!("FPS: {}", fps.fps),
-                size: 4.0,
+                size: 3.0,
             }));
         }
 
         let mut root = NodeWidget::new(
             FlexboxLayout {
                 flex_direction: FlexDirection::Row,
+                align_items: AlignItems::Center,
                 padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
                 size: Size {
                     width: Dimension::Percent(1.0),
-                    height: Dimension::Percent(1.0),
+                    height: Dimension::Auto,
                 },
                 ..Default::default()
             },
@@ -51,8 +52,8 @@ impl Views {
                 AssetWidget::new(
                     AssetData { id: "logo".into() },
                     Size {
-                        width: Dimension::Points(20.0),
-                        height: Dimension::Points(20.0),
+                        width: Dimension::Points(4.0),
+                        height: Dimension::Points(4.0),
                     },
                 ),
                 top_left,
@@ -71,17 +72,16 @@ impl Views {
                         ctx,
                         data.text,
                         data.size * sy,
-                        (layout.x * sx, layout.y * sy),
-                        (layout.width, layout.height),
+                        (layout.x * sx, (layout.y - layout.height / 4.0) * sy),
+                        (layout.width * sx, layout.height * sy),
                     );
                 }
                 RenderWidget::Image(data) => {
-                    dbg!(&layout);
                     ctx.images.queue(
                         data.id,
                         image::context::Data {
                             position: [layout.x * sx, layout.y * sy],
-                            size: [layout.width / sx, layout.height / sy],
+                            size: [layout.width * sx, layout.height * sy],
                         },
                     );
                 }
