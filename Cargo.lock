@@ -2077,6 +2077,7 @@ name = "ui"
 version = "0.1.0"
 dependencies = [
  "engine",
+ "image 0.24.2",
  "taffy",
 ]
 

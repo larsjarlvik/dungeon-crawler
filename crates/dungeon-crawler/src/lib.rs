@@ -10,8 +10,8 @@ use world::{resources::input::KeyState, GameState};
 mod config;
 mod map;
 mod state;
-mod ui;
 mod utils;
+mod views;
 mod world;
 
 #[cfg_attr(

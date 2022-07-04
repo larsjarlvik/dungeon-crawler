@@ -2,7 +2,7 @@ use crate::world::resources;
 use engine::pipelines::GlyphPipeline;
 use ui::{prelude::*, widgets::*};
 
-pub fn update(ctx: &mut engine::Context, components: &bevy_ecs::world::World) {
+pub fn update(ctx: &mut engine::Context, components: &bevy_ecs::world::World, ui: &ui::Ui) {
     let ui_scale = 100.0;
 
     let mut top_left = NodeWidget::new(
@@ -36,7 +36,7 @@ pub fn update(ctx: &mut engine::Context, components: &bevy_ecs::world::World) {
     );
 
     let ui_scale_x = ui_scale * ctx.viewport.get_aspect();
-    let nodes = ui::render(ctx, &mut root, ui_scale_x, ui_scale);
+    let nodes = ui.render(ctx, &mut root, ui_scale_x, ui_scale);
 
     let sx = ctx.viewport.width as f32 / ui_scale_x;
     let sy = ctx.viewport.height as f32 / ui_scale;

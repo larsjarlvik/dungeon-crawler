@@ -8,3 +8,8 @@ edition = "2021"
 [dependencies]
 taffy = { git = "https://github.com/DioxusLabs/taffy" }
 engine = { path = "../engine" }
+
+[dependencies.image]
+default-features = false
+features = ["png"]
+version = "0.24"

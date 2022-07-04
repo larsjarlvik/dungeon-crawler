@@ -1,5 +1,5 @@
 use crate::{
-    ui,
+    views,
     world::{
         self,
         resources::{self, input::KeyState},
@@ -13,6 +13,7 @@ use winit::{event::VirtualKeyCode, window::Window};
 pub struct State {
     pub engine: engine::Engine,
     pub world: world::World,
+    pub ui: ui::Ui,
 }
 
 impl State {
@@ -27,8 +28,11 @@ impl State {
         .await;
         let world = world::World::new(&engine);
 
+        let mut ui = ui::Ui::new();
+        ui.add_texture(&&engine.ctx, "logo", engine::file::read_bytes("/icon.png"));
+
         println!("Startup {} ms", start.elapsed().as_millis());
-        Self { engine, world }
+        Self { engine, world, ui }
     }
 
     pub fn resize(&mut self, window: &Window) {
@@ -100,7 +104,7 @@ impl State {
             .joystick_pipeline
             .update(&self.engine.ctx, &self.world.components, center, current, touch);
 
-        ui::update(&mut self.engine.ctx, &self.world.components);
+        views::update(&mut self.engine.ctx, &self.world.components, &self.ui);
     }
 
     pub fn render(&mut self) {
