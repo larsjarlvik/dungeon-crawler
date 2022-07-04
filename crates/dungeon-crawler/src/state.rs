@@ -1,5 +1,5 @@
 use crate::{
-    views,
+    views::{self, Views},
     world::{
         self,
         resources::{self, input::KeyState},
@@ -13,26 +13,25 @@ use winit::{event::VirtualKeyCode, window::Window};
 pub struct State {
     pub engine: engine::Engine,
     pub world: world::World,
-    pub ui: ui::Ui,
+    pub views: views::Views,
 }
 
 impl State {
     pub async fn new(window: &Window) -> Self {
         let start = Instant::now();
-        let engine = engine::Engine::new(
+        let mut engine = engine::Engine::new(
             &window,
             Point2::new(window.inner_size().width, window.inner_size().height),
             window.scale_factor() as f32,
             file::read_bytes("./exo2-medium.ttf"),
         )
         .await;
-        let world = world::World::new(&engine);
 
-        let mut ui = ui::Ui::new();
-        ui.add_texture(&&engine.ctx, "logo", engine::file::read_bytes("/icon.png"));
+        let world = world::World::new(&engine);
+        let views = Views::new(&mut engine.ctx);
 
         println!("Startup {} ms", start.elapsed().as_millis());
-        Self { engine, world, ui }
+        Self { engine, world, views }
     }
 
     pub fn resize(&mut self, window: &Window) {
@@ -104,7 +103,7 @@ impl State {
             .joystick_pipeline
             .update(&self.engine.ctx, &self.world.components, center, current, touch);
 
-        views::update(&mut self.engine.ctx, &self.world.components, &self.ui);
+        self.views.update(&mut self.engine.ctx, &self.world.components);
     }
 
     pub fn render(&mut self) {
@@ -136,6 +135,7 @@ impl State {
             self.engine.scaling_pipeline.render(&self.engine.ctx, &anti_aliasing);
             anti_aliasing.resolve();
 
+            self.engine.image_pipeline.render(&mut self.engine.ctx, &view);
             self.engine.glyph_pipeline.draw_queued(&mut self.engine.ctx, &view);
             self.engine.joystick_pipeline.render(&self.engine.ctx, &view);
 

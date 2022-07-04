@@ -1,24 +1,13 @@
-use std::collections::HashMap;
 use taffy::prelude::*;
 use widgets::{BaseWidget, NodeLayout, RenderWidget};
 pub mod widgets;
 pub use taffy::prelude;
 
-pub struct Ui {
-    pub textures: HashMap<String, engine::texture::Texture>,
-}
+pub struct Ui {}
 
 impl Ui {
     pub fn new() -> Self {
-        Self { textures: HashMap::new() }
-    }
-
-    pub fn add_texture(&mut self, ctx: &engine::Context, key: &str, data: Vec<u8>) {
-        let img = image::load_from_memory(data.as_slice()).unwrap();
-        let pixels = img.as_bytes();
-
-        let texture = engine::texture::Texture::create_view(ctx, pixels, img.width(), img.height(), true);
-        self.textures.insert(key.to_string(), texture);
+        Self {}
     }
 
     pub fn render(

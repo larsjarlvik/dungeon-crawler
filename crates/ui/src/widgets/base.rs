@@ -1,9 +1,10 @@
-use super::text::TextData;
+use super::{AssetData, TextData};
 use taffy::prelude::*;
 
 #[derive(Debug, Clone)]
 pub enum RenderWidget {
     Text(TextData),
+    Image(AssetData),
     None,
 }
 

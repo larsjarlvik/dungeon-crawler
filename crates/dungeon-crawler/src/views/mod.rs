@@ -1,58 +1,92 @@
 use crate::world::resources;
-use engine::pipelines::GlyphPipeline;
+use engine::pipelines::{
+    image::{self, context::ImageContext},
+    GlyphPipeline,
+};
 use ui::{prelude::*, widgets::*};
 
-pub fn update(ctx: &mut engine::Context, components: &bevy_ecs::world::World, ui: &ui::Ui) {
-    let ui_scale = 100.0;
+pub struct Views {
+    ui_scale: f32,
+    ui: ui::Ui,
+}
 
-    let mut top_left = NodeWidget::new(
-        FlexboxLayout {
-            flex_direction: FlexDirection::Column,
-            ..Default::default()
-        },
-        vec![],
-    );
+impl Views {
+    pub fn new(ctx: &mut engine::Context) -> Self {
+        ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("/icon.png"));
 
-    if ctx.settings.show_fps {
-        let fps = components.get_resource::<resources::Fps>().unwrap();
-        top_left.children.push(TextWidget::new(TextData {
-            text: format!("FPS: {}", fps.fps),
-            size: 4.0,
-        }));
+        Self {
+            ui_scale: 100.0,
+            ui: ui::Ui::new(),
+        }
     }
 
-    let mut root = NodeWidget::new(
-        FlexboxLayout {
-            flex_direction: FlexDirection::Row,
-            justify_content: JustifyContent::SpaceBetween,
-            padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
-            size: Size {
-                width: Dimension::Percent(1.0),
-                height: Dimension::Auto,
+    pub fn update(&mut self, ctx: &mut engine::Context, components: &bevy_ecs::world::World) {
+        let mut top_left = NodeWidget::new(
+            FlexboxLayout {
+                flex_direction: FlexDirection::Column,
+                ..Default::default()
             },
-            ..Default::default()
-        },
-        vec![top_left],
-    );
+            vec![],
+        );
 
-    let ui_scale_x = ui_scale * ctx.viewport.get_aspect();
-    let nodes = ui.render(ctx, &mut root, ui_scale_x, ui_scale);
+        if ctx.settings.show_fps {
+            let fps = components.get_resource::<resources::Fps>().unwrap();
+            top_left.children.push(TextWidget::new(TextData {
+                text: format!("FPS: {}", fps.fps),
+                size: 4.0,
+            }));
+        }
 
-    let sx = ctx.viewport.width as f32 / ui_scale_x;
-    let sy = ctx.viewport.height as f32 / ui_scale;
+        let mut root = NodeWidget::new(
+            FlexboxLayout {
+                flex_direction: FlexDirection::Row,
+                padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
+                size: Size {
+                    width: Dimension::Percent(1.0),
+                    height: Dimension::Percent(1.0),
+                },
+                ..Default::default()
+            },
+            vec![
+                AssetWidget::new(
+                    AssetData { id: "logo".into() },
+                    Size {
+                        width: Dimension::Points(20.0),
+                        height: Dimension::Points(20.0),
+                    },
+                ),
+                top_left,
+            ],
+        );
 
-    for (layout, widget) in nodes {
-        match widget {
-            RenderWidget::Text(data) => {
-                GlyphPipeline::queue(
-                    ctx,
-                    data.text,
-                    data.size * sy,
-                    (layout.x * sx, layout.y * sy),
-                    (layout.width, layout.height),
-                );
+        let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
+        let nodes = self.ui.render(ctx, &mut root, ui_scale_x, self.ui_scale);
+        let sx = ctx.viewport.width as f32 / ui_scale_x;
+        let sy = ctx.viewport.height as f32 / self.ui_scale;
+
+        for (layout, widget) in nodes {
+            match widget {
+                RenderWidget::Text(data) => {
+                    GlyphPipeline::queue(
+                        ctx,
+                        data.text,
+                        data.size * sy,
+                        (layout.x * sx, layout.y * sy),
+                        (layout.width, layout.height),
+                    );
+                }
+                RenderWidget::Image(data) => {
+                    dbg!(&layout);
+                    ctx.images.queue(
+                        data.id,
+                        image::context::Data {
+                            position: [layout.x * sx, layout.y * sy],
+                            size: [layout.width / sx, layout.height / sy],
+                        },
+                    );
+                }
+                _ => {}
             }
-            _ => {}
         }
     }
 }
