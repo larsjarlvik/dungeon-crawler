@@ -23,7 +23,7 @@ impl State {
             &window,
             Point2::new(window.inner_size().width, window.inner_size().height),
             window.scale_factor() as f32,
-            file::read_bytes("exo2-medium.ttf"),
+            file::read_bytes("./exo2-medium.ttf"),
         )
         .await;
         let world = world::World::new(&engine);
