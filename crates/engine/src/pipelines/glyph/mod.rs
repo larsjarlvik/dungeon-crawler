@@ -1,5 +1,5 @@
 use crate::Context;
-use wgpu_glyph::{ab_glyph::Rect, GlyphCruncher, HorizontalAlign, Layout, Section, Text};
+use wgpu_glyph::{ab_glyph::Rect, GlyphCruncher, Section, Text};
 
 pub struct GlyphPipeline {
     staging_belt: wgpu::util::StagingBelt,
@@ -19,7 +19,6 @@ impl GlyphPipeline {
             layout: wgpu_glyph::Layout::default_single_line()
                 .h_align(wgpu_glyph::HorizontalAlign::Left)
                 .v_align(wgpu_glyph::VerticalAlign::Top),
-            ..Section::default()
         });
     }
 
@@ -46,10 +45,12 @@ impl GlyphPipeline {
 
 pub fn get_bounds(ctx: &mut Context, text: &str, scale: f32) -> Rect {
     ctx.glyph_brush
-        .glyph_bounds(
-            Section::default()
-                .add_text(Text::new(text).with_scale(scale))
-                .with_layout(Layout::default().h_align(HorizontalAlign::Left)),
-        )
+        .glyph_bounds(Section {
+            text: vec![Text::new(text).with_color([1.0, 1.0, 1.0, 1.0]).with_scale(scale)],
+            layout: wgpu_glyph::Layout::default_single_line()
+                .h_align(wgpu_glyph::HorizontalAlign::Left)
+                .v_align(wgpu_glyph::VerticalAlign::Top),
+            ..Default::default()
+        })
         .unwrap()
 }

@@ -12,7 +12,7 @@ pub struct PanelData {
 pub struct PanelWidget {
     pub data: PanelData,
     pub children: Vec<Box<dyn base::BaseWidget>>,
-    node: Option<Node>,
+    pub node: Option<Node>,
     layout: FlexboxLayout,
 }
 

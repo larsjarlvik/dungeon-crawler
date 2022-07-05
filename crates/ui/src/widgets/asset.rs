@@ -13,11 +13,17 @@ pub struct AssetWidget {
     pub data: AssetData,
     size: Size<Dimension>,
     node: Option<Node>,
+    margin: Rect<Dimension>,
 }
 
 impl AssetWidget {
-    pub fn new(data: AssetData, size: Size<Dimension>) -> Box<Self> {
-        Box::new(Self { data, size, node: None })
+    pub fn new(data: AssetData, margin: Rect<Dimension>, size: Size<Dimension>) -> Box<Self> {
+        Box::new(Self {
+            data,
+            margin,
+            size,
+            node: None,
+        })
     }
 }
 
@@ -26,6 +32,7 @@ impl base::BaseWidget for AssetWidget {
         let node = taffy
             .new_leaf(FlexboxLayout {
                 size: self.size,
+                margin: self.margin,
                 ..Default::default()
             })
             .unwrap();

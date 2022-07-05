@@ -1,5 +1,6 @@
 use taffy::prelude::*;
 use widgets::{BaseWidget, NodeLayout, RenderWidget};
+pub mod components;
 pub mod widgets;
 pub use taffy::prelude;
 

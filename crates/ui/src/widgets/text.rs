@@ -12,12 +12,13 @@ pub struct TextData {
 
 pub struct TextWidget {
     pub data: TextData,
+    pub margin: Rect<Dimension>,
     node: Option<Node>,
 }
 
 impl TextWidget {
-    pub fn new(data: TextData) -> Box<Self> {
-        Box::new(Self { data, node: None })
+    pub fn new(data: TextData, margin: Rect<Dimension>) -> Box<Self> {
+        Box::new(Self { data, margin, node: None })
     }
 }
 
@@ -31,6 +32,7 @@ impl base::BaseWidget for TextWidget {
                     width: Dimension::Points(size.width()),
                     height: Dimension::Points(size.height()),
                 },
+                margin: self.margin,
                 ..Default::default()
             })
             .unwrap();

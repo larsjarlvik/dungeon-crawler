@@ -3,7 +3,7 @@ use engine::pipelines::{
     image::{self, context::ImageContext},
     GlyphPipeline,
 };
-use ui::{prelude::*, widgets::*};
+use ui::{components::ButtonComponent, prelude::*, widgets::*};
 
 pub struct Views {
     ui_scale: f32,
@@ -15,7 +15,7 @@ impl Views {
         ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("/icon.png"));
 
         Self {
-            ui_scale: 100.0,
+            ui_scale: 1000.0,
             ui: ui::Ui::new(),
         }
     }
@@ -31,46 +31,48 @@ impl Views {
 
         if ctx.settings.show_fps {
             let fps = components.get_resource::<resources::Fps>().unwrap();
-            top_left.children.push(TextWidget::new(TextData {
-                text: format!("FPS: {}", fps.fps),
-                size: 3.0,
-            }));
+            top_left.children.push(TextWidget::new(
+                TextData {
+                    text: format!("FPS: {}", fps.fps),
+                    size: 30.0,
+                },
+                Default::default(),
+            ));
         }
 
         let mut root = NodeWidget::new(
             FlexboxLayout {
-                flex_direction: FlexDirection::Row,
-                align_items: AlignItems::Center,
-                padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::FlexStart,
+                padding: Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
                 size: Size {
-                    width: Dimension::Percent(1.0),
+                    width: Dimension::Auto,
                     height: Dimension::Auto,
                 },
                 ..Default::default()
             },
-            vec![PanelWidget::new(
-                PanelData {
-                    background: [0.0, 0.0, 0.0, 0.8],
-                },
-                FlexboxLayout {
-                    size: Size {
-                        width: Dimension::Points(30.0),
-                        height: Dimension::Auto,
+            vec![
+                PanelWidget::new(
+                    PanelData {
+                        background: [0.0, 0.0, 0.0, 0.8],
                     },
-                    padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
-                    ..Default::default()
-                },
-                vec![
-                    AssetWidget::new(
-                        AssetData { id: "logo".into() },
-                        Size {
-                            width: Dimension::Points(4.0),
-                            height: Dimension::Points(4.0),
+                    FlexboxLayout {
+                        size: Size {
+                            width: Dimension::Points(300.0),
+                            height: Dimension::Auto,
                         },
-                    ),
-                    top_left,
-                ],
-            )],
+                        margin: Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
+                        padding: Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
+                        ..Default::default()
+                    },
+                    vec![top_left],
+                ),
+                ButtonComponent::new(
+                    Some("logo".into()),
+                    Some("This is a button".into()),
+                    Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
+                ),
+            ],
         );
 
         let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
