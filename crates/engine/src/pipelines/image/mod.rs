@@ -61,8 +61,6 @@ impl ImagePipeline {
     }
 
     pub fn render(&self, ctx: &mut Context, target: &wgpu::TextureView) {
-        let mut bundles = vec![];
-
         for (id, data) in ctx.images.queue.iter() {
             ctx.queue.write_buffer(
                 &self.uniform_buffer,
@@ -71,32 +69,33 @@ impl ImagePipeline {
                     position: data.position,
                     size: data.size,
                     viewport_size: [ctx.viewport.width as f32, ctx.viewport.height as f32],
+                    background: data.background,
+                    has_image: data.has_image as u32,
                 }]),
             );
 
-            let asset = ctx.images.textures.get(id).expect("Image not found!");
+            let mut primitive_builder = builders::PrimitiveBuilder::new(ctx, "asset").with_length(4);
+            if let Some(id) = id {
+                let asset = ctx.images.textures.get(id).expect("Image not found!");
+                primitive_builder = primitive_builder.with_texture_bind_group(
+                    &self.texture_bind_group_layout,
+                    &[
+                        builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&asset.view)),
+                        builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::Sampler(&self.sampler)),
+                    ],
+                );
+            }
+
             let bundle = builders::RenderBundleBuilder::new(ctx, "asset")
                 .with_pipeline(&self.render_pipeline)
                 .with_uniform_bind_group(&self.uniform_bind_group_layout, &self.uniform_buffer)
-                .with_primitive(
-                    builders::PrimitiveBuilder::new(ctx, "asset")
-                        .with_texture_bind_group(
-                            &self.texture_bind_group_layout,
-                            &[
-                                builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&asset.view)),
-                                builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::Sampler(&self.sampler)),
-                            ],
-                        )
-                        .with_length(4),
-                )
+                .with_primitive(primitive_builder)
                 .build();
 
-            bundles.push(bundle);
+            builders::RenderTargetBuilder::new(ctx, "particle")
+                .with_color_attachment(&target, wgpu::LoadOp::Load)
+                .execute_bundles(vec![&bundle]);
         }
-
-        builders::RenderTargetBuilder::new(ctx, "particle")
-            .with_color_attachment(&target, wgpu::LoadOp::Load)
-            .execute_bundles(bundles.iter().map(|b| b).collect());
 
         ctx.images.queue.clear();
     }

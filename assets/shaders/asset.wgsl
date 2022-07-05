@@ -2,7 +2,9 @@
 struct Uniforms {
     position: vec2<f32>;
     size: vec2<f32>;
+    background: vec4<f32>;
     viewport_size: vec2<f32>;
+    has_image: bool;
 };
 
 [[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
@@ -38,5 +40,9 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
 
 [[stage(fragment)]]
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    if (uniforms.has_image == false) {
+        return uniforms.background;
+    }
+
     return textureSample(t_texture, t_sampler, in.coord);
 }

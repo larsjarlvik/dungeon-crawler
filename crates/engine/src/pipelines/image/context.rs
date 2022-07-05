@@ -5,11 +5,13 @@ use std::collections::HashMap;
 pub struct Data {
     pub position: [f32; 2],
     pub size: [f32; 2],
+    pub background: [f32; 4],
+    pub has_image: bool,
 }
 
 pub struct ImageContext {
     pub textures: HashMap<String, texture::Texture>,
-    pub queue: Vec<(String, Data)>,
+    pub queue: Vec<(Option<String>, Data)>,
 }
 
 impl ImageContext {
@@ -28,7 +30,7 @@ impl ImageContext {
         ctx.images.textures.insert(key.to_string(), texture);
     }
 
-    pub fn queue(&mut self, id: String, data: Data) {
+    pub fn queue_image(&mut self, data: Data, id: Option<String>) {
         self.queue.push((id, data));
     }
 }

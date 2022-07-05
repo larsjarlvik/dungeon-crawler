@@ -96,8 +96,8 @@ impl Texture {
         if mip_level_count > 1 {
             pipelines::mipmap::generate_mipmaps(ctx, &mut encoder, &texture, mip_level_count);
         }
-        ctx.queue.submit(std::iter::once(encoder.finish()));
 
+        ctx.queue.submit(std::iter::once(encoder.finish()));
         Self { texture, view }
     }
 

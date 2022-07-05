@@ -48,16 +48,29 @@ impl Views {
                 },
                 ..Default::default()
             },
-            vec![
-                AssetWidget::new(
-                    AssetData { id: "logo".into() },
-                    Size {
-                        width: Dimension::Points(4.0),
-                        height: Dimension::Points(4.0),
+            vec![PanelWidget::new(
+                PanelData {
+                    background: [0.0, 0.0, 0.0, 0.8],
+                },
+                FlexboxLayout {
+                    size: Size {
+                        width: Dimension::Points(30.0),
+                        height: Dimension::Auto,
                     },
-                ),
-                top_left,
-            ],
+                    padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
+                    ..Default::default()
+                },
+                vec![
+                    AssetWidget::new(
+                        AssetData { id: "logo".into() },
+                        Size {
+                            width: Dimension::Points(4.0),
+                            height: Dimension::Points(4.0),
+                        },
+                    ),
+                    top_left,
+                ],
+            )],
         );
 
         let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
@@ -72,17 +85,30 @@ impl Views {
                         ctx,
                         data.text,
                         data.size * sy,
-                        (layout.x * sx, (layout.y - layout.height / 4.0) * sy),
-                        (layout.width * sx, layout.height * sy),
+                        (layout.x * sx, layout.y * sy),
+                        (f32::INFINITY, f32::INFINITY),
                     );
                 }
                 RenderWidget::Image(data) => {
-                    ctx.images.queue(
-                        data.id,
+                    ctx.images.queue_image(
                         image::context::Data {
                             position: [layout.x * sx, layout.y * sy],
                             size: [layout.width * sx, layout.height * sy],
+                            background: [0.0, 0.0, 0.0, 0.0],
+                            has_image: true,
                         },
+                        Some(data.id),
+                    );
+                }
+                RenderWidget::Panel(data) => {
+                    ctx.images.queue_image(
+                        image::context::Data {
+                            position: [layout.x * sx, layout.y * sy],
+                            size: [layout.width * sx, layout.height * sy],
+                            background: data.background,
+                            has_image: false,
+                        },
+                        None,
                     );
                 }
                 _ => {}

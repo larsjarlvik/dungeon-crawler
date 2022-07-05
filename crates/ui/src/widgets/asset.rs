@@ -34,7 +34,7 @@ impl base::BaseWidget for AssetWidget {
     }
 
     fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
-        let layout = taffy.layout(self.node.unwrap()).unwrap();
+        let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let layout = NodeLayout::new(parent_layout, layout);
 
         vec![(layout, RenderWidget::Image(self.data.clone()))]
