@@ -12,7 +12,7 @@ impl ButtonComponent {
             children.push(AssetWidget::new(
                 AssetData {
                     asset_id: Some(icon),
-                    background: None,
+                    ..Default::default()
                 },
                 Default::default(),
                 Size {
@@ -31,8 +31,10 @@ impl ButtonComponent {
 
         PanelWidget::new(
             AssetData {
-                asset_id: None,
                 background: Some(Vector4::new(0.0, 0.0, 0.0, 0.8)),
+                background_hover: Some(Vector4::new(0.1, 0.1, 0.1, 0.8)),
+                background_pressed: Some(Vector4::new(0.2, 0.2, 0.2, 0.8)),
+                ..Default::default()
             },
             FlexboxLayout {
                 align_items: AlignItems::Center,

@@ -55,8 +55,8 @@ impl Views {
             vec![
                 PanelWidget::new(
                     AssetData {
-                        asset_id: None,
                         background: Some(Vector4::new(0.0, 0.0, 0.0, 0.8)),
+                        ..Default::default()
                     },
                     FlexboxLayout {
                         size: Size {

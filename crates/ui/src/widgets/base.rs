@@ -4,8 +4,23 @@ use taffy::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct AssetData {
+    pub key: Option<String>,
     pub asset_id: Option<String>,
     pub background: Option<Vector4<f32>>,
+    pub background_hover: Option<Vector4<f32>>,
+    pub background_pressed: Option<Vector4<f32>>,
+}
+
+impl Default for AssetData {
+    fn default() -> Self {
+        Self {
+            key: None,
+            asset_id: None,
+            background: None,
+            background_hover: None,
+            background_pressed: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
