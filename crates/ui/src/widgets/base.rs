@@ -1,11 +1,17 @@
-use super::{AssetData, PanelData, TextData};
+use super::TextData;
+use cgmath::*;
 use taffy::prelude::*;
+
+#[derive(Debug, Clone)]
+pub struct AssetData {
+    pub asset_id: Option<String>,
+    pub background: Option<Vector4<f32>>,
+}
 
 #[derive(Debug, Clone)]
 pub enum RenderWidget {
     Text(TextData),
-    Image(AssetData),
-    Panel(PanelData),
+    Asset(AssetData),
     None,
 }
 

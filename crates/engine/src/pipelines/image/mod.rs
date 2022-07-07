@@ -66,10 +66,10 @@ impl ImagePipeline {
                 &self.uniform_buffer,
                 0,
                 bytemuck::cast_slice(&[Uniforms {
-                    position: data.position,
-                    size: data.size,
+                    position: data.position.into(),
+                    size: data.size.into(),
                     viewport_size: [ctx.viewport.width as f32, ctx.viewport.height as f32],
-                    background: data.background,
+                    background: data.background.into(),
                     has_image: data.has_image as u32,
                 }]),
             );

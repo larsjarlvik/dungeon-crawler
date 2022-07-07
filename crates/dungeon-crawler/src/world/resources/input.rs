@@ -16,6 +16,7 @@ pub enum UiActionCode {
     Health,
 }
 
+#[derive(Debug)]
 pub struct Joystick {
     pub id: u64,
     pub touch: bool,
@@ -24,6 +25,7 @@ pub struct Joystick {
     pub strength: f32,
 }
 
+#[derive(Debug)]
 pub struct Mouse {
     pub id: u64,
     pub position: Point2<f32>,
@@ -31,6 +33,7 @@ pub struct Mouse {
     pub pressed: bool,
 }
 
+#[derive(Debug)]
 pub struct Input {
     pub keys: HashMap<VirtualKeyCode, KeyState>,
     pub ui: HashMap<UiActionCode, KeyState>,
@@ -90,6 +93,8 @@ impl Input {
     }
 
     pub fn mouse_set_pressed(&mut self, id: u64, touch: bool, pressed: bool) {
+        self.mouse.pressed = pressed;
+
         if pressed {
             if self.joystick.is_none() {
                 self.joystick = Some(Joystick {
@@ -99,8 +104,6 @@ impl Input {
                     center: None,
                     current: None,
                 });
-            } else {
-                self.mouse.pressed = true;
             }
         } else {
             if let Some(joystick) = &mut self.joystick {
@@ -109,8 +112,6 @@ impl Input {
                     return;
                 }
             }
-
-            self.mouse.pressed = false;
         }
     }
 

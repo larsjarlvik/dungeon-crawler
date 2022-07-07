@@ -1,13 +1,8 @@
 use super::{
     base::{self, RenderWidget},
-    NodeLayout,
+    AssetData, NodeLayout,
 };
 use taffy::prelude::*;
-
-#[derive(Debug, Clone)]
-pub struct AssetData {
-    pub id: String,
-}
 
 pub struct AssetWidget {
     pub data: AssetData,
@@ -44,6 +39,6 @@ impl base::BaseWidget for AssetWidget {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let layout = NodeLayout::new(parent_layout, layout);
 
-        vec![(layout, RenderWidget::Image(self.data.clone()))]
+        vec![(layout, RenderWidget::Asset(self.data.clone()))]
     }
 }

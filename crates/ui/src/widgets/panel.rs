@@ -1,23 +1,18 @@
 use super::{
     base::{self, RenderWidget},
-    NodeLayout,
+    AssetData, NodeLayout,
 };
 use taffy::prelude::*;
 
-#[derive(Debug, Clone)]
-pub struct PanelData {
-    pub background: [f32; 4],
-}
-
 pub struct PanelWidget {
-    pub data: PanelData,
+    pub data: AssetData,
     pub children: Vec<Box<dyn base::BaseWidget>>,
     pub node: Option<Node>,
     layout: FlexboxLayout,
 }
 
 impl PanelWidget {
-    pub fn new(data: PanelData, layout: FlexboxLayout, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
+    pub fn new(data: AssetData, layout: FlexboxLayout, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
         Box::new(Self {
             data,
             layout,
@@ -40,7 +35,7 @@ impl base::BaseWidget for PanelWidget {
         let layout = NodeLayout::new(parent_layout, layout);
 
         let children: Vec<(NodeLayout, RenderWidget)> = self.children.iter().map(|c| c.get_nodes(taffy, &layout)).flat_map(|c| c).collect();
-        let mut nodes = vec![(layout, RenderWidget::Panel(self.data.clone()))];
+        let mut nodes = vec![(layout, RenderWidget::Asset(self.data.clone()))];
         nodes.extend(children);
         nodes
     }

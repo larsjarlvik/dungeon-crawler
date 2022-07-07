@@ -1,4 +1,5 @@
 use crate::widgets::*;
+use cgmath::Vector4;
 use taffy::prelude::*;
 
 pub struct ButtonComponent {}
@@ -9,7 +10,10 @@ impl ButtonComponent {
 
         if let Some(icon) = icon.clone() {
             children.push(AssetWidget::new(
-                AssetData { id: icon },
+                AssetData {
+                    asset_id: Some(icon),
+                    background: None,
+                },
                 Default::default(),
                 Size {
                     width: Dimension::Points(30.0),
@@ -26,8 +30,9 @@ impl ButtonComponent {
         }
 
         PanelWidget::new(
-            PanelData {
-                background: [0.0, 0.0, 0.0, 0.8],
+            AssetData {
+                asset_id: None,
+                background: Some(Vector4::new(0.0, 0.0, 0.0, 0.8)),
             },
             FlexboxLayout {
                 align_items: AlignItems::Center,

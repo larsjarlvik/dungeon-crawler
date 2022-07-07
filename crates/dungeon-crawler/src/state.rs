@@ -84,7 +84,7 @@ impl State {
     }
 
     pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
-        let mut input = self.world.components.get_resource_mut::<world::resources::Input>().unwrap();
+        let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
         input.mouse_set_pressed(id, touch, pressed);
     }
 
@@ -103,7 +103,7 @@ impl State {
             .joystick_pipeline
             .update(&self.engine.ctx, &self.world.components, center, current, touch);
 
-        self.views.update(&mut self.engine.ctx, &self.world.components);
+        self.views.update(&mut self.engine.ctx, input, &self.world.components);
     }
 
     pub fn render(&mut self) {

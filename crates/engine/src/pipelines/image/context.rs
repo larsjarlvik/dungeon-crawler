@@ -1,11 +1,20 @@
+use cgmath::{Point2, Vector4};
+
 use crate::{texture, Context};
 use std::collections::HashMap;
 
 #[derive(Debug)]
+pub enum AssetState {
+    Default,
+    Hover,
+    Pressed,
+}
+
+#[derive(Debug)]
 pub struct Data {
-    pub position: [f32; 2],
-    pub size: [f32; 2],
-    pub background: [f32; 4],
+    pub position: Point2<f32>,
+    pub size: Point2<f32>,
+    pub background: Vector4<f32>,
     pub has_image: bool,
 }
 
