@@ -23,7 +23,13 @@ impl Views {
         }
     }
 
-    pub fn update(&mut self, ctx: &mut engine::Context, input: &input::Input, components: &bevy_ecs::world::World) -> bool {
+    pub fn update(
+        &mut self,
+        ctx: &mut engine::Context,
+        input: &input::Input,
+        components: &bevy_ecs::world::World,
+        frame_time: f32,
+    ) -> bool {
         let mut top_left = NodeWidget::new(
             FlexboxLayout {
                 flex_direction: FlexDirection::Column,
@@ -101,19 +107,19 @@ impl Views {
                     let background = if is_hover(input.mouse.position, &layout, sx, sy) {
                         blocking = true;
                         if input.mouse.pressed {
-                            self.transitions.get(&data.key, data.background_pressed.unwrap_or(data.background))
+                            data.background_pressed.unwrap_or(data.background)
                         } else {
-                            self.transitions.get(&data.key, data.background_hover.unwrap_or(data.background))
+                            data.background_hover.unwrap_or(data.background)
                         }
                     } else {
-                        self.transitions.get(&data.key, data.background)
+                        data.background
                     };
 
                     ctx.images.queue_image(
                         image::context::Data {
                             position: Point2::new(layout.x * sx, layout.y * sy),
                             size: Point2::new(layout.width * sx, layout.height * sy),
-                            background,
+                            background: self.transitions.get(&data.key, background, frame_time),
                             has_image: data.asset_id.is_some(),
                         },
                         data.asset_id,
