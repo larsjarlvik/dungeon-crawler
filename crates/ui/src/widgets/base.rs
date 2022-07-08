@@ -6,7 +6,7 @@ use taffy::prelude::*;
 pub struct AssetData {
     pub key: Option<String>,
     pub asset_id: Option<String>,
-    pub background: Option<Vector4<f32>>,
+    pub background: Vector4<f32>,
     pub background_hover: Option<Vector4<f32>>,
     pub background_pressed: Option<Vector4<f32>>,
 }
@@ -16,7 +16,7 @@ impl Default for AssetData {
         Self {
             key: None,
             asset_id: None,
-            background: None,
+            background: Vector4::new(1.0, 1.0, 1.0, 1.0),
             background_hover: None,
             background_pressed: None,
         }

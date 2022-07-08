@@ -3,6 +3,7 @@ use engine::Settings;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
+    platform::macos::WindowBuilderExtMacOS,
     window::{Fullscreen, WindowBuilder},
 };
 use world::{resources::input::KeyState, GameState};
@@ -26,7 +27,10 @@ pub fn main() {
     utils::aquire_wakelock();
 
     let settings = Settings::load();
-    let mut window = WindowBuilder::new().with_title("Dungeon Crawler").with_decorations(true);
+    let mut window = WindowBuilder::new()
+        .with_title("Dungeon Crawler")
+        .with_decorations(true)
+        .with_movable_by_window_background(true);
 
     window = if settings.fullscreen {
         window.with_fullscreen(Some(Fullscreen::Borderless(None)))
@@ -108,7 +112,12 @@ pub fn main() {
                         WindowEvent::CursorMoved { position, .. } => {
                             state.mouse_move(0, position.x as f32, position.y as f32);
                         }
-                        WindowEvent::MouseInput { state: mouse_state, .. } => {
+                        WindowEvent::MouseInput {
+                            state: mouse_state,
+                            button,
+                            ..
+                        } => {
+                            dbg!(button, mouse_state);
                             state.mouse_press(0, false, mouse_state == &winit::event::ElementState::Pressed);
                         }
                         WindowEvent::Touch(touch) => {

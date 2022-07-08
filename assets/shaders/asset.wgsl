@@ -44,5 +44,5 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
         return uniforms.background;
     }
 
-    return textureSample(t_texture, t_sampler, in.coord);
+    return uniforms.background * textureSample(t_texture, t_sampler, in.coord);
 }

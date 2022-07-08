@@ -5,7 +5,7 @@ use taffy::prelude::*;
 pub struct ButtonComponent {}
 
 impl ButtonComponent {
-    pub fn new(icon: Option<String>, text: Option<String>, margin: Rect<Dimension>) -> Box<PanelWidget> {
+    pub fn new(key: &str, icon: Option<String>, text: Option<String>, margin: Rect<Dimension>) -> Box<PanelWidget> {
         let mut children: Vec<Box<dyn BaseWidget>> = vec![];
 
         if let Some(icon) = icon.clone() {
@@ -31,9 +31,10 @@ impl ButtonComponent {
 
         PanelWidget::new(
             AssetData {
-                background: Some(Vector4::new(0.0, 0.0, 0.0, 0.8)),
-                background_hover: Some(Vector4::new(0.1, 0.1, 0.1, 0.8)),
-                background_pressed: Some(Vector4::new(0.2, 0.2, 0.2, 0.8)),
+                key: Some(key.into()),
+                background: Vector4::new(0.0, 0.0, 0.0, 0.8),
+                background_hover: Some(Vector4::new(1.0, 0.0, 0.0, 0.8)),
+                background_pressed: Some(Vector4::new(0.0, 1.0, 0.0, 0.8)),
                 ..Default::default()
             },
             FlexboxLayout {

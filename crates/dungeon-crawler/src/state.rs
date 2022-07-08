@@ -93,17 +93,19 @@ impl State {
         self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
 
         let input = self.world.components.get_resource::<resources::Input>().unwrap();
-        let (center, current, touch) = if let Some(joystick) = &input.joystick {
-            (joystick.center, joystick.current, joystick.touch)
-        } else {
-            (None, None, false)
-        };
+        let ui_blocking = self.views.update(&mut self.engine.ctx, input, &self.world.components);
 
-        self.engine
-            .joystick_pipeline
-            .update(&self.engine.ctx, &self.world.components, center, current, touch);
+        if !ui_blocking {
+            let (center, current, touch) = if let Some(joystick) = &input.joystick {
+                (joystick.center, joystick.current, joystick.touch)
+            } else {
+                (None, None, false)
+            };
 
-        self.views.update(&mut self.engine.ctx, input, &self.world.components);
+            self.engine
+                .joystick_pipeline
+                .update(&self.engine.ctx, &self.world.components, center, current, touch);
+        }
     }
 
     pub fn render(&mut self) {

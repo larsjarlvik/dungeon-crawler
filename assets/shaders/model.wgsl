@@ -139,7 +139,7 @@ fn microfacetDistribution(pbr: PBRInfo) -> f32 {
 }
 
 fn contrast_matrix(contrast: f32) -> mat4x4<f32> {
-    let t = (1.0 - contrast) / 2.0;
+    let t = (1.0 - contrast) * 0.5;
 
     return mat4x4<f32>(
         vec4<f32>(contrast, 0.0, 0.0, 0.0),

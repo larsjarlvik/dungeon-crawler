@@ -1,14 +1,16 @@
 use crate::world::resources::{self, input};
-use cgmath::{Point2, Vector4, VectorSpace};
+use cgmath::*;
 use engine::pipelines::{
     image::{self, context::ImageContext},
     GlyphPipeline,
 };
+use std::collections::HashMap;
 use ui::{components::ButtonComponent, prelude::*, widgets::*};
 
 pub struct Views {
     ui_scale: f32,
     ui: ui::Ui,
+    asset_transitions: HashMap<String, Vector4<f32>>,
 }
 
 impl Views {
@@ -18,10 +20,11 @@ impl Views {
         Self {
             ui_scale: 1000.0,
             ui: ui::Ui::new(),
+            asset_transitions: HashMap::new(),
         }
     }
 
-    pub fn update(&mut self, ctx: &mut engine::Context, input: &input::Input, components: &bevy_ecs::world::World) {
+    pub fn update(&mut self, ctx: &mut engine::Context, input: &input::Input, components: &bevy_ecs::world::World) -> bool {
         let mut top_left = NodeWidget::new(
             FlexboxLayout {
                 flex_direction: FlexDirection::Column,
@@ -55,7 +58,7 @@ impl Views {
             vec![
                 PanelWidget::new(
                     AssetData {
-                        background: Some(Vector4::new(0.0, 0.0, 0.0, 0.8)),
+                        background: Vector4::new(0.0, 0.0, 0.0, 0.8),
                         ..Default::default()
                     },
                     FlexboxLayout {
@@ -70,6 +73,7 @@ impl Views {
                     vec![top_left],
                 ),
                 ButtonComponent::new(
+                    "button",
                     Some("logo".into()),
                     Some("This is a button".into()),
                     Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
@@ -81,6 +85,7 @@ impl Views {
         let nodes = self.ui.render(ctx, &mut root, ui_scale_x, self.ui_scale);
         let sx = ctx.viewport.width as f32 / ui_scale_x;
         let sy = ctx.viewport.height as f32 / self.ui_scale;
+        let mut blocking = false;
 
         for (layout, widget) in nodes {
             match widget {
@@ -94,16 +99,29 @@ impl Views {
                     );
                 }
                 RenderWidget::Asset(data) => {
-                    let bg = data.background.unwrap_or(Vector4::new(0.0, 0.0, 0.0, 0.0));
-                    let background = if is_hover(input.mouse.position, &layout, sx, sy) {
-                        if input.mouse.pressed {
-                            bg.lerp(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.2)
-                        } else {
-                            bg.lerp(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.1)
-                        }
+                    let bg = data.background;
+                    let prev = if let Some(key) = &data.key {
+                        *self.asset_transitions.get(key).unwrap_or(&bg)
                     } else {
                         bg
                     };
+
+                    let background = if is_hover(input.mouse.position, &layout, sx, sy) {
+                        blocking = true;
+                        if input.mouse.pressed {
+                            prev.lerp(data.background_pressed.unwrap_or(bg), 0.05)
+                        } else {
+                            prev.lerp(data.background_hover.unwrap_or(bg), 0.05)
+                        }
+                    } else {
+                        prev.lerp(bg, 0.05)
+                    };
+
+                    if let Some(key) = data.key {
+                        if prev != background {
+                            *self.asset_transitions.entry(key).or_insert(bg) = background;
+                        }
+                    }
 
                     ctx.images.queue_image(
                         image::context::Data {
@@ -118,6 +136,8 @@ impl Views {
                 _ => {}
             }
         }
+
+        blocking
     }
 }
 
