@@ -777,6 +777,7 @@ dependencies = [
  "cgmath",
  "gltf",
  "image 0.24.2",
+ "ndk-glue",
  "rand",
  "raw-window-handle",
  "rayon",

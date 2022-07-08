@@ -16,8 +16,8 @@ pub struct Views {
 
 impl Views {
     pub fn new(ctx: &mut engine::Context) -> Self {
-        ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("/icon.png"));
-        ImageContext::add_texture(ctx, "menu", engine::file::read_bytes("/icons/menu.png"));
+        ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("icon.png"));
+        ImageContext::add_texture(ctx, "menu", engine::file::read_bytes("icons/menu.png"));
 
         Self {
             ui_scale: 1000.0,
