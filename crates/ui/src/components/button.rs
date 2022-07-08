@@ -33,8 +33,8 @@ impl ButtonComponent {
             AssetData {
                 key: Some(key.into()),
                 background: Vector4::new(0.0, 0.0, 0.0, 0.8),
-                background_hover: Some(Vector4::new(1.0, 0.0, 0.0, 0.8)),
-                background_pressed: Some(Vector4::new(0.0, 1.0, 0.0, 0.8)),
+                background_hover: Some(Vector4::new(0.15, 0.15, 0.15, 0.8)),
+                background_pressed: Some(Vector4::new(0.3, 0.3, 0.3, 0.8)),
                 ..Default::default()
             },
             FlexboxLayout {
