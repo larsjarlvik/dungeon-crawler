@@ -3,6 +3,7 @@ struct Uniforms {
     position: vec2<f32>;
     size: vec2<f32>;
     background: vec4<f32>;
+    foreground: vec4<f32>;
     viewport_size: vec2<f32>;
     has_image: bool;
 };
@@ -13,7 +14,6 @@ struct VertexOutput {
     [[builtin(position)]] position: vec4<f32>;
     [[location(0)]] coord: vec2<f32>;
 };
-
 
 [[stage(vertex)]]
 fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
@@ -33,7 +33,6 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     return result;
 }
 
-
 // Fragment shader
 [[group(1), binding(0)]] var t_texture: texture_2d<f32>;
 [[group(1), binding(1)]] var t_sampler: sampler;
@@ -44,5 +43,6 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
         return uniforms.background;
     }
 
-    return uniforms.background * textureSample(t_texture, t_sampler, in.coord);
+    let texture = textureSample(t_texture, t_sampler, in.coord);
+    return vec4<f32>(mix(texture.rgb, uniforms.foreground.rgb, uniforms.foreground.a), texture.a);
 }

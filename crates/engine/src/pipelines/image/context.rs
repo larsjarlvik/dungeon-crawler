@@ -15,7 +15,7 @@ pub struct Data {
     pub position: Point2<f32>,
     pub size: Point2<f32>,
     pub background: Vector4<f32>,
-    pub has_image: bool,
+    pub foreground: Vector4<f32>,
 }
 
 pub struct ImageContext {

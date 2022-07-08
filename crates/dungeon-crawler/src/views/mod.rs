@@ -1,10 +1,12 @@
-use crate::world::resources::{self, input};
+use crate::world::{self, resources::input, World};
 use cgmath::*;
 use engine::pipelines::{
     image::{self, context::ImageContext},
     GlyphPipeline,
 };
-use ui::{components::ButtonComponent, prelude::*, widgets::*};
+mod in_game;
+mod splash;
+use ui::widgets::*;
 
 pub struct Views {
     ui_scale: f32,
@@ -15,6 +17,7 @@ pub struct Views {
 impl Views {
     pub fn new(ctx: &mut engine::Context) -> Self {
         ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("/icon.png"));
+        ImageContext::add_texture(ctx, "menu", engine::file::read_bytes("/icons/menu.png"));
 
         Self {
             ui_scale: 1000.0,
@@ -23,70 +26,15 @@ impl Views {
         }
     }
 
-    pub fn update(
-        &mut self,
-        ctx: &mut engine::Context,
-        input: &input::Input,
-        components: &bevy_ecs::world::World,
-        frame_time: f32,
-    ) -> bool {
-        let mut top_left = NodeWidget::new(
-            FlexboxLayout {
-                flex_direction: FlexDirection::Column,
-                ..Default::default()
-            },
-            vec![],
-        );
-
-        if ctx.settings.show_fps {
-            let fps = components.get_resource::<resources::Fps>().unwrap();
-            top_left.children.push(TextWidget::new(
-                TextData {
-                    text: format!("FPS: {}", fps.fps),
-                    size: 30.0,
-                },
-                Default::default(),
-            ));
-        }
-
-        let mut root = NodeWidget::new(
-            FlexboxLayout {
-                flex_direction: FlexDirection::Column,
-                align_items: AlignItems::FlexStart,
-                padding: Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
-                size: Size {
-                    width: Dimension::Auto,
-                    height: Dimension::Auto,
-                },
-                ..Default::default()
-            },
-            vec![
-                PanelWidget::new(
-                    AssetData {
-                        background: Vector4::new(0.0, 0.0, 0.0, 0.8),
-                        ..Default::default()
-                    },
-                    FlexboxLayout {
-                        size: Size {
-                            width: Dimension::Points(300.0),
-                            height: Dimension::Auto,
-                        },
-                        margin: Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
-                        padding: Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
-                        ..Default::default()
-                    },
-                    vec![top_left],
-                ),
-                ButtonComponent::new(
-                    "button",
-                    Some("logo".into()),
-                    Some("This is a button".into()),
-                    Rect::<Dimension>::from_points(20.0, 20.0, 20.0, 20.0),
-                ),
-            ],
-        );
-
+    pub fn update(&mut self, ctx: &mut engine::Context, input: &input::Input, world: &World, frame_time: f32) -> bool {
         let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
+
+        let mut root = match world.game_state {
+            world::GameState::Reload | world::GameState::Loading => splash::splash(),
+            world::GameState::Running => in_game::in_game(ctx, world),
+            world::GameState::Terminated => todo!(),
+        };
+
         let nodes = self.ui.render(ctx, &mut root, ui_scale_x, self.ui_scale);
         let sx = ctx.viewport.width as f32 / ui_scale_x;
         let sy = ctx.viewport.height as f32 / self.ui_scale;
@@ -120,7 +68,7 @@ impl Views {
                             position: Point2::new(layout.x * sx, layout.y * sy),
                             size: Point2::new(layout.width * sx, layout.height * sy),
                             background: self.transitions.get(&data.key, background, frame_time),
-                            has_image: data.asset_id.is_some(),
+                            foreground: data.foreground,
                         },
                         data.asset_id,
                     );

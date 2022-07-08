@@ -94,9 +94,7 @@ impl State {
 
         let time = self.world.components.get_resource::<engine::ecs::resources::Time>().unwrap();
         let input = self.world.components.get_resource::<resources::Input>().unwrap();
-        let ui_blocking = self
-            .views
-            .update(&mut self.engine.ctx, input, &self.world.components, time.last_frame);
+        let ui_blocking = self.views.update(&mut self.engine.ctx, input, &self.world, time.last_frame);
 
         if !ui_blocking {
             let (center, current, touch) = if let Some(joystick) = &input.joystick {

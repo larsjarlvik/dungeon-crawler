@@ -1,8 +1,7 @@
 mod uniforms;
+use self::uniforms::Uniforms;
 use crate::{config, pipelines::builders, texture, Context};
 use std::mem;
-
-use self::uniforms::Uniforms;
 pub mod context;
 
 pub struct ImagePipeline {
@@ -70,7 +69,8 @@ impl ImagePipeline {
                     size: data.size.into(),
                     viewport_size: [ctx.viewport.width as f32, ctx.viewport.height as f32],
                     background: data.background.into(),
-                    has_image: data.has_image as u32,
+                    foreground: data.foreground.into(),
+                    has_image: id.is_some() as u32,
                 }]),
             );
 
