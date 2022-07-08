@@ -15,12 +15,12 @@ pub struct Views {
 }
 
 impl Views {
-    pub fn new(ctx: &mut engine::Context) -> Self {
+    pub fn new(ctx: &mut engine::Context, scale: f32) -> Self {
         ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("icon.png"));
         ImageContext::add_texture(ctx, "menu", engine::file::read_bytes("icons/menu.png"));
 
         Self {
-            ui_scale: 1000.0,
+            ui_scale: 1000.0 / scale,
             ui: ui::Ui::new(),
             transitions: ui::Transitions::new(),
         }
