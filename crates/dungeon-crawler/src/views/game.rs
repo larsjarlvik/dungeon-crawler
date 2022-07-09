@@ -71,6 +71,7 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                     menu_button.draw(ButtonProps {
                         icon: Some(("menu".into(), style::ICON_M)),
                         variant: Variant::Rounded,
+                        margin: Rect::<Dimension>::from_points(0.0, 0.0, -style::SS, 0.0),
                         ..Default::default()
                     }),
                 ],

@@ -74,16 +74,20 @@ impl Views {
                     );
                 }
                 RenderWidget::Asset(data) => {
-                    let background = if is_hover(mouse.position, &layout, sx, sy) {
-                        self.element_rects.push(layout.clone());
+                    self.element_rects.push(layout.clone());
 
+                    let background = if is_hover(&mouse.position, &layout, sx, sy) {
                         match mouse.state {
                             input::PressState::Released(repeat) => {
                                 if !repeat {
                                     self.state.set_event(&data.key, Event::Click);
                                 }
 
-                                data.background_hover.unwrap_or(data.background)
+                                if mouse.touch {
+                                    data.background
+                                } else {
+                                    data.background_hover.unwrap_or(data.background)
+                                }
                             }
                             input::PressState::Pressed(_) => {
                                 self.state.set_event(&data.key, Event::MouseDown);
@@ -111,7 +115,7 @@ impl Views {
         }
     }
 
-    pub fn within_ui(&self, ctx: &engine::Context, mp: Point2<f32>) -> bool {
+    pub fn within_ui(&self, ctx: &engine::Context, mp: &Point2<f32>) -> bool {
         let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
         let sx = ctx.viewport.width as f32 / ui_scale_x;
         let sy = ctx.viewport.height as f32 / self.ui_scale;
@@ -126,7 +130,7 @@ impl Views {
     }
 }
 
-fn is_hover(mp: Point2<f32>, layout: &NodeLayout, sx: f32, sy: f32) -> bool {
+fn is_hover(mp: &Point2<f32>, layout: &NodeLayout, sx: f32, sy: f32) -> bool {
     let mp = Point2::new(mp.x / sx, mp.y / sy);
     mp.x >= layout.x && mp.y >= layout.y && mp.x <= layout.x + layout.width && mp.y <= layout.y + layout.height
 }

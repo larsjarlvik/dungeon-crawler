@@ -23,7 +23,7 @@ impl State {
     pub fn get_transition(&mut self, key: &Option<String>, to: Vector4<f32>, frame_time: f32) -> Vector4<f32> {
         if let Some(key) = &key {
             let prev_val = *self.transitions.get(key).unwrap_or(&to);
-            let new_val = prev_val.lerp(to, 5.0 * frame_time);
+            let new_val = prev_val.lerp(to, 10.0 * frame_time);
             *self.transitions.entry(key.clone()).or_insert(new_val) = new_val;
             return new_val;
         }

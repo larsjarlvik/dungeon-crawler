@@ -31,6 +31,7 @@ pub struct Mouse {
     pub position: Point2<f32>,
     pub relative: Point2<f32>,
     pub state: PressState,
+    pub touch: bool,
 }
 
 #[derive(Debug)]
@@ -52,6 +53,7 @@ impl Default for Input {
                 position: Point2::new(0.0, 0.0),
                 relative: Point2::new(0.0, 0.0),
                 state: PressState::Released(true),
+                touch: false,
             },
             joystick: None,
             blocked: false,
@@ -106,11 +108,13 @@ impl Input {
     }
 
     pub fn mouse_set_pressed(&mut self, id: u64, touch: bool, pressed: bool, on_ui: bool) {
+        self.mouse.touch = touch;
+
         if on_ui {
             match pressed {
                 true => self.mouse.state = PressState::Pressed(false),
                 false => self.mouse.state = PressState::Released(false),
-            }
+            };
         } else {
             if pressed {
                 if self.joystick.is_none() {

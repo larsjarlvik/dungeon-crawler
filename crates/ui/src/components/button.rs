@@ -44,7 +44,7 @@ impl Button {
 
         if let Some((icon, size)) = props.icon.clone() {
             let margin = if props.variant == Variant::Rounded {
-                Rect::<Dimension>::from_points(8.0, 8.0, 8.0, 8.0)
+                Rect::<Dimension>::from_points(size * 0.1, size * 0.1, size * 0.1, size * 0.1)
             } else {
                 Default::default()
             };
