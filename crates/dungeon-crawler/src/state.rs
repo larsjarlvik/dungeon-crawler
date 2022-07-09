@@ -110,6 +110,10 @@ impl State {
         }
 
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
+        if ui_blocking {
+            input.joystick = None;
+        }
+
         input.update();
     }
 

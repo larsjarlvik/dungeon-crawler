@@ -63,8 +63,6 @@ impl Views {
                 }
                 RenderWidget::Asset(data) => {
                     let background = if is_hover(input.mouse.position, &layout, sx, sy) {
-                        blocking = true;
-
                         match input.mouse.state {
                             input::PressState::Released(repeat) => {
                                 if !repeat {
@@ -75,7 +73,12 @@ impl Views {
 
                                 data.background_hover.unwrap_or(data.background)
                             }
-                            input::PressState::Pressed(_) => data.background_pressed.unwrap_or(data.background),
+                            input::PressState::Pressed(repeat) => {
+                                if !repeat {
+                                    blocking = true;
+                                }
+                                data.background_pressed.unwrap_or(data.background)
+                            }
                         }
                     } else {
                         data.background

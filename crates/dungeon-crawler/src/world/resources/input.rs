@@ -71,9 +71,9 @@ impl Input {
     }
 
     pub fn mouse_move(&mut self, id: u64, position: Point2<f32>, width: u32, height: u32) {
-        let relative = Point2::new(position.x / width as f32 * 2.0 - 1.0, position.y / height as f32 * 2.0 - 1.0);
-
         if let Some(joystick) = &mut self.joystick {
+            let relative = Point2::new(position.x / width as f32 * 2.0 - 1.0, position.y / height as f32 * 2.0 - 1.0);
+
             if joystick.id == id {
                 if let Some(center) = joystick.center {
                     joystick.strength = (relative.distance(center) * config::JOYSTICK_SENSITIVITY).min(1.0);
