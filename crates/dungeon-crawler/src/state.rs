@@ -2,7 +2,7 @@ use crate::{
     views::{self, Views},
     world::{
         self,
-        resources::{self, input::KeyState},
+        resources::{self, input::PressState},
     },
 };
 use cgmath::*;
@@ -69,7 +69,7 @@ impl State {
             input.key_state(VirtualKeyCode::R)
         };
 
-        if r == KeyState::Pressed(false) {
+        if r == PressState::Pressed(false) {
             self.world.init(&mut self.engine);
         }
     }
@@ -108,6 +108,9 @@ impl State {
                 .joystick_pipeline
                 .update(&self.engine.ctx, &self.world.components, center, current, touch);
         }
+
+        let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
+        input.update();
     }
 
     pub fn render(&mut self) {

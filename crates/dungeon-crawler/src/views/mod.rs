@@ -54,7 +54,7 @@ impl Views {
                         ctx,
                         GlyphProps {
                             position: Point2::new(layout.x + sx, layout.y + sy),
-                            text: data.text,
+                            text: data.text.clone(),
                             size: data.size,
                             color: Vector4::new(1.0, 1.0, 1.0, opacity),
                             ..Default::default()
@@ -64,10 +64,18 @@ impl Views {
                 RenderWidget::Asset(data) => {
                     let background = if is_hover(input.mouse.position, &layout, sx, sy) {
                         blocking = true;
-                        if input.mouse.pressed {
-                            data.background_pressed.unwrap_or(data.background)
-                        } else {
-                            data.background_hover.unwrap_or(data.background)
+
+                        match input.mouse.state {
+                            input::PressState::Released(repeat) => {
+                                if !repeat {
+                                    if let Some(on_click) = data.callbacks.on_click {
+                                        on_click();
+                                    }
+                                }
+
+                                data.background_hover.unwrap_or(data.background)
+                            }
+                            input::PressState::Pressed(_) => data.background_pressed.unwrap_or(data.background),
                         }
                     } else {
                         data.background
@@ -81,7 +89,7 @@ impl Views {
                             foreground: data.foreground,
                             opacity,
                         },
-                        data.asset_id,
+                        data.asset_id.clone(),
                     );
                 }
                 _ => {}

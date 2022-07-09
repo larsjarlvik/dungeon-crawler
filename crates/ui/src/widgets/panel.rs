@@ -30,12 +30,12 @@ impl base::BaseWidget for PanelWidget {
         node
     }
 
-    fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
         let children: Vec<(NodeLayout, RenderWidget)> = self.children.iter().map(|c| c.get_nodes(taffy, &layout)).flat_map(|c| c).collect();
-        let mut nodes = vec![(layout, RenderWidget::Asset(self.data.clone()))];
+        let mut nodes = vec![(layout, RenderWidget::Asset(&self.data))];
         nodes.extend(children);
         nodes
     }

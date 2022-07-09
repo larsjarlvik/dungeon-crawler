@@ -5,7 +5,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{Fullscreen, WindowBuilder},
 };
-use world::{resources::input::KeyState, GameState};
+use world::{resources::input::PressState, GameState};
 
 mod config;
 mod map;
@@ -83,7 +83,8 @@ pub fn main() {
                                 *control_flow = ControlFlow::Exit;
                             }
 
-                            if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::F) == KeyState::Pressed(false)
+                            if input.is_pressed(VirtualKeyCode::LControl)
+                                && input.key_state(VirtualKeyCode::F) == PressState::Pressed(false)
                             {
                                 match window.fullscreen() {
                                     Some(_) => window.set_fullscreen(None),
@@ -91,14 +92,16 @@ pub fn main() {
                                 }
                             }
 
-                            if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::A) == KeyState::Pressed(false)
+                            if input.is_pressed(VirtualKeyCode::LControl)
+                                && input.key_state(VirtualKeyCode::A) == PressState::Pressed(false)
                             {
                                 state.engine.ctx.settings.smaa = !state.engine.ctx.settings.smaa;
                                 state.engine.ctx.settings.store();
                                 state.world.game_state = GameState::Reload;
                             }
 
-                            if input.is_pressed(VirtualKeyCode::LControl) && input.key_state(VirtualKeyCode::S) == KeyState::Pressed(false)
+                            if input.is_pressed(VirtualKeyCode::LControl)
+                                && input.key_state(VirtualKeyCode::S) == PressState::Pressed(false)
                             {
                                 state.engine.ctx.settings.sharpen = !state.engine.ctx.settings.sharpen;
                                 state.engine.ctx.settings.store();

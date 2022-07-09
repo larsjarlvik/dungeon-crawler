@@ -40,10 +40,10 @@ impl base::BaseWidget for TextWidget {
         node
     }
 
-    fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
-        vec![(layout, RenderWidget::Text(self.data.clone()))]
+        vec![(layout, RenderWidget::Text(&self.data))]
     }
 }

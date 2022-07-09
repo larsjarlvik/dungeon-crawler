@@ -5,8 +5,8 @@ use winit::event::VirtualKeyCode;
 use crate::config;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Ord, PartialOrd, Hash)]
-pub enum KeyState {
-    Released,
+pub enum PressState {
+    Released(bool),
     Pressed(bool),
 }
 
@@ -30,13 +30,13 @@ pub struct Mouse {
     pub id: u64,
     pub position: Point2<f32>,
     pub relative: Point2<f32>,
-    pub pressed: bool,
+    pub state: PressState,
 }
 
 #[derive(Debug)]
 pub struct Input {
-    pub keys: HashMap<VirtualKeyCode, KeyState>,
-    pub ui: HashMap<UiActionCode, KeyState>,
+    pub keys: HashMap<VirtualKeyCode, PressState>,
+    pub ui: HashMap<UiActionCode, PressState>,
     pub mouse: Mouse,
     pub joystick: Option<Joystick>,
 }
@@ -50,7 +50,7 @@ impl Default for Input {
                 id: 0,
                 position: Point2::new(0.0, 0.0),
                 relative: Point2::new(0.0, 0.0),
-                pressed: false,
+                state: PressState::Released(true),
             },
             joystick: None,
         }
@@ -61,7 +61,7 @@ impl Input {
     pub fn keyboard(&mut self, input: &winit::event::KeyboardInput) {
         if let Some(key_code) = input.virtual_keycode {
             if input.state == winit::event::ElementState::Pressed {
-                self.keys.insert(key_code, KeyState::Pressed(self.keys.contains_key(&key_code)));
+                self.keys.insert(key_code, PressState::Pressed(self.keys.contains_key(&key_code)));
             }
 
             if input.state == winit::event::ElementState::Released {
@@ -92,8 +92,22 @@ impl Input {
         self.mouse.relative = Point2::new(position.x / width as f32 * 2.0 - 1.0, position.y / height as f32 * 2.0 - 1.0);
     }
 
+    pub fn update(&mut self) {
+        match self.mouse.state {
+            PressState::Released(_) => {
+                self.mouse.state = PressState::Released(true);
+            }
+            PressState::Pressed(_) => {
+                self.mouse.state = PressState::Pressed(true);
+            }
+        }
+    }
+
     pub fn mouse_set_pressed(&mut self, id: u64, touch: bool, pressed: bool) {
-        self.mouse.pressed = pressed;
+        match pressed {
+            true => self.mouse.state = PressState::Pressed(false),
+            false => self.mouse.state = PressState::Released(false),
+        }
 
         if pressed {
             if self.joystick.is_none() {
@@ -115,17 +129,20 @@ impl Input {
         }
     }
 
-    pub fn key_state(&self, key: VirtualKeyCode) -> KeyState {
+    pub fn key_state(&self, key: VirtualKeyCode) -> PressState {
         if let Some(state) = self.keys.get(&key) {
             *state
         } else {
-            KeyState::Released
+            PressState::Released(false)
         }
     }
 
     pub fn is_pressed(&self, key: VirtualKeyCode) -> bool {
         if let Some(state) = self.keys.get(&key) {
-            *state != KeyState::Released
+            match state {
+                PressState::Released(_) => false,
+                PressState::Pressed(_) => true,
+            }
         } else {
             false
         }

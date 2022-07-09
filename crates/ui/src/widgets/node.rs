@@ -17,7 +17,7 @@ impl NodeWidget {
     }
 }
 
-impl<'a> base::BaseWidget for NodeWidget {
+impl base::BaseWidget for NodeWidget {
     fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
         let children: Vec<Node> = self.children.iter_mut().map(|c| c.render(ctx, taffy)).collect();
         let node = taffy.new_with_children(self.layout, &children).unwrap();
@@ -25,7 +25,7 @@ impl<'a> base::BaseWidget for NodeWidget {
         node
     }
 
-    fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 

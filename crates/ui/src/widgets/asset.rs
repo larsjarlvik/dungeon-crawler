@@ -35,10 +35,10 @@ impl base::BaseWidget for AssetWidget {
         node
     }
 
-    fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let layout = NodeLayout::new(parent_layout, layout);
 
-        vec![(layout, RenderWidget::Asset(self.data.clone()))]
+        vec![(layout, RenderWidget::Asset(&self.data))]
     }
 }

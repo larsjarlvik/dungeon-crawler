@@ -43,6 +43,9 @@ pub fn game(ctx: &mut engine::Context, world: &world::World) -> Box<dyn BaseWidg
             ),
             button(
                 "button",
+                || {
+                    dbg!("hej");
+                },
                 ButtonProps {
                     icon: Some("menu".into()),
                     ..Default::default()

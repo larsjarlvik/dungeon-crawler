@@ -1,5 +1,5 @@
 use taffy::prelude::*;
-use widgets::{BaseWidget, NodeLayout, RenderWidget};
+use widgets::*;
 pub mod components;
 mod transitions;
 pub mod widgets;
@@ -13,10 +13,10 @@ impl Ui {
         Self {}
     }
 
-    pub fn render(
-        &self,
+    pub fn render<'a>(
+        &'a self,
         ctx: &mut engine::Context,
-        root: &mut Box<dyn BaseWidget>,
+        root: &'a mut Box<dyn widgets::BaseWidget>,
         width: f32,
         height: f32,
     ) -> Vec<(NodeLayout, RenderWidget)> {
@@ -39,9 +39,11 @@ impl Ui {
             )
             .unwrap();
 
-        root.get_nodes(&taffy, &root_layout)
-            .iter()
-            .map(|(node, widget)| (node.clone(), widget.clone()))
-            .collect()
+        let result = {
+            let nodes = root.get_nodes(&taffy, &root_layout);
+            nodes.into_iter().map(|(node, widget)| (node.clone(), widget.clone())).collect()
+        };
+
+        result
     }
 }

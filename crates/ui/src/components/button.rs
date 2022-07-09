@@ -22,7 +22,7 @@ impl Default for ButtonProps {
     }
 }
 
-pub fn button(key: &str, props: ButtonProps) -> Box<PanelWidget> {
+pub fn button(key: &str, on_click: Callback, props: ButtonProps) -> Box<PanelWidget> {
     let mut children: Vec<Box<dyn BaseWidget>> = vec![];
 
     if let Some(icon) = props.icon.clone() {
@@ -53,6 +53,7 @@ pub fn button(key: &str, props: ButtonProps) -> Box<PanelWidget> {
             background: props.background,
             background_hover: Some(props.background.lerp(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.2)),
             background_pressed: Some(props.background.lerp(Vector4::new(1.0, 1.0, 1.0, 1.0), 0.3)),
+            callbacks: Callbacks { on_click: Some(on_click) },
             ..Default::default()
         },
         FlexboxLayout {
