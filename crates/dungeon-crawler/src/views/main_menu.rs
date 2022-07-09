@@ -1,0 +1,76 @@
+use super::style;
+use crate::world::{self, GameState};
+use cgmath::Vector4;
+use ui::{components::*, prelude::*, widgets::*};
+
+pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
+    let resume_button = Button::new("resume_button");
+    if ui_state.clicked(&resume_button.key) {
+        world.game_state = GameState::Running;
+    }
+
+    let settings_button = Button::new("settings_button");
+    if ui_state.clicked(&settings_button.key) {
+        world.game_state = GameState::Running;
+    }
+
+    let exit_button = Button::new("exit_button");
+    if ui_state.clicked(&exit_button.key) {
+        world.game_state = GameState::Terminated;
+    }
+
+    let menu_panel = PanelWidget::new(
+        AssetData {
+            background: Vector4::new(0.0, 0.0, 0.0, 0.6),
+            ..Default::default()
+        },
+        FlexboxLayout {
+            flex_direction: FlexDirection::Column,
+            padding: Rect::<Dimension>::from_points(style::SM, style::SM, style::SM, style::SM),
+            max_size: Size {
+                width: Dimension::Points(400.0),
+                height: Dimension::Undefined,
+            },
+            size: Size {
+                width: Dimension::Percent(0.3),
+                height: Dimension::Percent(1.0),
+            },
+            ..Default::default()
+        },
+        vec![
+            settings_button.draw(ButtonProps {
+                background: Vector4::new(1.0, 1.0, 1.0, 0.2),
+                text: Some(("Settings".into(), style::BODY1)),
+                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
+                ..Default::default()
+            }),
+            resume_button.draw(ButtonProps {
+                background: Vector4::new(1.0, 1.0, 1.0, 0.2),
+                text: Some(("Resume Game".into(), style::BODY1)),
+                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
+                ..Default::default()
+            }),
+            exit_button.draw(ButtonProps {
+                background: Vector4::new(1.0, 1.0, 1.0, 0.2),
+                text: Some(("Exit Game".into(), style::BODY1)),
+                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
+                ..Default::default()
+            }),
+        ],
+    );
+
+    PanelWidget::new(
+        AssetData {
+            background: Vector4::new(0.0, 0.0, 0.0, 0.5),
+            ..Default::default()
+        },
+        FlexboxLayout {
+            size: Size {
+                width: Dimension::Percent(1.0),
+                height: Dimension::Percent(1.0),
+            },
+            ..Default::default()
+        },
+        vec![menu_panel],
+    )
+}

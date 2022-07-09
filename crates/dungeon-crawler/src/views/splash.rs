@@ -25,8 +25,8 @@ pub fn splash() -> Box<dyn BaseWidget> {
             },
             Default::default(),
             Size {
-                width: Dimension::Points(200.0),
-                height: Dimension::Points(200.0),
+                width: Dimension::Points(250.0),
+                height: Dimension::Points(250.0),
             },
         )],
     )

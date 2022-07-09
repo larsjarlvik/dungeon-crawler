@@ -10,6 +10,7 @@ use cgmath::*;
 pub enum GameState {
     Loading,
     Running,
+    MainMenu,
     Terminated,
     Reload,
 }

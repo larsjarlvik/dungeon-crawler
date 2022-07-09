@@ -1,20 +1,6 @@
-use core::fmt;
-
 use super::TextData;
 use cgmath::*;
 use taffy::prelude::*;
-
-pub type Callback = fn();
-
-pub struct Callbacks {
-    pub on_click: Option<Callback>,
-}
-
-impl fmt::Debug for Callbacks {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Callbacks").finish()
-    }
-}
 
 #[derive(Debug)]
 pub struct AssetData {
@@ -24,7 +10,6 @@ pub struct AssetData {
     pub foreground: Vector4<f32>,
     pub background_hover: Option<Vector4<f32>>,
     pub background_pressed: Option<Vector4<f32>>,
-    pub callbacks: Callbacks,
 }
 
 impl Default for AssetData {
@@ -36,7 +21,6 @@ impl Default for AssetData {
             foreground: Vector4::new(0.0, 0.0, 0.0, 0.0),
             background_hover: None,
             background_pressed: None,
-            callbacks: Callbacks { on_click: None },
         }
     }
 }

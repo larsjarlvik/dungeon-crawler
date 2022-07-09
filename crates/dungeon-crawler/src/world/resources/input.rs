@@ -147,4 +147,12 @@ impl Input {
             false
         }
     }
+
+    pub fn set_from_ui(&mut self, action_code: UiActionCode, pressed: bool) {
+        if pressed {
+            self.ui.insert(action_code, PressState::Pressed(self.ui.contains_key(&action_code)));
+        } else {
+            self.ui.remove(&action_code);
+        }
+    }
 }

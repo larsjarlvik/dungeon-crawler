@@ -1,4 +1,8 @@
-use crate::world::{self, resources::input, GameState, World};
+use crate::world::{
+    self,
+    resources::{self, input},
+    GameState, World,
+};
 use cgmath::*;
 use engine::pipelines::{
     glyph::*,
@@ -6,42 +10,48 @@ use engine::pipelines::{
     GlyphPipeline,
 };
 mod game;
+mod main_menu;
 mod splash;
 use self::transition::Transition;
-use ui::widgets::*;
+use ui::{widgets::*, Event};
+mod style;
 mod transition;
 
 pub struct Views {
     ui_scale: f32,
     ui: ui::Ui,
-    transitions: ui::Transitions,
-    ui_state: Transition<GameState>,
+    state: ui::State,
+    view: Transition<GameState>,
 }
 
 impl Views {
     pub fn new(ctx: &mut engine::Context, scale: f32) -> Self {
         ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("icon.png"));
         ImageContext::add_texture(ctx, "menu", engine::file::read_bytes("icons/menu.png"));
+        ImageContext::add_texture(ctx, "health", engine::file::read_bytes("icons/health.png"));
+        ImageContext::add_texture(ctx, "attack", engine::file::read_bytes("icons/attack.png"));
 
         Self {
             ui_scale: 1000.0 / scale,
             ui: ui::Ui::new(),
-            transitions: ui::Transitions::new(),
-            ui_state: Transition::new(GameState::Loading),
+            state: ui::State::new(),
+            view: Transition::new(GameState::Loading),
         }
     }
 
-    pub fn update(&mut self, ctx: &mut engine::Context, input: &input::Input, world: &World, frame_time: f32) -> bool {
-        self.ui_state.set(world.game_state.clone());
+    pub fn update(&mut self, ctx: &mut engine::Context, world: &mut World, frame_time: f32) -> bool {
+        self.view.set(world.game_state.clone());
         let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
-        let opacity = self.ui_state.tick();
+        let opacity = self.view.tick();
 
-        let mut root = match self.ui_state.state {
+        let mut root = match self.view.state {
             world::GameState::Reload | world::GameState::Loading => splash::splash(),
-            world::GameState::Running => game::game(ctx, world),
+            world::GameState::Running => game::game(ctx, &mut self.state, world),
+            world::GameState::MainMenu => main_menu::main_menu(&mut self.state, world),
             world::GameState::Terminated => todo!(),
         };
 
+        let mouse = { &world.components.get_resource::<resources::Input>().unwrap().mouse };
         let nodes = self.ui.render(ctx, &mut root, ui_scale_x, self.ui_scale);
         let sx = ctx.viewport.width as f32 / ui_scale_x;
         let sy = ctx.viewport.height as f32 / self.ui_scale;
@@ -53,22 +63,20 @@ impl Views {
                     GlyphPipeline::queue(
                         ctx,
                         GlyphProps {
-                            position: Point2::new(layout.x + sx, layout.y + sy),
+                            position: Point2::new(layout.x * sx, layout.y * sy),
                             text: data.text.clone(),
-                            size: data.size,
+                            size: data.size * sy,
                             color: Vector4::new(1.0, 1.0, 1.0, opacity),
                             ..Default::default()
                         },
                     );
                 }
                 RenderWidget::Asset(data) => {
-                    let background = if is_hover(input.mouse.position, &layout, sx, sy) {
-                        match input.mouse.state {
+                    let background = if is_hover(mouse.position, &layout, sx, sy) {
+                        match mouse.state {
                             input::PressState::Released(repeat) => {
                                 if !repeat {
-                                    if let Some(on_click) = data.callbacks.on_click {
-                                        on_click();
-                                    }
+                                    self.state.set_event(&data.key, Event::OnClick)
                                 }
 
                                 data.background_hover.unwrap_or(data.background)
@@ -88,7 +96,7 @@ impl Views {
                         image::context::Data {
                             position: Point2::new(layout.x * sx, layout.y * sy),
                             size: Point2::new(layout.width * sx, layout.height * sy),
-                            background: self.transitions.get(&data.key, background, frame_time),
+                            background: self.state.get_transition(&data.key, background, frame_time),
                             foreground: data.foreground,
                             opacity,
                         },

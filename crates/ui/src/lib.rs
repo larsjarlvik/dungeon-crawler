@@ -1,10 +1,10 @@
 use taffy::prelude::*;
 use widgets::*;
 pub mod components;
-mod transitions;
+mod state;
 pub mod widgets;
 pub use taffy::prelude;
-pub use transitions::Transitions;
+pub use state::*;
 
 pub struct Ui {}
 

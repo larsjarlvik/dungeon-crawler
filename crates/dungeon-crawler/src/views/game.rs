@@ -1,10 +1,14 @@
 use crate::world::{
     self,
-    resources::{self},
+    resources::{self, input::UiActionCode},
+    GameState,
 };
+use cgmath::vec4;
 use ui::{components::*, prelude::*, widgets::*};
 
-pub fn game(ctx: &mut engine::Context, world: &world::World) -> Box<dyn BaseWidget> {
+use super::style;
+
+pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
     let mut top_left = NodeWidget::new(
         FlexboxLayout {
             flex_direction: FlexDirection::Column,
@@ -18,38 +22,81 @@ pub fn game(ctx: &mut engine::Context, world: &world::World) -> Box<dyn BaseWidg
         top_left.children.push(TextWidget::new(
             TextData {
                 text: format!("FPS: {}", fps.fps),
-                size: 16.0,
+                size: style::BODY2,
             },
             Default::default(),
         ));
     }
 
+    let mut input = world.components.get_resource_mut::<resources::Input>().unwrap();
+
+    let menu_button = Button::new("menu_button");
+    if ui_state.clicked(&menu_button.key) {
+        world.game_state = GameState::MainMenu;
+    }
+
+    let attack_button = Button::new("attack_button");
+    input.set_from_ui(UiActionCode::Attack, ui_state.clicked(&attack_button.key));
+
+    let health_button = Button::new("health_button");
+    input.set_from_ui(UiActionCode::Health, ui_state.clicked(&attack_button.key));
+
     NodeWidget::new(
         FlexboxLayout {
-            align_items: AlignItems::FlexStart,
+            flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::SpaceBetween,
-            padding: Rect::<Dimension>::from_points(10.0, 10.0, 10.0, 10.0),
+            padding: Rect::<Dimension>::from_points(style::SM, style::SM, style::SM, style::SM),
             size: Size {
                 width: Dimension::Percent(1.0),
-                height: Dimension::Auto,
+                height: Dimension::Percent(1.0),
             },
             ..Default::default()
         },
         vec![
-            PanelWidget::new(
-                AssetData { ..Default::default() },
-                FlexboxLayout { ..Default::default() },
-                vec![top_left],
-            ),
-            button(
-                "button",
-                || {
-                    dbg!("hej");
-                },
-                ButtonProps {
-                    icon: Some("menu".into()),
+            NodeWidget::new(
+                FlexboxLayout {
+                    justify_content: JustifyContent::SpaceBetween,
+                    size: Size {
+                        width: Dimension::Percent(1.0),
+                        height: Dimension::Auto,
+                    },
                     ..Default::default()
                 },
+                vec![
+                    PanelWidget::new(
+                        AssetData { ..Default::default() },
+                        FlexboxLayout { ..Default::default() },
+                        vec![top_left],
+                    ),
+                    menu_button.draw(ButtonProps {
+                        icon: Some(("menu".into(), style::ICON_M)),
+                        ..Default::default()
+                    }),
+                ],
+            ),
+            NodeWidget::new(
+                FlexboxLayout {
+                    justify_content: JustifyContent::FlexEnd,
+                    size: Size {
+                        width: Dimension::Percent(1.0),
+                        height: Dimension::Auto,
+                    },
+                    ..Default::default()
+                },
+                vec![
+                    attack_button.draw(ButtonProps {
+                        icon: Some(("attack".into(), style::ICON_XL)),
+                        foreground: vec4(1.0, 1.0, 1.0, 1.0),
+                        margin: Rect::<Dimension>::from_points(style::SS, 0.0, 0.0, 0.0),
+                        ..Default::default()
+                    }),
+                    health_button.draw(ButtonProps {
+                        icon: Some(("health".into(), style::ICON_XL)),
+                        foreground: vec4(0.8, 0.0, 0.0, 1.0),
+                        margin: Rect::<Dimension>::from_points(style::SS, 0.0, 0.0, 0.0),
+                        ..Default::default()
+                    }),
+                ],
             ),
         ],
     )
