@@ -22,6 +22,7 @@ pub struct Views {
     ui: ui::Ui,
     state: ui::State,
     view: Transition<GameState>,
+    element_rects: Vec<NodeLayout>,
 }
 
 impl Views {
@@ -36,10 +37,11 @@ impl Views {
             ui: ui::Ui::new(),
             state: ui::State::new(),
             view: Transition::new(GameState::Loading),
+            element_rects: vec![],
         }
     }
 
-    pub fn update(&mut self, ctx: &mut engine::Context, world: &mut World, frame_time: f32) -> bool {
+    pub fn update(&mut self, ctx: &mut engine::Context, world: &mut World, frame_time: f32) {
         self.view.set(world.game_state.clone());
         let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
         let opacity = self.view.tick();
@@ -55,7 +57,7 @@ impl Views {
         let nodes = self.ui.render(ctx, &mut root, ui_scale_x, self.ui_scale);
         let sx = ctx.viewport.width as f32 / ui_scale_x;
         let sy = ctx.viewport.height as f32 / self.ui_scale;
-        let mut blocking = false;
+        self.element_rects.clear();
 
         for (layout, widget) in nodes {
             match widget {
@@ -73,7 +75,7 @@ impl Views {
                 }
                 RenderWidget::Asset(data) => {
                     let background = if is_hover(mouse.position, &layout, sx, sy) {
-                        blocking = true;
+                        self.element_rects.push(layout.clone());
 
                         match mouse.state {
                             input::PressState::Released(repeat) => {
@@ -107,8 +109,20 @@ impl Views {
                 _ => {}
             }
         }
+    }
 
-        blocking
+    pub fn within_ui(&self, ctx: &engine::Context, mp: Point2<f32>) -> bool {
+        let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
+        let sx = ctx.viewport.width as f32 / ui_scale_x;
+        let sy = ctx.viewport.height as f32 / self.ui_scale;
+
+        for rect in self.element_rects.iter() {
+            if is_hover(mp, &rect, sx, sy) {
+                return true;
+            }
+        }
+
+        false
     }
 }
 

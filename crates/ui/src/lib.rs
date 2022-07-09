@@ -3,8 +3,8 @@ use widgets::*;
 pub mod components;
 mod state;
 pub mod widgets;
-pub use taffy::prelude;
 pub use state::*;
+pub use taffy::prelude;
 
 pub struct Ui {}
 

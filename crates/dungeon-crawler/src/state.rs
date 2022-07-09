@@ -86,7 +86,8 @@ impl State {
 
     pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-        input.mouse_set_pressed(id, touch, pressed);
+        let position = { input.mouse.position.clone() };
+        input.mouse_set_pressed(id, touch, pressed, self.views.within_ui(&self.engine.ctx, position));
     }
 
     pub fn update(&mut self) {
@@ -101,9 +102,8 @@ impl State {
                 .last_frame
         };
 
-        let ui_blocking = { self.views.update(&mut self.engine.ctx, &mut self.world, last_frame) };
+        self.views.update(&mut self.engine.ctx, &mut self.world, last_frame);
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-        input.blocked = ui_blocking;
         input.update();
 
         let (center, current, touch) = if let Some(joystick) = &input.joystick {
