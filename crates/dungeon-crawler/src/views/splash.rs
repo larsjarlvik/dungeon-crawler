@@ -1,8 +1,13 @@
-use ui::widgets::NodeWidget;
-use ui::{prelude::*, widgets::*};
+use cgmath::Vector4;
+use ui::prelude::*;
+use ui::widgets::*;
 
-pub fn splash() -> Box<NodeWidget> {
-    NodeWidget::new(
+pub fn splash() -> Box<dyn BaseWidget> {
+    PanelWidget::new(
+        AssetData {
+            background: Vector4::new(0.0, 0.0, 0.0, 1.0),
+            ..Default::default()
+        },
         FlexboxLayout {
             flex_direction: FlexDirection::Column,
             align_items: AlignItems::Center,

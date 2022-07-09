@@ -1,17 +1,21 @@
-use crate::world::{self, resources::input, World};
+use crate::world::{self, resources::input, GameState, World};
 use cgmath::*;
 use engine::pipelines::{
+    glyph::*,
     image::{self, context::ImageContext},
     GlyphPipeline,
 };
-mod in_game;
+mod game;
 mod splash;
+use self::transition::Transition;
 use ui::widgets::*;
+mod transition;
 
 pub struct Views {
     ui_scale: f32,
     ui: ui::Ui,
     transitions: ui::Transitions,
+    ui_state: Transition<GameState>,
 }
 
 impl Views {
@@ -23,15 +27,18 @@ impl Views {
             ui_scale: 1000.0 / scale,
             ui: ui::Ui::new(),
             transitions: ui::Transitions::new(),
+            ui_state: Transition::new(GameState::Loading),
         }
     }
 
     pub fn update(&mut self, ctx: &mut engine::Context, input: &input::Input, world: &World, frame_time: f32) -> bool {
+        self.ui_state.set(world.game_state.clone());
         let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
+        let opacity = self.ui_state.tick();
 
-        let mut root = match world.game_state {
+        let mut root = match self.ui_state.state {
             world::GameState::Reload | world::GameState::Loading => splash::splash(),
-            world::GameState::Running => in_game::in_game(ctx, world),
+            world::GameState::Running => game::game(ctx, world),
             world::GameState::Terminated => todo!(),
         };
 
@@ -45,10 +52,13 @@ impl Views {
                 RenderWidget::Text(data) => {
                     GlyphPipeline::queue(
                         ctx,
-                        data.text,
-                        data.size * sy,
-                        (layout.x * sx, layout.y * sy),
-                        (f32::INFINITY, f32::INFINITY),
+                        GlyphProps {
+                            position: Point2::new(layout.x + sx, layout.y + sy),
+                            text: data.text,
+                            size: data.size,
+                            color: Vector4::new(1.0, 1.0, 1.0, opacity),
+                            ..Default::default()
+                        },
                     );
                 }
                 RenderWidget::Asset(data) => {
@@ -69,6 +79,7 @@ impl Views {
                             size: Point2::new(layout.width * sx, layout.height * sy),
                             background: self.transitions.get(&data.key, background, frame_time),
                             foreground: data.foreground,
+                            opacity,
                         },
                         data.asset_id,
                     );

@@ -4,7 +4,7 @@ use crate::world::{
 };
 use ui::{components::*, prelude::*, widgets::*};
 
-pub fn in_game(ctx: &mut engine::Context, world: &world::World) -> Box<NodeWidget> {
+pub fn game(ctx: &mut engine::Context, world: &world::World) -> Box<dyn BaseWidget> {
     let mut top_left = NodeWidget::new(
         FlexboxLayout {
             flex_direction: FlexDirection::Column,

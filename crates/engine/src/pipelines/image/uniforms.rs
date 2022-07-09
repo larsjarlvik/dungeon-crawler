@@ -6,5 +6,6 @@ pub struct Uniforms {
     pub background: [f32; 4],
     pub foreground: [f32; 4],
     pub viewport_size: [f32; 2],
+    pub opacity: f32,
     pub has_image: u32,
 }

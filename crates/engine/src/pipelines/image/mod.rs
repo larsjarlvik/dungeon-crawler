@@ -70,6 +70,7 @@ impl ImagePipeline {
                     viewport_size: [ctx.viewport.width as f32, ctx.viewport.height as f32],
                     background: data.background.into(),
                     foreground: data.foreground.into(),
+                    opacity: data.opacity,
                     has_image: id.is_some() as u32,
                 }]),
             );

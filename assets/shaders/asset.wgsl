@@ -5,6 +5,7 @@ struct Uniforms {
     background: vec4<f32>;
     foreground: vec4<f32>;
     viewport_size: vec2<f32>;
+    opacity: f32;
     has_image: bool;
 };
 
@@ -40,9 +41,9 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
 [[stage(fragment)]]
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     if (uniforms.has_image == false) {
-        return uniforms.background;
+        return vec4<f32>(uniforms.background.rgb, uniforms.background.a * uniforms.opacity);
     }
 
     let texture = textureSample(t_texture, t_sampler, in.coord);
-    return vec4<f32>(mix(texture.rgb, uniforms.foreground.rgb, uniforms.foreground.a), texture.a);
+    return vec4<f32>(mix(texture.rgb, uniforms.foreground.rgb, uniforms.foreground.a), texture.a * uniforms.opacity);
 }

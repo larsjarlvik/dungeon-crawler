@@ -1,8 +1,29 @@
 use crate::Context;
+use cgmath::{Point2, Vector2, Vector4};
 use wgpu_glyph::{ab_glyph::Rect, GlyphCruncher, Section, Text};
 
 pub struct GlyphPipeline {
     staging_belt: wgpu::util::StagingBelt,
+}
+
+pub struct GlyphProps {
+    pub position: Point2<f32>,
+    pub bounds: Vector2<f32>,
+    pub text: String,
+    pub size: f32,
+    pub color: Vector4<f32>,
+}
+
+impl Default for GlyphProps {
+    fn default() -> Self {
+        Self {
+            position: Point2::new(0.0, 0.0),
+            bounds: Vector2::new(f32::INFINITY, f32::INFINITY),
+            text: Default::default(),
+            size: Default::default(),
+            color: Vector4::new(1.0, 1.0, 1.0, 1.0),
+        }
+    }
 }
 
 impl GlyphPipeline {
@@ -11,11 +32,11 @@ impl GlyphPipeline {
         Self { staging_belt }
     }
 
-    pub fn queue(ctx: &mut Context, text: String, scale: f32, screen_position: (f32, f32), bounds: (f32, f32)) {
+    pub fn queue(ctx: &mut Context, props: GlyphProps) {
         ctx.glyph_brush.queue(Section {
-            screen_position,
-            bounds,
-            text: vec![Text::new(text.as_str()).with_color([1.0, 1.0, 1.0, 1.0]).with_scale(scale)],
+            screen_position: props.position.into(),
+            bounds: props.bounds.into(),
+            text: vec![Text::new(props.text.as_str()).with_color(props.color).with_scale(props.size)],
             layout: wgpu_glyph::Layout::default_single_line()
                 .h_align(wgpu_glyph::HorizontalAlign::Left)
                 .v_align(wgpu_glyph::VerticalAlign::Top),

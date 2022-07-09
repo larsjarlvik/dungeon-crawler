@@ -16,7 +16,7 @@ impl Ui {
     pub fn render(
         &self,
         ctx: &mut engine::Context,
-        root: &mut widgets::NodeWidget,
+        root: &mut Box<dyn BaseWidget>,
         width: f32,
         height: f32,
     ) -> Vec<(NodeLayout, RenderWidget)> {
