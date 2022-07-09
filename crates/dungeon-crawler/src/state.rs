@@ -102,26 +102,19 @@ impl State {
         };
 
         let ui_blocking = { self.views.update(&mut self.engine.ctx, &mut self.world, last_frame) };
-        let input = self.world.components.get_resource::<resources::Input>().unwrap();
-
-        if !ui_blocking {
-            let (center, current, touch) = if let Some(joystick) = &input.joystick {
-                (joystick.center, joystick.current, joystick.touch)
-            } else {
-                (None, None, false)
-            };
-
-            self.engine
-                .joystick_pipeline
-                .update(&self.engine.ctx, &self.world.components, center, current, touch);
-        }
-
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-        if ui_blocking {
-            input.joystick = None;
-        }
-
+        input.blocked = ui_blocking;
         input.update();
+
+        let (center, current, touch) = if let Some(joystick) = &input.joystick {
+            (joystick.center, joystick.current, joystick.touch)
+        } else {
+            (None, None, false)
+        };
+
+        self.engine
+            .joystick_pipeline
+            .update(&self.engine.ctx, &self.world.components, center, current, touch);
     }
 
     pub fn render(&mut self) {

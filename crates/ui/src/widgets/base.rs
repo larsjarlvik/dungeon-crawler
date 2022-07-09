@@ -10,6 +10,7 @@ pub struct AssetData {
     pub foreground: Vector4<f32>,
     pub background_hover: Option<Vector4<f32>>,
     pub background_pressed: Option<Vector4<f32>>,
+    pub variant: u32,
 }
 
 impl Default for AssetData {
@@ -21,6 +22,7 @@ impl Default for AssetData {
             foreground: Vector4::new(0.0, 0.0, 0.0, 0.0),
             background_hover: None,
             background_pressed: None,
+            variant: 0,
         }
     }
 }

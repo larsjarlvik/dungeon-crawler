@@ -17,6 +17,7 @@ pub struct Data {
     pub background: Vector4<f32>,
     pub foreground: Vector4<f32>,
     pub opacity: f32,
+    pub variant: u32,
 }
 
 pub struct ImageContext {

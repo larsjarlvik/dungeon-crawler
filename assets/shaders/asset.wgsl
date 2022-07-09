@@ -5,6 +5,7 @@ struct Uniforms {
     background: vec4<f32>;
     foreground: vec4<f32>;
     viewport_size: vec2<f32>;
+    variant: u32;
     opacity: f32;
     has_image: bool;
 };
@@ -38,10 +39,25 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
 [[group(1), binding(0)]] var t_texture: texture_2d<f32>;
 [[group(1), binding(1)]] var t_sampler: sampler;
 
+fn rounded(pos: vec2<f32>, size: vec2<f32>, radius: f32, thickness: f32) -> f32 {
+    let d = length(max(pos, size) - size) - radius;
+    return smoothStep(0.55, 0.45, abs(d / thickness) * 5.0);
+}
+
 [[stage(fragment)]]
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     if (uniforms.has_image == false) {
-        return vec4<f32>(uniforms.background.rgb, uniforms.background.a * uniforms.opacity);
+        var current: f32 = 1.0;
+
+        if (uniforms.variant == u32(1)) {
+            let coord = in.coord * 2.0 - 1.0;
+            let fade = (1.0 - length(coord)) + 0.3;
+            let outer = step(length(coord), 1.0);
+            let inner = step(length(coord), 0.95) * fade;
+            current = clamp(outer - inner, 0.0, 1.0);
+        }
+
+        return vec4<f32>(uniforms.background.rgb, uniforms.background.a * uniforms.opacity * current);
     }
 
     let texture = textureSample(t_texture, t_sampler, in.coord);

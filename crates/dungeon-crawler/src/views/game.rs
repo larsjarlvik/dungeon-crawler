@@ -36,10 +36,10 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
     }
 
     let attack_button = Button::new("attack_button");
-    input.set_from_ui(UiActionCode::Attack, ui_state.clicked(&attack_button.key));
+    input.set_from_ui(UiActionCode::Attack, ui_state.mouse_down(&attack_button.key));
 
     let health_button = Button::new("health_button");
-    input.set_from_ui(UiActionCode::Health, ui_state.clicked(&attack_button.key));
+    input.set_from_ui(UiActionCode::Health, ui_state.mouse_down(&attack_button.key));
 
     NodeWidget::new(
         FlexboxLayout {
@@ -70,6 +70,7 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                     ),
                     menu_button.draw(ButtonProps {
                         icon: Some(("menu".into(), style::ICON_M)),
+                        variant: Variant::Rounded,
                         ..Default::default()
                     }),
                 ],
@@ -85,15 +86,17 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                 },
                 vec![
                     attack_button.draw(ButtonProps {
-                        icon: Some(("attack".into(), style::ICON_XL)),
-                        foreground: vec4(1.0, 1.0, 1.0, 1.0),
+                        icon: Some(("attack".into(), style::ICON_L)),
+                        foreground: vec4(1.0, 0.5, 0.0, 1.0),
                         margin: Rect::<Dimension>::from_points(style::SS, 0.0, 0.0, 0.0),
+                        variant: Variant::Rounded,
                         ..Default::default()
                     }),
                     health_button.draw(ButtonProps {
-                        icon: Some(("health".into(), style::ICON_XL)),
+                        icon: Some(("health".into(), style::ICON_L)),
                         foreground: vec4(0.8, 0.0, 0.0, 1.0),
                         margin: Rect::<Dimension>::from_points(style::SS, 0.0, 0.0, 0.0),
+                        variant: Variant::Rounded,
                         ..Default::default()
                     }),
                 ],

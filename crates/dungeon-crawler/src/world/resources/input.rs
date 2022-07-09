@@ -39,6 +39,7 @@ pub struct Input {
     pub ui: HashMap<UiActionCode, PressState>,
     pub mouse: Mouse,
     pub joystick: Option<Joystick>,
+    pub blocked: bool,
 }
 
 impl Default for Input {
@@ -53,6 +54,7 @@ impl Default for Input {
                 state: PressState::Released(true),
             },
             joystick: None,
+            blocked: false,
         }
     }
 }
@@ -104,9 +106,21 @@ impl Input {
     }
 
     pub fn mouse_set_pressed(&mut self, id: u64, touch: bool, pressed: bool) {
-        match pressed {
-            true => self.mouse.state = PressState::Pressed(false),
-            false => self.mouse.state = PressState::Released(false),
+        let joystick_id = if let Some(joystick) = &self.joystick {
+            joystick.id
+        } else {
+            u64::MAX
+        };
+
+        if id != joystick_id {
+            if pressed {
+                if self.blocked {
+                    self.mouse.id = id;
+                    self.mouse.state = PressState::Pressed(false);
+                }
+            } else {
+                self.mouse.state = PressState::Released(false);
+            }
         }
 
         if pressed {

@@ -116,6 +116,8 @@ pub fn main() {
                         }
                         WindowEvent::Touch(touch) => {
                             state.mouse_move(touch.id, touch.location.x as f32, touch.location.y as f32);
+
+                            dbg!(touch.phase);
                             match touch.phase {
                                 TouchPhase::Started => state.mouse_press(touch.id, true, true),
                                 TouchPhase::Ended | TouchPhase::Cancelled => state.mouse_press(touch.id, true, false),

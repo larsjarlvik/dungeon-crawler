@@ -72,6 +72,7 @@ impl ImagePipeline {
                     foreground: data.foreground.into(),
                     opacity: data.opacity,
                     has_image: id.is_some() as u32,
+                    variant: data.variant,
                 }]),
             );
 

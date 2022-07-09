@@ -3,7 +3,8 @@ use std::collections::HashMap;
 
 #[derive(Clone, Copy)]
 pub enum Event {
-    OnClick,
+    Click,
+    MouseDown,
 }
 
 pub struct State {
@@ -37,9 +38,28 @@ impl State {
     }
 
     pub fn clicked(&mut self, key: &String) -> bool {
-        if self.events.contains_key(key) {
-            self.events.remove(key);
-            return true;
+        if let Some(event) = self.events.get(key) {
+            match event {
+                Event::Click => {
+                    self.events.remove(key);
+                    return true;
+                }
+                _ => {}
+            }
+        }
+
+        false
+    }
+
+    pub fn mouse_down(&mut self, key: &String) -> bool {
+        if let Some(event) = self.events.get(key) {
+            match event {
+                Event::MouseDown => {
+                    self.events.remove(key);
+                    return true;
+                }
+                _ => {}
+            }
         }
 
         false

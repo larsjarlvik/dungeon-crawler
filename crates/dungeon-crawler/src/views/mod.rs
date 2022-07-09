@@ -73,18 +73,18 @@ impl Views {
                 }
                 RenderWidget::Asset(data) => {
                     let background = if is_hover(mouse.position, &layout, sx, sy) {
+                        blocking = true;
+
                         match mouse.state {
                             input::PressState::Released(repeat) => {
                                 if !repeat {
-                                    self.state.set_event(&data.key, Event::OnClick)
+                                    self.state.set_event(&data.key, Event::Click);
                                 }
 
                                 data.background_hover.unwrap_or(data.background)
                             }
-                            input::PressState::Pressed(repeat) => {
-                                if !repeat {
-                                    blocking = true;
-                                }
+                            input::PressState::Pressed(_) => {
+                                self.state.set_event(&data.key, Event::MouseDown);
                                 data.background_pressed.unwrap_or(data.background)
                             }
                         }
@@ -98,6 +98,7 @@ impl Views {
                             size: Point2::new(layout.width * sx, layout.height * sy),
                             background: self.state.get_transition(&data.key, background, frame_time),
                             foreground: data.foreground,
+                            variant: data.variant,
                             opacity,
                         },
                         data.asset_id.clone(),
