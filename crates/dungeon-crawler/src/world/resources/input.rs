@@ -109,29 +109,29 @@ impl Input {
 
     pub fn mouse_set_pressed(&mut self, id: u64, touch: bool, pressed: bool, on_ui: bool) {
         self.mouse.touch = touch;
-
         if on_ui {
             match pressed {
                 true => self.mouse.state = PressState::Pressed(false),
                 false => self.mouse.state = PressState::Released(false),
             };
+            return;
+        }
+
+        if pressed {
+            if self.joystick.is_none() {
+                self.joystick = Some(Joystick {
+                    id,
+                    touch,
+                    strength: 0.0,
+                    center: None,
+                    current: None,
+                });
+            }
         } else {
-            if pressed {
-                if self.joystick.is_none() {
-                    self.joystick = Some(Joystick {
-                        id,
-                        touch,
-                        strength: 0.0,
-                        center: None,
-                        current: None,
-                    });
-                }
-            } else {
-                if let Some(joystick) = &mut self.joystick {
-                    if joystick.id == id {
-                        self.joystick = None;
-                        return;
-                    }
+            if let Some(joystick) = &mut self.joystick {
+                if joystick.id == id {
+                    self.joystick = None;
+                    return;
                 }
             }
         }

@@ -26,7 +26,9 @@ pub fn user_control(
 
     for (transform, mut movement, mut action, mut stats, weapon) in query.q0().iter_mut() {
         if let Some(joystick) = &input.joystick {
-            movement.velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
+            if action.current == components::CurrentAction::None {
+                movement.velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
+            }
 
             if let Some(current) = joystick.current {
                 movement.towards(rot.rotate_vector(vec3(current.x, 0.0, current.y)));

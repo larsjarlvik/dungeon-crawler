@@ -39,21 +39,24 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
         },
         vec![
             settings_button.draw(ButtonProps {
-                background: Vector4::new(1.0, 1.0, 1.0, 0.2),
+                background: Vector4::new(0.91, 0.35, 0.13, 0.4),
                 text: Some(("Settings".into(), style::BODY1)),
                 margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
+                variant: Variant::Border,
                 ..Default::default()
             }),
             resume_button.draw(ButtonProps {
-                background: Vector4::new(1.0, 1.0, 1.0, 0.2),
-                text: Some(("Resume Game".into(), style::BODY1)),
+                background: Vector4::new(0.91, 0.35, 0.13, 0.4),
+                text: Some(("Resume".into(), style::BODY1)),
                 margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
+                variant: Variant::Border,
                 ..Default::default()
             }),
             exit_button.draw(ButtonProps {
-                background: Vector4::new(1.0, 1.0, 1.0, 0.2),
+                background: Vector4::new(0.91, 0.35, 0.13, 0.4),
                 text: Some(("Exit Game".into(), style::BODY1)),
                 margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
+                variant: Variant::Border,
                 ..Default::default()
             }),
         ],

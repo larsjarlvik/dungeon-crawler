@@ -26,10 +26,10 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     var result: VertexOutput;
     result.coord = tc;
 
-    let tc_pos = tc * 2.0 * (uniforms.size / uniforms.viewport_size) + ((uniforms.position * 2.0 - 1.0) / uniforms.viewport_size);
+    let pos = tc * 2.0 * (uniforms.size / uniforms.viewport_size) + ((uniforms.position * 2.0 - 1.0) / uniforms.viewport_size);
     result.position = vec4<f32>(
-        tc_pos.x - 1.0,
-        1.0 - tc_pos.y,
+        pos.x - 1.0,
+        1.0 - pos.y,
         0.0, 1.0
     );
     return result;
@@ -38,11 +38,6 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
 // Fragment shader
 [[group(1), binding(0)]] var t_texture: texture_2d<f32>;
 [[group(1), binding(1)]] var t_sampler: sampler;
-
-fn rounded(pos: vec2<f32>, size: vec2<f32>, radius: f32, thickness: f32) -> f32 {
-    let d = length(max(pos, size) - size) - radius;
-    return smoothStep(0.55, 0.45, abs(d / thickness) * 5.0);
-}
 
 [[stage(fragment)]]
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
@@ -55,6 +50,16 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
             let outer = step(length(coord), 1.0);
             let inner = step(length(coord), 0.95) * fade;
             current = clamp(outer - inner, 0.0, 1.0);
+        } else if (uniforms.variant == u32(2)) {
+            let coord = in.coord;
+            let thickness = 3.0 / uniforms.size.y;
+            let t = vec2<f32>(thickness * (uniforms.size.y / uniforms.size.x), thickness);
+
+            if (coord.y < t.y || coord.y > 1.0 - t.y || coord.x < t.x || coord.x > 1.0 - t.x) {
+                current = 1.0;
+            } else {
+                current = 1.0 - coord.y * 0.5 + 0.25;
+            }
         }
 
         return vec4<f32>(uniforms.background.rgb, uniforms.background.a * uniforms.opacity * current);

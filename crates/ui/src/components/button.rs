@@ -6,6 +6,7 @@ use taffy::prelude::*;
 pub enum Variant {
     Default = 0,
     Rounded = 1,
+    Border = 2,
 }
 
 pub struct ButtonProps {
