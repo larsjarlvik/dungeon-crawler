@@ -6,31 +6,19 @@ use taffy::prelude::*;
 
 pub struct AssetWidget {
     pub data: AssetData,
-    size: Size<Dimension>,
     node: Option<Node>,
-    margin: Rect<Dimension>,
+    layout: FlexboxLayout,
 }
 
 impl AssetWidget {
-    pub fn new(data: AssetData, margin: Rect<Dimension>, size: Size<Dimension>) -> Box<Self> {
-        Box::new(Self {
-            data,
-            margin,
-            size,
-            node: None,
-        })
+    pub fn new(data: AssetData, layout: FlexboxLayout) -> Box<Self> {
+        Box::new(Self { data, layout, node: None })
     }
 }
 
 impl base::BaseWidget for AssetWidget {
     fn render(&mut self, _ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
-        let node = taffy
-            .new_leaf(FlexboxLayout {
-                size: self.size,
-                margin: self.margin,
-                ..Default::default()
-            })
-            .unwrap();
+        let node = taffy.new_leaf(self.layout).unwrap();
         self.node = Some(node);
         node
     }

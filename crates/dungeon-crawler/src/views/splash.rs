@@ -23,10 +23,16 @@ pub fn splash() -> Box<dyn BaseWidget> {
                 asset_id: Some("logo".into()),
                 ..Default::default()
             },
-            Default::default(),
-            Size {
-                width: Dimension::Points(250.0),
-                height: Dimension::Points(250.0),
+            FlexboxLayout {
+                size: Size {
+                    width: Dimension::Percent(0.5),
+                    height: Dimension::Percent(0.5),
+                },
+                max_size: Size {
+                    width: Dimension::Points(250.0),
+                    height: Dimension::Points(250.0),
+                },
+                ..Default::default()
             },
         )],
     )

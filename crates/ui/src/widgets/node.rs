@@ -2,7 +2,7 @@ use super::{base, NodeLayout, RenderWidget};
 use taffy::prelude::*;
 
 pub struct NodeWidget {
-    pub layout: FlexboxLayout,
+    layout: FlexboxLayout,
     pub children: Vec<Box<dyn base::BaseWidget>>,
     pub node: Option<Node>,
 }

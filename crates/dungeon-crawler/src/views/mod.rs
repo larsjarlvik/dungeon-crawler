@@ -6,7 +6,7 @@ use crate::world::{
 use cgmath::*;
 use engine::pipelines::{
     glyph::*,
-    image::{self, context::ImageContext},
+    ui_element::context::{self, ImageContext},
     GlyphPipeline,
 };
 mod game;
@@ -99,7 +99,7 @@ impl Views {
                     };
 
                     ctx.images.queue_image(
-                        image::context::Data {
+                        context::Data {
                             position: Point2::new(layout.x * sx, layout.y * sy),
                             size: Point2::new(layout.width * sx, layout.height * sy),
                             background: self.state.get_transition(&data.key, background, frame_time),

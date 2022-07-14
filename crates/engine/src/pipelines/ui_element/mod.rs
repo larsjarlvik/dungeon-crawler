@@ -4,7 +4,7 @@ use crate::{config, pipelines::builders, texture, Context};
 use std::mem;
 pub mod context;
 
-pub struct ImagePipeline {
+pub struct UiElementPipeline {
     render_pipeline: builders::Pipeline,
     uniform_bind_group_layout: builders::MappedBindGroupLayout,
     uniform_buffer: wgpu::Buffer,
@@ -12,7 +12,7 @@ pub struct ImagePipeline {
     sampler: wgpu::Sampler,
 }
 
-impl ImagePipeline {
+impl UiElementPipeline {
     pub fn new(ctx: &Context) -> Self {
         let builder = builders::PipelineBuilder::new(&ctx, "asset");
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
@@ -31,7 +31,7 @@ impl ImagePipeline {
         );
 
         let render_pipeline = builder
-            .with_shader("shaders/asset.wgsl")
+            .with_shader("shaders/ui-element.wgsl")
             .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
             .with_blend(wgpu::BlendState {
                 color: wgpu::BlendComponent {

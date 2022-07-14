@@ -1,5 +1,5 @@
 use cgmath::*;
-use pipelines::image::context::ImageContext;
+use pipelines::ui_element::context::ImageContext;
 use std::collections::HashMap;
 use wgpu_glyph::{ab_glyph::FontArc, GlyphBrush, GlyphBrushBuilder};
 pub mod bounding_box;
@@ -53,7 +53,7 @@ pub struct Engine {
     pub particle_pipeline: pipelines::ParticlePipeline,
     pub scaling_pipeline: pipelines::ScalingPipeline,
     pub glyph_pipeline: pipelines::GlyphPipeline,
-    pub image_pipeline: pipelines::ImagePipeline,
+    pub ui_pipeline: pipelines::UiElementPipeline,
     pub smaa_target: SmaaTarget,
 }
 
@@ -115,7 +115,7 @@ impl Engine {
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
         let glyph_pipeline = pipelines::GlyphPipeline::new();
-        let image_pipeline = pipelines::ImagePipeline::new(&ctx);
+        let image_pipeline = pipelines::UiElementPipeline::new(&ctx);
         let smaa_target = SmaaTarget::new(
             &ctx.device,
             &ctx.queue,
@@ -133,7 +133,7 @@ impl Engine {
             scaling_pipeline,
             joystick_pipeline,
             glyph_pipeline,
-            image_pipeline,
+            ui_pipeline: image_pipeline,
             smaa_target,
         }
     }

@@ -56,10 +56,13 @@ impl Button {
                     foreground: props.foreground,
                     ..Default::default()
                 },
-                margin,
-                Size {
-                    width: Dimension::Points(size),
-                    height: Dimension::Points(size),
+                FlexboxLayout {
+                    margin,
+                    size: Size {
+                        width: Dimension::Points(size),
+                        height: Dimension::Points(size),
+                    },
+                    ..Default::default()
                 },
             ));
         }
