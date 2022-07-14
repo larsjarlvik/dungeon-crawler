@@ -3,7 +3,7 @@ use crate::world::{
     resources::{self, input::UiActionCode},
     GameState,
 };
-use cgmath::vec4;
+use cgmath::*;
 use ui::{components::*, prelude::*, widgets::*};
 
 use super::style;
@@ -14,7 +14,15 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
             flex_direction: FlexDirection::Column,
             ..Default::default()
         },
-        vec![],
+        vec![Bar::new().draw(
+            "Health",
+            BarProps {
+                width: Dimension::Points(200.0),
+                value: 50.0,
+                max_value: 100.0,
+                color: Vector4::new(0.8, 0.0, 0.0, 1.0),
+            },
+        )],
     );
 
     if ctx.settings.show_fps {
@@ -25,6 +33,7 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                 size: style::BODY2,
             },
             Default::default(),
+            AlignSelf::FlexStart,
         ));
     }
 

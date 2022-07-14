@@ -71,6 +71,7 @@ impl Button {
             children.push(TextWidget::new(
                 TextData { size, text },
                 Rect::<Dimension>::from_points(10.0, 10.0, 0.0, 0.0),
+                AlignSelf::FlexStart,
             ));
         }
 
@@ -85,13 +86,13 @@ impl Button {
             },
             FlexboxLayout {
                 align_items: AlignItems::Center,
-                justify_content: JustifyContent::FlexStart,
+                justify_content: JustifyContent::Center,
                 size: Size {
                     width: Dimension::Auto,
                     height: Dimension::Auto,
                 },
                 margin: props.margin,
-                padding: Rect::<Dimension>::from_points(16.0, 16.0, 16.0, 16.0),
+                padding: Rect::<Dimension>::from_points(12.0, 12.0, 12.0, 12.0),
                 ..Default::default()
             },
             children,
