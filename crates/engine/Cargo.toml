@@ -9,8 +9,8 @@ edition = "2021"
 wgpu = "0.12.0"
 wgpu_glyph = "0.16.0"
 cgmath = "0.18.0"
-bytemuck = { version = "1.4", features = [ "derive" ] }
-gltf = { version = "1.0.0", features = [ "extras", "KHR_lights_punctual" ]}
+bytemuck = { version = "1.4", features = ["derive"] }
+gltf = { version = "1.0.0", features = ["extras", "KHR_lights_punctual"]}
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = { features = ["raw_value"], version = "1.0" }
@@ -22,10 +22,7 @@ bevy_transform = "0.6.0"
 bevy_tasks = "0.6.0"
 rand = "0.8.4"
 raw-window-handle = "0.4.3"
-
-[dependencies.uuid]
-version = "1.1.2"
-features = ["v4", "fast-rng"]
+uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 ndk-glue = { version = "0.5.0", features = ["logger"] }
