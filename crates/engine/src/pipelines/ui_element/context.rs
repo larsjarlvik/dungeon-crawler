@@ -41,7 +41,7 @@ impl ImageContext {
         ctx.images.textures.insert(key.to_string(), texture);
     }
 
-    pub fn queue_image(&mut self, data: Data, id: Option<String>) {
+    pub fn queue(&mut self, data: Data, id: Option<String>) {
         self.queue.push((id, data));
     }
 }

@@ -98,7 +98,7 @@ impl Views {
                         data.background
                     };
 
-                    ctx.images.queue_image(
+                    ctx.images.queue(
                         context::Data {
                             position: Point2::new(layout.x * sx, layout.y * sy),
                             size: Point2::new(layout.width * sx, layout.height * sy),
