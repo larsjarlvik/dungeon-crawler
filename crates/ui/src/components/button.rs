@@ -2,20 +2,14 @@ use crate::widgets::*;
 use cgmath::*;
 use taffy::prelude::*;
 
-#[derive(PartialEq)]
-pub enum Variant {
-    Default = 0,
-    Rounded = 1,
-    Border = 2,
-}
-
 pub struct ButtonProps {
     pub icon: Option<(String, f32)>,
     pub text: Option<(String, f32)>,
     pub margin: Rect<Dimension>,
+    pub padding: Rect<Dimension>,
     pub foreground: Vector4<f32>,
     pub background: Vector4<f32>,
-    pub variant: Variant,
+    pub border_radius: Dimension,
 }
 
 impl Default for ButtonProps {
@@ -24,9 +18,10 @@ impl Default for ButtonProps {
             icon: Default::default(),
             text: Default::default(),
             margin: Default::default(),
+            padding: Default::default(),
             foreground: Vector4::new(1.0, 1.0, 1.0, 1.0),
             background: Vector4::new(0.0, 0.0, 0.0, 0.8),
-            variant: Variant::Default,
+            border_radius: Dimension::default(),
         }
     }
 }
@@ -44,12 +39,6 @@ impl Button {
         let mut children: Vec<Box<dyn BaseWidget>> = vec![];
 
         if let Some((icon, size)) = props.icon.clone() {
-            let margin = if props.variant == Variant::Rounded {
-                Rect::<Dimension>::from_points(size * 0.1, size * 0.1, size * 0.1, size * 0.1)
-            } else {
-                Default::default()
-            };
-
             children.push(AssetWidget::new(
                 AssetData {
                     asset_id: Some(icon),
@@ -57,7 +46,6 @@ impl Button {
                     ..Default::default()
                 },
                 FlexboxLayout {
-                    margin,
                     size: Size {
                         width: Dimension::Points(size),
                         height: Dimension::Points(size),
@@ -81,7 +69,8 @@ impl Button {
                 background: props.background,
                 background_hover: Some(props.background.lerp(props.foreground, 0.2)),
                 background_pressed: Some(props.background.lerp(props.foreground, 0.3)),
-                variant: props.variant as u32,
+                border_radius: props.border_radius,
+                shadow_radius: Dimension::Points(5.0),
                 ..Default::default()
             },
             FlexboxLayout {
@@ -92,7 +81,7 @@ impl Button {
                     height: Dimension::Auto,
                 },
                 margin: props.margin,
-                padding: Rect::<Dimension>::from_points(12.0, 12.0, 12.0, 12.0),
+                padding: props.padding,
                 ..Default::default()
             },
             children,

@@ -5,7 +5,8 @@ struct Uniforms {
     background: vec4<f32>;
     foreground: vec4<f32>;
     viewport_size: vec2<f32>;
-    variant: u32;
+    border_radius: f32;
+    shadow_radius: f32;
     opacity: f32;
     has_image: bool;
 };
@@ -26,7 +27,10 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     var result: VertexOutput;
     result.coord = tc;
 
-    let pos = tc * 2.0 * (uniforms.size / uniforms.viewport_size) + ((uniforms.position * 2.0 - 1.0) / uniforms.viewport_size);
+    let size = uniforms.size + uniforms.shadow_radius * 10.0;
+    let position = uniforms.position - uniforms.shadow_radius * 5.0;
+
+    let pos = tc * 2.0 * (size / uniforms.viewport_size) + ((position * 2.0 - 1.0) / uniforms.viewport_size);
     result.position = vec4<f32>(
         pos.x - 1.0,
         1.0 - pos.y,
@@ -35,6 +39,24 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     return result;
 }
 
+fn round_rect(p: vec2<f32>, b: vec2<f32>, r: f32) -> f32 {
+    let q = abs(p) - b + r;
+    return min(max(q.x, q.y), 0.0) + length(max(q, vec2<f32>(0.0))) - r;
+}
+
+fn normal_blend(src: vec4<f32>, dst: vec4<f32>) -> vec4<f32> {
+    let final_alpha = src.a + dst.a * (1.0 - src.a);
+    return vec4<f32>(
+        (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / final_alpha,
+        final_alpha
+    );
+}
+
+fn sigmoid(t: f32) -> f32 {
+    return 1.0 / (1.0 + exp(-t));
+}
+
+
 // Fragment shader
 [[group(1), binding(0)]] var t_texture: texture_2d<f32>;
 [[group(1), binding(1)]] var t_sampler: sampler;
@@ -42,27 +64,22 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
 [[stage(fragment)]]
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     if (uniforms.has_image == false) {
-        var current: f32 = 1.0;
+        let size = uniforms.size;
+        let position = in.position.xy + uniforms.shadow_radius * 0.5;
 
-        if (uniforms.variant == u32(1)) {
-            let coord = in.coord * 2.0 - 1.0;
-            let fade = (1.0 - length(coord)) + 0.3;
-            let outer = step(length(coord), 1.0);
-            let inner = step(length(coord), 0.95) * fade;
-            current = clamp(outer - inner, 0.0, 1.0);
-        } else if (uniforms.variant == u32(2)) {
-            let coord = in.coord;
-            let thickness = 3.0 / uniforms.size.y;
-            let t = vec2<f32>(thickness * (uniforms.size.y / uniforms.size.x), thickness);
+        let shadow_radius = uniforms.shadow_radius * 0.5;
+        let center = uniforms.position + shadow_radius + size * 0.5;
+        let hsize = floor(size * 0.5) - uniforms.border_radius * 0.1;
 
-            if (coord.y < t.y || coord.y > 1.0 - t.y || coord.x < t.x || coord.x > 1.0 - t.x) {
-                current = 1.0;
-            } else {
-                current = 1.0 - coord.y * 0.5 + 0.25;
-            }
-        }
+        let dist_shadow = clamp(sigmoid(round_rect(position - center + vec2<f32>(-shadow_radius), hsize, uniforms.border_radius + shadow_radius) / shadow_radius), 0.0, 1.0);
+        let dist_radius = clamp(round_rect(position - center, hsize, uniforms.border_radius), 0.0, 1.0);
+        let alpha = mix(0.0, 1.0, dist_radius);
 
-        return vec4<f32>(uniforms.background.rgb, uniforms.background.a * uniforms.opacity * current);
+        let shadow_color = vec4<f32>(0.0, 0.0, 0.0, 1.0 - dist_shadow);
+        let element_color = vec4<f32>(uniforms.background.rgb, uniforms.background.a * (1.0 - alpha));
+        let final_color = mix(element_color, shadow_color, alpha);
+
+        return vec4<f32>(final_color.rgb, final_color.a * uniforms.opacity);
     }
 
     let texture = textureSample(t_texture, t_sampler, in.coord);

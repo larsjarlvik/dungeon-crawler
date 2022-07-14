@@ -12,3 +12,5 @@ pub const ICON_L: f32 = 36.0;
 pub const ICON_M: f32 = 24.0;
 
 pub const PRIMARY_BACKGROUND: Vector4<f32> = Vector4::new(0.91, 0.35, 0.13, 0.4);
+
+pub const RADIUS_M: f32 = 10.0;

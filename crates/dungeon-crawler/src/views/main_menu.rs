@@ -21,7 +21,7 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
 
     let menu_panel = PanelWidget::new(
         AssetData {
-            background: Vector4::new(0.0, 0.0, 0.0, 0.6),
+            background: Vector4::new(0.2, 0.2, 0.2, 0.6),
             ..Default::default()
         },
         FlexboxLayout {
@@ -50,21 +50,24 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
                 background: style::PRIMARY_BACKGROUND,
                 text: Some(("Settings".into(), style::BODY1)),
                 margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
-                variant: Variant::Border,
+                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SS, style::SS),
+                border_radius: Dimension::Points(style::RADIUS_M),
                 ..Default::default()
             }),
             resume_button.draw(ButtonProps {
                 background: style::PRIMARY_BACKGROUND,
                 text: Some(("Resume".into(), style::BODY1)),
                 margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
-                variant: Variant::Border,
+                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SS, style::SS),
+                border_radius: Dimension::Points(style::RADIUS_M),
                 ..Default::default()
             }),
             exit_button.draw(ButtonProps {
                 background: style::PRIMARY_BACKGROUND,
                 text: Some(("Exit Game".into(), style::BODY1)),
                 margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
-                variant: Variant::Border,
+                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SS, style::SS),
+                border_radius: Dimension::Points(style::RADIUS_M),
                 ..Default::default()
             }),
         ],

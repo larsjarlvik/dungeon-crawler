@@ -79,8 +79,10 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                     ),
                     menu_button.draw(ButtonProps {
                         icon: Some(("menu".into(), style::ICON_M)),
-                        variant: Variant::Rounded,
+                        border_radius: Dimension::Percent(0.5),
+                        background: vec4(0.0, 0.0, 0.0, 0.7),
                         margin: Rect::<Dimension>::from_points(0.0, 0.0, -style::SS, 0.0),
+                        padding: Rect::<Dimension>::from_points(style::SM, style::SM, style::SM, style::SM),
                         ..Default::default()
                     }),
                 ],
@@ -98,15 +100,19 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                     attack_button.draw(ButtonProps {
                         icon: Some(("attack".into(), style::ICON_L)),
                         foreground: vec4(1.0, 0.5, 0.0, 1.0),
+                        background: vec4(0.0, 0.0, 0.0, 0.7),
                         margin: Rect::<Dimension>::from_points(style::SS, 0.0, 0.0, 0.0),
-                        variant: Variant::Rounded,
+                        padding: Rect::<Dimension>::from_points(style::SL, style::SL, style::SL, style::SL),
+                        border_radius: Dimension::Percent(0.5),
                         ..Default::default()
                     }),
                     health_button.draw(ButtonProps {
                         icon: Some(("health".into(), style::ICON_L)),
                         foreground: vec4(0.8, 0.0, 0.0, 1.0),
+                        background: vec4(0.0, 0.0, 0.0, 0.7),
                         margin: Rect::<Dimension>::from_points(style::SS, 0.0, 0.0, 0.0),
-                        variant: Variant::Rounded,
+                        padding: Rect::<Dimension>::from_points(style::SL, style::SL, style::SL, style::SL),
+                        border_radius: Dimension::Percent(0.5),
                         ..Default::default()
                     }),
                 ],

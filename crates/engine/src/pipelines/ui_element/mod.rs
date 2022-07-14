@@ -72,7 +72,8 @@ impl UiElementPipeline {
                     foreground: data.foreground.into(),
                     opacity: data.opacity,
                     has_image: id.is_some() as u32,
-                    variant: data.variant,
+                    border_radius: data.border_radius,
+                    shadow_radius: data.shadow_radius,
                 }]),
             );
 
