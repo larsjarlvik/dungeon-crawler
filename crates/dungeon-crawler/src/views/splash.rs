@@ -24,6 +24,7 @@ pub fn splash() -> Box<dyn BaseWidget> {
                 ..Default::default()
             },
             FlexboxLayout {
+                aspect_ratio: Some(1.0),
                 size: Size {
                     width: Dimension::Percent(0.5),
                     height: Dimension::Percent(0.5),

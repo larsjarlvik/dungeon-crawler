@@ -104,7 +104,16 @@ impl Views {
                             size: Point2::new(layout.width * sx, layout.height * sy),
                             background: self.state.get_transition(&data.key, background, frame_time),
                             foreground: data.foreground,
-                            variant: data.variant,
+                            border_radius: match data.border_radius {
+                                ui::prelude::Dimension::Points(p) => p,
+                                ui::prelude::Dimension::Percent(p) => layout.height * sy * p,
+                                _ => 0.0,
+                            },
+                            shadow_radius: match data.shadow_radius {
+                                ui::prelude::Dimension::Points(p) => p,
+                                ui::prelude::Dimension::Percent(p) => layout.height * sy * p,
+                                _ => 0.0,
+                            },
                             opacity,
                         },
                         data.asset_id.clone(),

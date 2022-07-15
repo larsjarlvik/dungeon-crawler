@@ -17,7 +17,8 @@ pub struct Data {
     pub background: Vector4<f32>,
     pub foreground: Vector4<f32>,
     pub opacity: f32,
-    pub variant: u32,
+    pub border_radius: f32,
+    pub shadow_radius: f32,
 }
 
 pub struct ImageContext {
