@@ -3,10 +3,17 @@ use cgmath::*;
 use taffy::prelude::*;
 
 #[derive(Debug)]
+pub struct Gradient {
+    pub background_end: Vector4<f32>,
+    pub angle: f32,
+}
+
+#[derive(Debug)]
 pub struct AssetData {
     pub key: Option<String>,
     pub asset_id: Option<String>,
     pub background: Vector4<f32>,
+    pub gradient: Option<Gradient>,
     pub foreground: Vector4<f32>,
     pub background_hover: Option<Vector4<f32>>,
     pub background_pressed: Option<Vector4<f32>>,
@@ -25,6 +32,7 @@ impl Default for AssetData {
             background_pressed: None,
             border_radius: Dimension::default(),
             shadow_radius: Dimension::default(),
+            gradient: None,
         }
     }
 }

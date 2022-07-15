@@ -15,6 +15,8 @@ pub struct Data {
     pub position: Point2<f32>,
     pub size: Point2<f32>,
     pub background: Vector4<f32>,
+    pub background_end: Vector4<f32>,
+    pub gradient_angle: f32,
     pub foreground: Vector4<f32>,
     pub opacity: f32,
     pub border_radius: f32,

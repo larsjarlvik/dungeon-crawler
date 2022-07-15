@@ -69,11 +69,13 @@ impl UiElementPipeline {
                     size: data.size.into(),
                     viewport_size: [ctx.viewport.width as f32, ctx.viewport.height as f32],
                     background: data.background.into(),
+                    background_end: data.background_end.into(),
                     foreground: data.foreground.into(),
                     opacity: data.opacity,
                     has_image: id.is_some() as u32,
                     border_radius: data.border_radius,
                     shadow_radius: data.shadow_radius,
+                    gradient_angle: data.gradient_angle.to_radians(),
                 }]),
             );
 

@@ -21,6 +21,7 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                 value: 50.0,
                 max_value: 100.0,
                 color: Vector4::new(0.8, 0.0, 0.0, 1.0),
+                bottom_color: Vector4::new(0.6, 0.0, 0.0, 1.0),
             },
         )],
     );

@@ -8,6 +8,7 @@ pub struct BarProps {
     pub max_value: f32,
     pub value: f32,
     pub color: Vector4<f32>,
+    pub bottom_color: Vector4<f32>,
     pub width: Dimension,
 }
 
@@ -29,15 +30,20 @@ impl Bar {
                     width: props.width,
                     height: Dimension::Auto,
                 },
-                padding: Rect::<Dimension>::from_points(1.0, 1.0, 1.0, 1.0),
+                padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
                 ..Default::default()
             },
             vec![PanelWidget::new(
                 AssetData {
                     background: props.color,
+                    gradient: Some(Gradient {
+                        background_end: props.bottom_color,
+                        angle: 180.0,
+                    }),
                     ..Default::default()
                 },
                 FlexboxLayout {
+                    padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
                     size: Size {

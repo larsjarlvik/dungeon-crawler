@@ -3,12 +3,14 @@ struct Uniforms {
     position: vec2<f32>;
     size: vec2<f32>;
     background: vec4<f32>;
+    background_end: vec4<f32>;
     foreground: vec4<f32>;
     viewport_size: vec2<f32>;
     border_radius: f32;
     shadow_radius: f32;
     opacity: f32;
     has_image: bool;
+    gradient_angle: f32;
 };
 
 [[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
@@ -64,20 +66,26 @@ fn sigmoid(t: f32) -> f32 {
 [[stage(fragment)]]
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     if (uniforms.has_image == false) {
-        let size = uniforms.size;
-        let position = in.position.xy + uniforms.shadow_radius * 0.5;
+        let angle = 1.5708 - uniforms.gradient_angle + atan2(in.coord.y, in.coord.x);
+        let len = length(in.coord);
+        let uv = vec2<f32>(cos(angle) * len, sin(angle) * len);
+        var final_color: vec4<f32> = mix(uniforms.background, uniforms.background_end, smoothStep(0.0, 1.0, uv.x));
 
-        let shadow_radius = uniforms.shadow_radius * 0.5;
-        let center = uniforms.position + shadow_radius + size * 0.5;
-        let hsize = floor(size * 0.5) - uniforms.border_radius * 0.1;
+        if (uniforms.shadow_radius > 0.0 || uniforms.border_radius > 0.0) {
+            let size = uniforms.size;
+            let position = in.position.xy + uniforms.shadow_radius * 0.5;
 
-        let dist_shadow = clamp(sigmoid(round_rect(position - center + vec2<f32>(-shadow_radius), hsize, uniforms.border_radius + shadow_radius) / shadow_radius), 0.0, 1.0);
-        let dist_radius = clamp(round_rect(position - center, hsize, uniforms.border_radius), 0.0, 1.0);
-        let alpha = mix(0.0, 1.0, dist_radius);
+            let shadow_radius = uniforms.shadow_radius * 0.5;
+            let center = uniforms.position + shadow_radius + size * 0.5;
+            let hsize = floor(size * 0.5) - uniforms.border_radius * 0.1;
 
-        let shadow_color = vec4<f32>(0.0, 0.0, 0.0, 1.0 - dist_shadow);
-        let element_color = vec4<f32>(uniforms.background.rgb, uniforms.background.a * (1.0 - alpha));
-        let final_color = mix(element_color, shadow_color, alpha);
+            let dist_shadow = clamp(sigmoid(round_rect(position - center + vec2<f32>(-shadow_radius), hsize, uniforms.border_radius + shadow_radius) / shadow_radius), 0.0, 1.0);
+            let dist_radius = clamp(round_rect(position - center, hsize, uniforms.border_radius), 0.0, 1.0);
+
+            let shadow_color = vec4<f32>(0.0, 0.0, 0.0, 1.0 - dist_shadow);
+            let element_color = vec4<f32>(final_color.rgb, final_color.a * (1.0 - dist_radius));
+            final_color = mix(element_color, shadow_color, dist_radius);
+        }
 
         return vec4<f32>(final_color.rgb, final_color.a * uniforms.opacity);
     }

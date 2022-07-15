@@ -20,10 +20,7 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
     }
 
     let menu_panel = PanelWidget::new(
-        AssetData {
-            background: Vector4::new(0.2, 0.2, 0.2, 0.6),
-            ..Default::default()
-        },
+        AssetData { ..Default::default() },
         FlexboxLayout {
             flex_direction: FlexDirection::Column,
             padding: Rect::<Dimension>::from_points(style::SM, style::SM, style::SM, style::SM),
@@ -75,7 +72,11 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
 
     PanelWidget::new(
         AssetData {
-            background: Vector4::new(0.0, 0.0, 0.0, 0.5),
+            background: Vector4::new(0.0, 0.0, 0.0, 0.8),
+            gradient: Some(Gradient {
+                background_end: Vector4::new(0.0, 0.0, 0.0, 0.0),
+                angle: 90.0,
+            }),
             ..Default::default()
         },
         FlexboxLayout {

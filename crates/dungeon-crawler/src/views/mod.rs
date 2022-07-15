@@ -98,11 +98,19 @@ impl Views {
                         data.background
                     };
 
+                    let (background_end, gradient_angle) = if let Some(gradient) = &data.gradient {
+                        (gradient.background_end, gradient.angle)
+                    } else {
+                        (background, 0.0)
+                    };
+
                     ctx.images.queue(
                         context::Data {
                             position: Point2::new(layout.x * sx, layout.y * sy),
                             size: Point2::new(layout.width * sx, layout.height * sy),
                             background: self.state.get_transition(&data.key, background, frame_time),
+                            background_end,
+                            gradient_angle,
                             foreground: data.foreground,
                             border_radius: match data.border_radius {
                                 ui::prelude::Dimension::Points(p) => p,
