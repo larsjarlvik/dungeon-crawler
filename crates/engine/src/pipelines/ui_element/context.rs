@@ -1,6 +1,5 @@
-use cgmath::{Point2, Vector4};
-
 use crate::{texture, Context};
+use cgmath::*;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -21,6 +20,8 @@ pub struct Data {
     pub opacity: f32,
     pub border_radius: f32,
     pub shadow_radius: f32,
+    pub shadow_color: Vector4<f32>,
+    pub shadow_offset: Vector2<f32>,
 }
 
 pub struct ImageContext {

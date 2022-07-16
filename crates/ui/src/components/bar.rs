@@ -8,8 +8,22 @@ pub struct BarProps {
     pub max_value: f32,
     pub value: f32,
     pub color: Vector4<f32>,
-    pub bottom_color: Vector4<f32>,
+    pub gradient: Option<Gradient>,
+    pub border_color: Vector4<f32>,
     pub width: Dimension,
+}
+
+impl Default for BarProps {
+    fn default() -> Self {
+        Self {
+            max_value: Default::default(),
+            value: Default::default(),
+            color: Vector4::new(1.0, 1.0, 1.0, 1.0),
+            gradient: Default::default(),
+            border_color: Vector4::new(0.0, 0.0, 0.0, 1.0),
+            width: Default::default(),
+        }
+    }
 }
 
 impl Bar {
@@ -20,7 +34,9 @@ impl Bar {
     pub fn draw(&self, label: &str, props: BarProps) -> Box<PanelWidget> {
         PanelWidget::new(
             AssetData {
-                background: Vector4::new(0.0, 0.0, 0.0, 0.8),
+                background: Vector4::new(0.0, 0.0, 0.0, 0.6),
+                shadow_radius: Dimension::Points(1.0),
+                shadow_color: Vector4::new(1.0, 0.8, 0.0, 1.0),
                 ..Default::default()
             },
             FlexboxLayout {
@@ -30,16 +46,12 @@ impl Bar {
                     width: props.width,
                     height: Dimension::Auto,
                 },
-                padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
                 ..Default::default()
             },
             vec![PanelWidget::new(
                 AssetData {
                     background: props.color,
-                    gradient: Some(Gradient {
-                        background_end: props.bottom_color,
-                        angle: 180.0,
-                    }),
+                    gradient: props.gradient,
                     ..Default::default()
                 },
                 FlexboxLayout {
@@ -55,7 +67,7 @@ impl Bar {
                 vec![TextWidget::new(
                     TextData {
                         text: label.into(),
-                        size: 12.0,
+                        size: 14.0,
                     },
                     Rect::default(),
                     AlignSelf::Center,

@@ -75,6 +75,8 @@ impl UiElementPipeline {
                     has_image: id.is_some() as u32,
                     border_radius: data.border_radius,
                     shadow_radius: data.shadow_radius,
+                    shadow_color: data.shadow_color.into(),
+                    shadow_offset: data.shadow_offset.into(),
                     gradient_angle: data.gradient_angle.to_radians(),
                 }]),
             );

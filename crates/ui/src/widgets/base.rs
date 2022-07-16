@@ -19,6 +19,8 @@ pub struct AssetData {
     pub background_pressed: Option<Vector4<f32>>,
     pub border_radius: Dimension,
     pub shadow_radius: Dimension,
+    pub shadow_offset: Option<Vector2<f32>>,
+    pub shadow_color: Vector4<f32>,
 }
 
 impl Default for AssetData {
@@ -32,7 +34,9 @@ impl Default for AssetData {
             background_pressed: None,
             border_radius: Dimension::default(),
             shadow_radius: Dimension::default(),
+            shadow_offset: None,
             gradient: None,
+            shadow_color: Vector4::new(0.0, 0.0, 0.0, 1.0),
         }
     }
 }

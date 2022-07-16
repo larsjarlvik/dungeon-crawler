@@ -9,7 +9,10 @@ pub struct ButtonProps {
     pub padding: Rect<Dimension>,
     pub foreground: Vector4<f32>,
     pub background: Vector4<f32>,
+    pub gradient: Option<Gradient>,
     pub border_radius: Dimension,
+    pub shadow_radius: Dimension,
+    pub shadow_color: Vector4<f32>,
 }
 
 impl Default for ButtonProps {
@@ -22,6 +25,9 @@ impl Default for ButtonProps {
             foreground: Vector4::new(1.0, 1.0, 1.0, 1.0),
             background: Vector4::new(0.0, 0.0, 0.0, 0.8),
             border_radius: Dimension::default(),
+            shadow_radius: Dimension::default(),
+            gradient: None,
+            shadow_color: Vector4::new(0.0, 0.0, 0.0, 0.0),
         }
     }
 }
@@ -70,12 +76,13 @@ impl Button {
                 background_hover: Some(props.background.lerp(props.foreground, 0.2)),
                 background_pressed: Some(props.background.lerp(props.foreground, 0.3)),
                 border_radius: props.border_radius,
-                shadow_radius: Dimension::Points(5.0),
+                shadow_radius: props.shadow_radius,
+                shadow_color: props.shadow_color,
+                gradient: props.gradient,
                 ..Default::default()
             },
             FlexboxLayout {
                 align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
                 size: Size {
                     width: Dimension::Auto,
                     height: Dimension::Auto,

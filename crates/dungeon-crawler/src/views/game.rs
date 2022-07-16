@@ -20,21 +20,31 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                 width: Dimension::Points(200.0),
                 value: 50.0,
                 max_value: 100.0,
-                color: Vector4::new(0.8, 0.0, 0.0, 1.0),
-                bottom_color: Vector4::new(0.6, 0.0, 0.0, 1.0),
+                color: Vector4::new(0.6, 0.0, 0.0, 1.0),
+                gradient: Some(Gradient {
+                    background_end: Vector4::new(0.8, 0.0, 0.0, 1.0),
+                    angle: 180.0,
+                }),
+                border_color: Vector4::new(1.0, 0.8, 0.0, 1.0),
             },
         )],
     );
 
     if ctx.settings.show_fps {
         let fps = world.components.get_resource::<resources::Fps>().unwrap();
-        top_left.children.push(TextWidget::new(
-            TextData {
-                text: format!("FPS: {}", fps.fps),
-                size: style::BODY2,
+        top_left.children.push(NodeWidget::new(
+            FlexboxLayout {
+                margin: Rect::<Dimension>::from_points(0.0, 0.0, style::SM, 0.0),
+                ..Default::default()
             },
-            Default::default(),
-            AlignSelf::FlexStart,
+            vec![TextWidget::new(
+                TextData {
+                    text: format!("FPS: {}", fps.fps),
+                    size: style::BODY2,
+                },
+                Default::default(),
+                AlignSelf::FlexStart,
+            )],
         ));
     }
 

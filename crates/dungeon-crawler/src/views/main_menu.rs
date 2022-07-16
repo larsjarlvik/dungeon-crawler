@@ -23,7 +23,7 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
         AssetData { ..Default::default() },
         FlexboxLayout {
             flex_direction: FlexDirection::Column,
-            padding: Rect::<Dimension>::from_points(style::SM, style::SM, style::SM, style::SM),
+            padding: Rect::<Dimension>::from_points(style::SL, style::SM, style::SL, style::SM),
             max_size: Size {
                 width: Dimension::Points(400.0),
                 height: Dimension::Undefined,
@@ -41,30 +41,45 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
                     text: "Dungeon Crawler".into(),
                 },
                 Rect::<Dimension>::from_points(0.0, 0.0, style::SS, style::SL),
-                AlignSelf::Center,
+                AlignSelf::FlexStart,
             ),
             settings_button.draw(ButtonProps {
                 background: style::PRIMARY_BACKGROUND,
+                gradient: Some(Gradient {
+                    background_end: style::PRIMARY_BACKGROUND_END,
+                    angle: 90.0,
+                }),
                 text: Some(("Settings".into(), style::BODY1)),
-                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
-                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SS, style::SS),
-                border_radius: Dimension::Points(style::RADIUS_M),
+                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SM),
+                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
+                shadow_color: style::PRIMARY_BORDER,
+                shadow_radius: Dimension::Points(style::SHADOW_S),
                 ..Default::default()
             }),
             resume_button.draw(ButtonProps {
                 background: style::PRIMARY_BACKGROUND,
+                gradient: Some(Gradient {
+                    background_end: style::PRIMARY_BACKGROUND_END,
+                    angle: 90.0,
+                }),
                 text: Some(("Resume".into(), style::BODY1)),
-                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
-                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SS, style::SS),
-                border_radius: Dimension::Points(style::RADIUS_M),
+                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SM),
+                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
+                shadow_color: style::PRIMARY_BORDER,
+                shadow_radius: Dimension::Points(style::SHADOW_S),
                 ..Default::default()
             }),
             exit_button.draw(ButtonProps {
                 background: style::PRIMARY_BACKGROUND,
+                gradient: Some(Gradient {
+                    background_end: style::PRIMARY_BACKGROUND_END,
+                    angle: 90.0,
+                }),
                 text: Some(("Exit Game".into(), style::BODY1)),
-                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
-                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SS, style::SS),
-                border_radius: Dimension::Points(style::RADIUS_M),
+                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SM),
+                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
+                shadow_color: style::PRIMARY_BORDER,
+                shadow_radius: Dimension::Points(style::SHADOW_S),
                 ..Default::default()
             }),
         ],
@@ -73,6 +88,7 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
     PanelWidget::new(
         AssetData {
             background: Vector4::new(0.0, 0.0, 0.0, 0.8),
+            shadow_color: Vector4::new(1.0, 0.0, 0.0, 1.0),
             gradient: Some(Gradient {
                 background_end: Vector4::new(0.0, 0.0, 0.0, 0.0),
                 angle: 90.0,

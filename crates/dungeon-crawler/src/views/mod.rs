@@ -113,15 +113,20 @@ impl Views {
                             gradient_angle,
                             foreground: data.foreground,
                             border_radius: match data.border_radius {
-                                ui::prelude::Dimension::Points(p) => p,
+                                ui::prelude::Dimension::Points(p) => p * sy,
                                 ui::prelude::Dimension::Percent(p) => layout.height * sy * p,
                                 _ => 0.0,
                             },
                             shadow_radius: match data.shadow_radius {
-                                ui::prelude::Dimension::Points(p) => p,
+                                ui::prelude::Dimension::Points(p) => p * sy,
                                 ui::prelude::Dimension::Percent(p) => layout.height * sy * p,
                                 _ => 0.0,
                             },
+                            shadow_offset: match data.shadow_offset {
+                                Some(shadow_offset) => shadow_offset * sy,
+                                None => Vector2::new(0.0, 0.0),
+                            },
+                            shadow_color: data.shadow_color,
                             opacity,
                         },
                         data.asset_id.clone(),

@@ -5,7 +5,9 @@ struct Uniforms {
     background: vec4<f32>;
     background_end: vec4<f32>;
     foreground: vec4<f32>;
+    shadow_color: vec4<f32>;
     viewport_size: vec2<f32>;
+    shadow_offset: vec2<f32>;
     border_radius: f32;
     shadow_radius: f32;
     opacity: f32;
@@ -69,23 +71,25 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
         let angle = 1.5708 - uniforms.gradient_angle + atan2(in.coord.y, in.coord.x);
         let len = length(in.coord);
         let uv = vec2<f32>(cos(angle) * len, sin(angle) * len);
-        var final_color: vec4<f32> = mix(uniforms.background, uniforms.background_end, smoothStep(0.0, 1.0, uv.x));
+        var final_color: vec4<f32> = uniforms.background;
 
         if (uniforms.shadow_radius > 0.0 || uniforms.border_radius > 0.0) {
             let size = uniforms.size;
             let position = in.position.xy + uniforms.shadow_radius * 0.5;
 
-            let shadow_radius = uniforms.shadow_radius * 0.5;
+            let shadow_radius = uniforms.shadow_radius;
             let center = uniforms.position + shadow_radius + size * 0.5;
             let hsize = floor(size * 0.5) - uniforms.border_radius * 0.1;
 
-            let dist_shadow = clamp(sigmoid(round_rect(position - center + vec2<f32>(-shadow_radius), hsize, uniforms.border_radius + shadow_radius) / shadow_radius), 0.0, 1.0);
+            let dist_shadow = clamp(sigmoid(round_rect(position - center - uniforms.shadow_offset, hsize, uniforms.border_radius + shadow_radius) / shadow_radius), 0.0, 1.0);
             let dist_radius = clamp(round_rect(position - center, hsize, uniforms.border_radius), 0.0, 1.0);
 
-            let shadow_color = vec4<f32>(0.0, 0.0, 0.0, 1.0 - dist_shadow);
+            let shadow_color = vec4<f32>(uniforms.shadow_color.rgb, uniforms.shadow_color.a - dist_shadow);
             let element_color = vec4<f32>(final_color.rgb, final_color.a * (1.0 - dist_radius));
             final_color = mix(element_color, shadow_color, dist_radius);
         }
+
+        final_color = mix(final_color, uniforms.background_end, smoothStep(0.0, 1.0, uv.x));
 
         return vec4<f32>(final_color.rgb, final_color.a * uniforms.opacity);
     }
