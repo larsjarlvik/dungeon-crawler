@@ -31,7 +31,7 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     var result: VertexOutput;
     result.coord = tc;
 
-    let size = uniforms.size + uniforms.shadow_radius * 10.0;
+    let size = uniforms.size + uniforms.border_radius + uniforms.shadow_radius * 10.0;
     let position = uniforms.position - uniforms.shadow_radius * 5.0;
 
     let pos = tc * 2.0 * (size / uniforms.viewport_size) + ((position * 2.0 - 1.0) / uniforms.viewport_size);
@@ -74,13 +74,20 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
         if (uniforms.shadow_radius > 0.0 || uniforms.border_radius > 0.0) {
             let size = uniforms.size;
             let position = in.position.xy + uniforms.shadow_radius * 0.5;
+            let center = uniforms.position + size * 0.5;
+            let hsize = size * 0.5;
 
-            let shadow_radius = uniforms.shadow_radius;
-            let center = uniforms.position + shadow_radius + size * 0.5;
-            let hsize = size * 0.5 - uniforms.border_radius * 0.1;
+            let dist_shadow = clamp(sigmoid(round_rect(
+                position - center - uniforms.shadow_offset,
+                hsize,
+                uniforms.border_radius + uniforms.shadow_radius)),
+            0.0, 1.0);
 
-            let dist_shadow = clamp(sigmoid(round_rect(position - center - uniforms.shadow_offset, hsize, uniforms.border_radius + shadow_radius) / shadow_radius), 0.0, 1.0);
-            let dist_radius = clamp(round_rect(position - center, hsize, uniforms.border_radius), 0.0, 1.0);
+            let dist_radius = clamp(round_rect(
+                position - center,
+                hsize,
+                uniforms.border_radius),
+            0.0, 1.0);
 
             let shadow_color = vec4<f32>(uniforms.shadow_color.rgb, uniforms.shadow_color.a - dist_shadow);
             let element_color = vec4<f32>(final_color.rgb, final_color.a * (1.0 - dist_radius));

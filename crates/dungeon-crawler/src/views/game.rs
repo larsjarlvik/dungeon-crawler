@@ -85,7 +85,13 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                 vec![
                     PanelWidget::new(
                         AssetData { ..Default::default() },
-                        FlexboxLayout { ..Default::default() },
+                        FlexboxLayout {
+                            size: Size {
+                                width: Dimension::Points(40.0),
+                                height: Dimension::Points(40.0),
+                            },
+                            ..Default::default()
+                        },
                         vec![top_left],
                     ),
                     menu_button.draw(ButtonProps {

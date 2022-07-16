@@ -40,11 +40,11 @@ impl Bar {
                 ..Default::default()
             },
             FlexboxLayout {
-                align_items: AlignItems::Center,
+                align_items: AlignItems::Stretch,
                 justify_content: JustifyContent::FlexStart,
                 size: Size {
                     width: props.width,
-                    height: Dimension::Auto,
+                    height: Dimension::Points(40.0),
                 },
                 ..Default::default()
             },
