@@ -18,23 +18,23 @@ pub fn splash() -> Box<dyn BaseWidget> {
             },
             ..Default::default()
         },
-        vec![AssetWidget::new(
-            AssetData {
-                asset_id: Some("logo".into()),
-                ..Default::default()
-            },
-            FlexboxLayout {
-                aspect_ratio: Some(1.0),
-                size: Size {
-                    width: Dimension::Percent(0.5),
-                    height: Dimension::Percent(0.5),
-                },
-                max_size: Size {
-                    width: Dimension::Points(250.0),
-                    height: Dimension::Points(250.0),
-                },
-                ..Default::default()
-            },
-        )],
     )
+    .with_children(vec![AssetWidget::new(
+        AssetData {
+            asset_id: Some("logo".into()),
+            ..Default::default()
+        },
+        FlexboxLayout {
+            aspect_ratio: Some(1.0),
+            size: Size {
+                width: Dimension::Percent(0.5),
+                height: Dimension::Percent(0.5),
+            },
+            max_size: Size {
+                width: Dimension::Points(250.0),
+                height: Dimension::Points(250.0),
+            },
+            ..Default::default()
+        },
+    )])
 }

@@ -8,12 +8,17 @@ pub struct NodeWidget {
 }
 
 impl NodeWidget {
-    pub fn new(layout: FlexboxLayout, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
+    pub fn new(layout: FlexboxLayout) -> Box<Self> {
         Box::new(Self {
             layout,
-            children,
+            children: vec![],
             node: None,
         })
+    }
+
+    pub fn with_children(mut self, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
+        self.children = children;
+        Box::new(self)
     }
 }
 

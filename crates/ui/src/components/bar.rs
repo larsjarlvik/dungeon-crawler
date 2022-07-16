@@ -41,14 +41,15 @@ impl Bar {
             },
             FlexboxLayout {
                 align_items: AlignItems::Stretch,
-                justify_content: JustifyContent::FlexStart,
                 size: Size {
                     width: props.width,
                     height: Dimension::Points(40.0),
                 },
                 ..Default::default()
             },
-            vec![PanelWidget::new(
+        )
+        .with_children(vec![
+            PanelWidget::new(
                 AssetData {
                     background: props.color,
                     gradient: props.gradient,
@@ -64,15 +65,15 @@ impl Bar {
                     },
                     ..Default::default()
                 },
-                vec![TextWidget::new(
-                    TextData {
-                        text: label.into(),
-                        size: 14.0,
-                    },
-                    Rect::default(),
-                    AlignSelf::Center,
-                )],
-            )],
-        )
+            ),
+            TextWidget::new(
+                TextData {
+                    text: label.into(),
+                    size: 14.0,
+                },
+                Rect::default(),
+                AlignSelf::Center,
+            ),
+        ])
     }
 }

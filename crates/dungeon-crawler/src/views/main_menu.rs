@@ -50,20 +50,20 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
             },
             ..Default::default()
         },
-        vec![
-            TextWidget::new(
-                TextData {
-                    size: style::HEADING1,
-                    text: "Dungeon Crawler".into(),
-                },
-                Rect::<Dimension>::from_points(0.0, 0.0, style::SS, style::SL),
-                AlignSelf::FlexStart,
-            ),
-            settings_button.draw(menu_button_props("Settings")),
-            resume_button.draw(menu_button_props("Resume")),
-            exit_button.draw(menu_button_props("Exit Game")),
-        ],
-    );
+    )
+    .with_children(vec![
+        TextWidget::new(
+            TextData {
+                size: style::HEADING1,
+                text: "Dungeon Crawler".into(),
+            },
+            Rect::<Dimension>::from_points(0.0, 0.0, style::SS, style::SL),
+            AlignSelf::FlexStart,
+        ),
+        settings_button.draw(menu_button_props("Settings")),
+        resume_button.draw(menu_button_props("Resume")),
+        exit_button.draw(menu_button_props("Exit Game")),
+    ]);
 
     PanelWidget::new(
         AssetData {
@@ -81,6 +81,6 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
             },
             ..Default::default()
         },
-        vec![menu_panel],
     )
+    .with_children(vec![menu_panel])
 }

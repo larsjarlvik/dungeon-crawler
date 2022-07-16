@@ -12,13 +12,18 @@ pub struct PanelWidget {
 }
 
 impl PanelWidget {
-    pub fn new(data: AssetData, layout: FlexboxLayout, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
+    pub fn new(data: AssetData, layout: FlexboxLayout) -> Box<Self> {
         Box::new(Self {
             data,
             layout,
-            children,
+            children: vec![],
             node: None,
         })
+    }
+
+    pub fn with_children(mut self, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
+        self.children = children;
+        Box::new(self)
     }
 }
 

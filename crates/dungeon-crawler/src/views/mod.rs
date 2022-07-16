@@ -76,6 +76,10 @@ impl Views {
                 RenderWidget::Asset(data) => {
                     self.element_rects.push(layout.clone());
 
+                    if data.background == style::PALETTE_RED.extend(1.0) {
+                        // dbg!(&layout);
+                    }
+
                     let background = if is_hover(&mouse.position, &layout, sx, sy) {
                         match mouse.state {
                             input::PressState::Released(repeat) => {

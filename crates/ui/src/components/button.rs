@@ -91,7 +91,7 @@ impl Button {
                 padding: props.padding,
                 ..Default::default()
             },
-            children,
         )
+        .with_children(children)
     }
 }
