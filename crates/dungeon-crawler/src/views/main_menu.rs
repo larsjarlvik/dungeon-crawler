@@ -1,7 +1,23 @@
 use super::style;
 use crate::world::{self, GameState};
-use cgmath::Vector4;
 use ui::{components::*, prelude::*, widgets::*};
+
+fn menu_button_props(text: &str) -> ButtonProps {
+    ButtonProps {
+        background: style::PALETTE_GOLD.extend(0.15),
+        gradient: Some(Gradient {
+            background_end: style::PALETTE_BROWN.extend(0.0),
+            angle: 90.0,
+        }),
+        text: Some((text.into(), style::BODY1)),
+        margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SM),
+        padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
+        shadow_color: style::PALETTE_LIGHT_GOLD.extend(1.0),
+        shadow_radius: Dimension::Points(style::SHADOW_S),
+        border_radius: Dimension::Points(5.0),
+        ..Default::default()
+    }
+}
 
 pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
     let resume_button = Button::new("resume_button");
@@ -43,54 +59,17 @@ pub fn main_menu(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn 
                 Rect::<Dimension>::from_points(0.0, 0.0, style::SS, style::SL),
                 AlignSelf::FlexStart,
             ),
-            settings_button.draw(ButtonProps {
-                background: style::PRIMARY_BACKGROUND,
-                gradient: Some(Gradient {
-                    background_end: style::PRIMARY_BACKGROUND_END,
-                    angle: 90.0,
-                }),
-                text: Some(("Settings".into(), style::BODY1)),
-                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SM),
-                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
-                shadow_color: style::PRIMARY_BORDER,
-                shadow_radius: Dimension::Points(style::SHADOW_S),
-                ..Default::default()
-            }),
-            resume_button.draw(ButtonProps {
-                background: style::PRIMARY_BACKGROUND,
-                gradient: Some(Gradient {
-                    background_end: style::PRIMARY_BACKGROUND_END,
-                    angle: 90.0,
-                }),
-                text: Some(("Resume".into(), style::BODY1)),
-                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SM),
-                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
-                shadow_color: style::PRIMARY_BORDER,
-                shadow_radius: Dimension::Points(style::SHADOW_S),
-                ..Default::default()
-            }),
-            exit_button.draw(ButtonProps {
-                background: style::PRIMARY_BACKGROUND,
-                gradient: Some(Gradient {
-                    background_end: style::PRIMARY_BACKGROUND_END,
-                    angle: 90.0,
-                }),
-                text: Some(("Exit Game".into(), style::BODY1)),
-                margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SM),
-                padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
-                shadow_color: style::PRIMARY_BORDER,
-                shadow_radius: Dimension::Points(style::SHADOW_S),
-                ..Default::default()
-            }),
+            settings_button.draw(menu_button_props("Settings")),
+            resume_button.draw(menu_button_props("Resume")),
+            exit_button.draw(menu_button_props("Exit Game")),
         ],
     );
 
     PanelWidget::new(
         AssetData {
-            background: Vector4::new(0.0, 0.0, 0.0, 0.8),
-            shadow_color: Vector4::new(1.0, 0.0, 0.0, 1.0),
+            background: style::PALETTE_BROWN.extend(0.5),
             gradient: Some(Gradient {
-                background_end: Vector4::new(0.0, 0.0, 0.0, 0.0),
+                background_end: style::PALETTE_GRAY.extend(0.5),
                 angle: 90.0,
             }),
             ..Default::default()

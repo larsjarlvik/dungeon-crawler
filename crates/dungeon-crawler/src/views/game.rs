@@ -20,12 +20,12 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
                 width: Dimension::Points(200.0),
                 value: 50.0,
                 max_value: 100.0,
-                color: Vector4::new(0.6, 0.0, 0.0, 1.0),
+                color: style::PALETTE_RED.extend(1.0),
                 gradient: Some(Gradient {
-                    background_end: Vector4::new(0.8, 0.0, 0.0, 1.0),
+                    background_end: style::PALETTE_RED.lerp(vec3(1.0, 0.0, 0.0), 0.5).extend(1.0),
                     angle: 180.0,
                 }),
-                border_color: Vector4::new(1.0, 0.8, 0.0, 1.0),
+                border_color: style::PALETTE_LIGHT_GOLD.extend(1.0),
             },
         )],
     );

@@ -69,8 +69,6 @@ fn sigmoid(t: f32) -> f32 {
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     if (uniforms.has_image == false) {
         let angle = 1.5708 - uniforms.gradient_angle + atan2(in.coord.y, in.coord.x);
-        let len = length(in.coord);
-        let uv = vec2<f32>(cos(angle) * len, sin(angle) * len);
         var final_color: vec4<f32> = uniforms.background;
 
         if (uniforms.shadow_radius > 0.0 || uniforms.border_radius > 0.0) {
@@ -79,7 +77,7 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 
             let shadow_radius = uniforms.shadow_radius;
             let center = uniforms.position + shadow_radius + size * 0.5;
-            let hsize = floor(size * 0.5) - uniforms.border_radius * 0.1;
+            let hsize = size * 0.5 - uniforms.border_radius * 0.1;
 
             let dist_shadow = clamp(sigmoid(round_rect(position - center - uniforms.shadow_offset, hsize, uniforms.border_radius + shadow_radius) / shadow_radius), 0.0, 1.0);
             let dist_radius = clamp(round_rect(position - center, hsize, uniforms.border_radius), 0.0, 1.0);
@@ -89,7 +87,8 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
             final_color = mix(element_color, shadow_color, dist_radius);
         }
 
-        final_color = mix(final_color, uniforms.background_end, smoothStep(0.0, 1.0, uv.x));
+        let grad = cos(angle) * length(in.coord);
+        final_color = mix(final_color, uniforms.background_end, smoothStep(0.0, 1.0, grad));
 
         return vec4<f32>(final_color.rgb, final_color.a * uniforms.opacity);
     }
