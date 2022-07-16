@@ -40,7 +40,9 @@ impl Bar {
                 ..Default::default()
             },
             FlexboxLayout {
+                flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Stretch,
+                justify_content: JustifyContent::FlexStart,
                 size: Size {
                     width: props.width,
                     height: Dimension::Points(40.0),
@@ -56,12 +58,12 @@ impl Bar {
                     ..Default::default()
                 },
                 FlexboxLayout {
+                    position_type: taffy::style::PositionType::Absolute,
                     padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
-                    align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
                     size: Size {
                         width: Dimension::Percent(props.value / props.max_value),
-                        height: Dimension::Auto,
+                        height: Dimension::Percent(1.0),
                     },
                     ..Default::default()
                 },
