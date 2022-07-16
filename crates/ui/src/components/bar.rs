@@ -10,6 +10,7 @@ pub struct BarProps {
     pub color: Vector4<f32>,
     pub gradient: Option<Gradient>,
     pub border_color: Vector4<f32>,
+    pub margin: Rect<Dimension>,
     pub width: Dimension,
 }
 
@@ -22,6 +23,7 @@ impl Default for BarProps {
             gradient: Default::default(),
             border_color: Vector4::new(0.0, 0.0, 0.0, 1.0),
             width: Default::default(),
+            margin: Default::default(),
         }
     }
 }
@@ -43,9 +45,10 @@ impl Bar {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Stretch,
                 justify_content: JustifyContent::FlexStart,
-                size: Size {
+                margin: props.margin,
+                min_size: Size {
                     width: props.width,
-                    height: Dimension::Points(40.0),
+                    height: Dimension::Auto,
                 },
                 ..Default::default()
             },
@@ -59,7 +62,6 @@ impl Bar {
                 },
                 FlexboxLayout {
                     position_type: taffy::style::PositionType::Absolute,
-                    padding: Rect::<Dimension>::from_points(2.0, 2.0, 2.0, 2.0),
                     justify_content: JustifyContent::Center,
                     size: Size {
                         width: Dimension::Percent(props.value / props.max_value),
@@ -73,7 +75,7 @@ impl Bar {
                     text: label.into(),
                     size: 14.0,
                 },
-                Rect::default(),
+                Rect::<Dimension>::from_points(2.0, 2.0, 1.0, 2.0),
                 AlignSelf::Center,
             ),
         ])
