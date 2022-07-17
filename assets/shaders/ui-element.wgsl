@@ -60,7 +60,6 @@ fn sigmoid(t: f32) -> f32 {
     return 1.0 / (1.0 + exp(-t));
 }
 
-
 // Fragment shader
 [[group(1), binding(0)]] var t_texture: texture_2d<f32>;
 [[group(1), binding(1)]] var t_sampler: sampler;
@@ -68,32 +67,36 @@ fn sigmoid(t: f32) -> f32 {
 [[stage(fragment)]]
 fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     if (uniforms.has_image == false) {
-        let angle = 1.5708 - uniforms.gradient_angle + atan2(in.coord.y, in.coord.x);
+        let position = in.position.xy + uniforms.shadow_radius * 0.5;
+        let hsize = uniforms.size * 0.5;
+        let center = uniforms.position + uniforms.size * 0.5;
         var final_color: vec4<f32> = uniforms.background;
+        var dist_radius: f32 = 0.0;
 
-        if (uniforms.shadow_radius > 0.0 || uniforms.border_radius > 0.0) {
-            let size = uniforms.size;
-            let position = in.position.xy + uniforms.shadow_radius * 0.5;
-            let center = uniforms.position + size * 0.5;
-            let hsize = size * 0.5;
+        // Border radius
+        if (uniforms.border_radius > 0.0 || uniforms.shadow_radius > 0.0) {
+            dist_radius = clamp(round_rect(
+                position - center,
+                hsize,
+                uniforms.border_radius),
+            0.0, 1.0);
+            final_color = vec4<f32>(final_color.rgb, final_color.a * (1.0 - dist_radius));
+        }
 
+        // Shadows
+        if (uniforms.shadow_radius > 0.0) {
             let dist_shadow = clamp(sigmoid(round_rect(
                 position - center - uniforms.shadow_offset,
                 hsize,
                 uniforms.border_radius + uniforms.shadow_radius)),
             0.0, 1.0);
 
-            let dist_radius = clamp(round_rect(
-                position - center,
-                hsize,
-                uniforms.border_radius),
-            0.0, 1.0);
-
             let shadow_color = vec4<f32>(uniforms.shadow_color.rgb, uniforms.shadow_color.a - dist_shadow);
-            let element_color = vec4<f32>(final_color.rgb, final_color.a * (1.0 - dist_radius));
-            final_color = mix(element_color, shadow_color, dist_radius);
+            final_color = mix(final_color, shadow_color, dist_radius);
         }
 
+        // Gradient
+        let angle = 1.5708 - uniforms.gradient_angle + atan2(in.coord.y, in.coord.x);
         let grad = cos(angle) * length(in.coord);
         final_color = mix(final_color, uniforms.background_end, smoothStep(0.0, 1.0, grad));
 
