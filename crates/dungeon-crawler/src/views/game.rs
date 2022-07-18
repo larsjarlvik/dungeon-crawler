@@ -18,9 +18,9 @@ fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> B
             max_value,
             border_color: style::PALETTE_LIGHT_GOLD.extend(1.0),
             margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
-            color: color.extend(1.0),
+            color: (color * 0.6).extend(1.0),
             gradient: Some(Gradient {
-                background_end: (color * 0.4).extend(1.0),
+                background_end: color.extend(1.0),
                 angle: 180.0,
             }),
             ..Default::default()

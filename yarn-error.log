@@ -1,0 +1,36 @@
+Arguments: 
+  /Users/ljarlvik/.nvm/versions/node/v17.5.0/bin/node /Users/ljarlvik/.nvm/versions/node/v17.5.0/bin/yarn add @kite-js/theme-japanican@0.23.174
+
+PATH: 
+  /Users/ljarlvik/.nvm/versions/node/v17.5.0/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+Yarn version: 
+  1.22.18
+
+Node version: 
+  17.5.0
+
+Platform: 
+  darwin arm64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/@kite-js%2ftheme-japanican: Not found
+      at Request.params.callback [as _callback] (/Users/ljarlvik/.nvm/versions/node/v17.5.0/lib/node_modules/yarn/lib/cli.js:66138:18)
+      at Request.self.callback (/Users/ljarlvik/.nvm/versions/node/v17.5.0/lib/node_modules/yarn/lib/cli.js:140883:22)
+      at Request.emit (node:events:526:28)
+      at Request.<anonymous> (/Users/ljarlvik/.nvm/versions/node/v17.5.0/lib/node_modules/yarn/lib/cli.js:141855:10)
+      at Request.emit (node:events:526:28)
+      at IncomingMessage.<anonymous> (/Users/ljarlvik/.nvm/versions/node/v17.5.0/lib/node_modules/yarn/lib/cli.js:141777:12)
+      at Object.onceWrapper (node:events:645:28)
+      at IncomingMessage.emit (node:events:538:35)
+      at endReadableNT (node:internal/streams/readable:1342:12)
+      at processTicksAndRejections (node:internal/process/task_queues:83:21)
+
+npm manifest: 
+  No manifest
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

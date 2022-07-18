@@ -16,7 +16,7 @@ pub const PALETTE_LIGHT_GOLD: Vector3<f32> = Vector3::new(0.902, 0.478, 0.0);
 pub const PALETTE_BROWN: Vector3<f32> = Vector3::new(0.235, 0.157, 0.114);
 pub const PALETTE_GRAY: Vector3<f32> = Vector3::new(0.133, 0.133, 0.133);
 pub const PALETTE_RED: Vector3<f32> = Vector3::new(0.435, 0.043, 0.0);
-pub const PALETTE_LIGHT_RED: Vector3<f32> = Vector3::new(0.870, 0.086, 0.0);
+pub const PALETTE_LIGHT_RED: Vector3<f32> = Vector3::new(0.652, 0.064, 0.0);
 pub const TEXT: Vector3<f32> = Vector3::new(1.0, 1.0, 1.0);
 
 pub const SHADOW_S: f32 = 1.0;
