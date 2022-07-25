@@ -12,8 +12,9 @@ use engine::pipelines::{
 mod game;
 mod main_menu;
 mod splash;
-use self::transition::Transition;
-use ui::{widgets::*, Event};
+use self::{main_menu::MainMenu, transition::Transition};
+use ui::{widgets::*, Event, MouseData};
+mod settings;
 mod style;
 mod transition;
 
@@ -23,6 +24,7 @@ pub struct Views {
     state: ui::State,
     view: Transition<GameState>,
     element_rects: Vec<NodeLayout>,
+    main_menu: MainMenu,
 }
 
 impl Views {
@@ -38,6 +40,7 @@ impl Views {
             state: ui::State::new(),
             view: Transition::new(GameState::Loading),
             element_rects: vec![],
+            main_menu: MainMenu::new(),
         }
     }
 
@@ -49,23 +52,28 @@ impl Views {
         let mut root = match self.view.state {
             world::GameState::Reload | world::GameState::Loading => splash::splash(),
             world::GameState::Running => game::game(ctx, &mut self.state, world),
-            world::GameState::MainMenu => main_menu::main_menu(&mut self.state, world),
-            world::GameState::Terminated => todo!(),
+            world::GameState::MainMenu => self.main_menu.draw(ctx, &mut self.state, world),
+            world::GameState::Terminated => unreachable!(),
         };
 
         let mouse = { &world.components.get_resource::<resources::Input>().unwrap().mouse };
         let nodes = self.ui.render(ctx, &mut root, ui_scale_x, self.ui_scale);
         let sx = ctx.viewport.width as f32 / ui_scale_x;
         let sy = ctx.viewport.height as f32 / self.ui_scale;
+        let mouse_pos = Point2::new(mouse.position.x / sx, mouse.position.y / sy);
+
         self.element_rects.clear();
 
         for (layout, widget) in nodes {
+            let position = Point2::new(layout.x * sx, layout.y * sy);
+            let size = Point2::new(layout.width * sx, layout.height * sy);
+
             match widget {
                 RenderWidget::Text(data) => {
                     GlyphPipeline::queue(
                         ctx,
                         GlyphProps {
-                            position: Point2::new(layout.x * sx, layout.y * sy),
+                            position,
                             text: data.text.clone(),
                             size: data.size * sy,
                             color: Vector4::new(1.0, 1.0, 1.0, opacity),
@@ -76,15 +84,17 @@ impl Views {
                 RenderWidget::Asset(data) => {
                     self.element_rects.push(layout.clone());
 
-                    if data.background == style::PALETTE_RED.extend(1.0) {
-                        // dbg!(&layout);
-                    }
-
-                    let background = if is_hover(&mouse.position, &layout, sx, sy) {
+                    let background = if is_hover(&mouse_pos, &layout) {
                         match mouse.state {
                             input::PressState::Released(repeat) => {
                                 if !repeat {
-                                    self.state.set_event(&data.key, Event::Click);
+                                    self.state.set_event(
+                                        &data.key,
+                                        Event::Click(MouseData {
+                                            x: mouse_pos.x,
+                                            y: mouse_pos.y,
+                                        }),
+                                    );
                                 }
 
                                 if mouse.touch {
@@ -94,7 +104,13 @@ impl Views {
                                 }
                             }
                             input::PressState::Pressed(_) => {
-                                self.state.set_event(&data.key, Event::MouseDown);
+                                self.state.set_event(
+                                    &data.key,
+                                    Event::MouseDown(MouseData {
+                                        x: (mouse_pos.x - layout.x) / layout.width,
+                                        y: (mouse_pos.y - layout.y) / layout.height,
+                                    }),
+                                );
                                 data.background_pressed.unwrap_or(data.background)
                             }
                         }
@@ -102,52 +118,58 @@ impl Views {
                         data.background
                     };
 
-                    let (background_end, gradient_angle) = if let Some(gradient) = &data.gradient {
-                        (gradient.background_end, gradient.angle)
-                    } else {
-                        (background, 0.0)
-                    };
+                    if data.visible {
+                        let (background_end, gradient_angle) = if let Some(gradient) = &data.gradient {
+                            (gradient.background_end, gradient.angle)
+                        } else {
+                            (background, 0.0)
+                        };
 
-                    ctx.images.queue(
-                        context::Data {
-                            position: Point2::new(layout.x * sx, layout.y * sy),
-                            size: Point2::new(layout.width * sx, layout.height * sy),
-                            background: self.state.get_transition(&data.key, background, frame_time),
-                            background_end,
-                            gradient_angle,
-                            foreground: data.foreground,
-                            border_radius: match data.border_radius {
-                                ui::prelude::Dimension::Points(p) => p * sy,
-                                ui::prelude::Dimension::Percent(p) => layout.height * sy * p,
-                                _ => 0.0,
+                        ctx.images.queue(
+                            context::Data {
+                                position,
+                                size,
+                                background: self.state.get_transition(&data.key, background, frame_time),
+                                background_end,
+                                gradient_angle,
+                                foreground: data.foreground,
+                                border_radius: match data.border_radius {
+                                    ui::prelude::Dimension::Points(p) => p * sy,
+                                    ui::prelude::Dimension::Percent(p) => layout.height * sy * p,
+                                    _ => 0.0,
+                                },
+                                shadow_radius: match data.shadow_radius {
+                                    ui::prelude::Dimension::Points(p) => p * sy,
+                                    ui::prelude::Dimension::Percent(p) => layout.height * sy * p,
+                                    _ => 0.0,
+                                },
+                                shadow_offset: match data.shadow_offset {
+                                    Some(shadow_offset) => shadow_offset * sy,
+                                    None => Vector2::new(0.0, 0.0),
+                                },
+                                shadow_color: data.shadow_color,
+                                opacity,
                             },
-                            shadow_radius: match data.shadow_radius {
-                                ui::prelude::Dimension::Points(p) => p * sy,
-                                ui::prelude::Dimension::Percent(p) => layout.height * sy * p,
-                                _ => 0.0,
-                            },
-                            shadow_offset: match data.shadow_offset {
-                                Some(shadow_offset) => shadow_offset * sy,
-                                None => Vector2::new(0.0, 0.0),
-                            },
-                            shadow_color: data.shadow_color,
-                            opacity,
-                        },
-                        data.asset_id.clone(),
-                    );
+                            data.asset_id.clone(),
+                        );
+                    }
                 }
                 _ => {}
             }
         }
     }
 
-    pub fn within_ui(&self, ctx: &engine::Context, mp: &Point2<f32>) -> bool {
+    pub fn to_ui_coords(&self, ctx: &engine::Context, coords: &Point2<f32>) -> Point2<f32> {
         let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
         let sx = ctx.viewport.width as f32 / ui_scale_x;
         let sy = ctx.viewport.height as f32 / self.ui_scale;
 
+        Point2::new(coords.x / sx, coords.y / sy)
+    }
+
+    pub fn within_ui(&self, mp: &Point2<f32>) -> bool {
         for rect in self.element_rects.iter() {
-            if is_hover(mp, &rect, sx, sy) {
+            if is_hover(mp, &rect) {
                 return true;
             }
         }
@@ -156,7 +178,6 @@ impl Views {
     }
 }
 
-fn is_hover(mp: &Point2<f32>, layout: &NodeLayout, sx: f32, sy: f32) -> bool {
-    let mp = Point2::new(mp.x / sx, mp.y / sy);
+fn is_hover(mp: &Point2<f32>, layout: &NodeLayout) -> bool {
     mp.x >= layout.x && mp.y >= layout.y && mp.x <= layout.x + layout.width && mp.y <= layout.y + layout.height
 }

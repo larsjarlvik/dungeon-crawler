@@ -2,9 +2,15 @@ use cgmath::*;
 use std::collections::HashMap;
 
 #[derive(Clone, Copy)]
+pub struct MouseData {
+    pub x: f32,
+    pub y: f32,
+}
+
+#[derive(Clone, Copy)]
 pub enum Event {
-    Click,
-    MouseDown,
+    Click(MouseData),
+    MouseDown(MouseData),
 }
 
 pub struct State {
@@ -37,31 +43,33 @@ impl State {
         }
     }
 
-    pub fn clicked(&mut self, key: &String) -> bool {
+    pub fn clicked(&mut self, key: &String) -> Option<MouseData> {
         if let Some(event) = self.events.get(key) {
             match event {
-                Event::Click => {
+                Event::Click(data) => {
+                    let data = *data;
                     self.events.remove(key);
-                    return true;
+                    return Some(data);
                 }
                 _ => {}
             }
         }
 
-        false
+        None
     }
 
-    pub fn mouse_down(&mut self, key: &String) -> bool {
+    pub fn mouse_down(&mut self, key: &String) -> Option<MouseData> {
         if let Some(event) = self.events.get(key) {
             match event {
-                Event::MouseDown => {
+                Event::MouseDown(data) => {
+                    let data = *data;
                     self.events.remove(key);
-                    return true;
+                    return Some(data);
                 }
                 _ => {}
             }
         }
 
-        false
+        None
     }
 }

@@ -21,6 +21,7 @@ pub struct AssetData {
     pub shadow_radius: Dimension,
     pub shadow_offset: Option<Vector2<f32>>,
     pub shadow_color: Vector4<f32>,
+    pub visible: bool,
 }
 
 impl Default for AssetData {
@@ -37,6 +38,7 @@ impl Default for AssetData {
             shadow_offset: None,
             gradient: None,
             shadow_color: Vector4::new(0.0, 0.0, 0.0, 1.0),
+            visible: true,
         }
     }
 }

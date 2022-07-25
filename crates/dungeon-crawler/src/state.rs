@@ -86,7 +86,9 @@ impl State {
 
     pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-        let on_ui = self.views.within_ui(&self.engine.ctx, &input.mouse.position);
+
+        let ui_coords = self.views.to_ui_coords(&self.engine.ctx, &input.mouse.position);
+        let on_ui = self.views.within_ui(&ui_coords);
 
         input.mouse_set_pressed(id, touch, pressed, on_ui);
     }

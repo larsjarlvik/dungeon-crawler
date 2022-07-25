@@ -133,15 +133,15 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
 pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
     let mut input = world.components.get_resource_mut::<resources::Input>().unwrap();
     let menu_button = Button::new("menu_button");
-    if ui_state.clicked(&menu_button.key) {
+    if ui_state.clicked(&menu_button.key).is_some() {
         world.game_state = GameState::MainMenu;
     }
 
     let attack_button = Button::new("attack_button");
-    input.set_from_ui(UiActionCode::Attack, ui_state.mouse_down(&attack_button.key));
+    input.set_from_ui(UiActionCode::Attack, ui_state.mouse_down(&attack_button.key).is_some());
 
     let health_button = Button::new("health_button");
-    input.set_from_ui(UiActionCode::Health, ui_state.mouse_down(&health_button.key));
+    input.set_from_ui(UiActionCode::Health, ui_state.mouse_down(&health_button.key).is_some());
 
     NodeWidget::new(FlexboxLayout {
         flex_direction: FlexDirection::Column,
