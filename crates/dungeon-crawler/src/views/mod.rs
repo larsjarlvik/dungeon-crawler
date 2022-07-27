@@ -29,17 +29,18 @@ pub struct Views {
 }
 
 impl Views {
-    pub fn new(ctx: &mut engine::Context, scale: f32) -> Self {
+    pub fn new(ctx: &mut engine::Context, scale: f32, view: GameState) -> Self {
         ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("icon.png"));
         ImageContext::add_texture(ctx, "menu", engine::file::read_bytes("icons/menu.png"));
         ImageContext::add_texture(ctx, "health", engine::file::read_bytes("icons/health.png"));
         ImageContext::add_texture(ctx, "attack", engine::file::read_bytes("icons/attack.png"));
+        ImageContext::add_texture(ctx, "check", engine::file::read_bytes("icons/check.png"));
 
         Self {
-            ui_scale: 1000.0 / scale,
+            ui_scale: 1000.0 / scale / ctx.settings.ui_scale,
             ui: ui::Ui::new(),
             state: ui::State::new(),
-            view: Transition::new(GameState::Loading),
+            view: Transition::new(view),
             element_rects: vec![],
             main_menu: MainMenu::new(),
             mouse_key: None,

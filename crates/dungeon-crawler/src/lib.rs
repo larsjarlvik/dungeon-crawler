@@ -1,5 +1,6 @@
 use cgmath::Point2;
 use engine::Settings;
+use views::Views;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -50,6 +51,7 @@ pub fn main() {
                 }
                 GameState::Reload => {
                     state.engine.ctx.settings = Settings::load();
+                    state.views = Views::new(&mut state.engine.ctx, window.scale_factor() as f32, GameState::Running);
                     state.resize(&window);
                     state.engine.reload_pipelines();
                     state.world.game_state = GameState::Running;

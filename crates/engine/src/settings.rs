@@ -13,6 +13,7 @@ pub struct Settings {
     pub fullscreen: bool,
     pub smaa: bool,
     pub sharpen: bool,
+    pub ui_scale: f32,
 }
 
 impl Default for Settings {
@@ -28,6 +29,7 @@ impl Default for Settings {
             fullscreen: false,
             smaa: true,
             sharpen: true,
+            ui_scale: 1.0,
         }
     }
 }

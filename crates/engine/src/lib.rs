@@ -139,6 +139,7 @@ impl Engine {
     }
 
     pub fn reload_pipelines(&mut self) {
+        self.ui_pipeline = pipelines::UiElementPipeline::new(&self.ctx);
         self.model_pipeline = pipelines::ModelPipeline::new(&self.ctx);
         self.particle_pipeline = pipelines::ParticlePipeline::new(&self.ctx);
         self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);

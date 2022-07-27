@@ -65,7 +65,7 @@ impl MainMenu {
 
         let mut children: Vec<Box<dyn BaseWidget>> = vec![menu_panel];
         match self.sub_menu {
-            SubMenu::Settings => children.push(settings::settings(ctx, ui_state)),
+            SubMenu::Settings => children.push(settings::settings(ctx, ui_state, world)),
             SubMenu::None => {}
         }
 
