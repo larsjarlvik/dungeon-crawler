@@ -20,7 +20,7 @@ impl MainMenu {
         }
     }
 
-    pub fn draw(&mut self, ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
+    pub fn draw(&mut self, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
         let resume_button = Button::new("resume_button");
         if ui_state.clicked(&resume_button.key).is_some() {
             self.sub_menu = SubMenu::None;
@@ -69,7 +69,7 @@ impl MainMenu {
 
         let mut children: Vec<Box<dyn BaseWidget>> = vec![menu_panel];
         match self.sub_menu {
-            SubMenu::Settings => children.push(self.settings.draw(ctx, ui_state, world)),
+            SubMenu::Settings => children.push(self.settings.draw(ui_state, world)),
             SubMenu::None => {}
         }
 

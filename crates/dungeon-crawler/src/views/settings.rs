@@ -16,7 +16,7 @@ impl Settings {
         }
     }
 
-    pub fn draw(&mut self, ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
+    pub fn draw(&mut self, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
         let contrast = create_slider(ui_state, "contrast", self.settings.contrast, 10.0, |val| {
             self.settings.contrast = (val * 20.0).round() / 2.0;
         });
@@ -34,15 +34,15 @@ impl Settings {
         });
 
         let anti_aliasing = create_checkbox(ui_state, "anti_aliasing", self.settings.smaa, || {
-            self.settings.smaa = !ctx.settings.smaa;
+            self.settings.smaa = !self.settings.smaa;
         });
 
         let sharpen = create_checkbox(ui_state, "sharpen", self.settings.sharpen, || {
-            self.settings.sharpen = !ctx.settings.sharpen;
+            self.settings.sharpen = !self.settings.sharpen;
         });
 
         let show_fps = create_checkbox(ui_state, "show_fps", self.settings.show_fps, || {
-            self.settings.show_fps = !ctx.settings.show_fps;
+            self.settings.show_fps = !self.settings.show_fps;
         });
 
         let apply_settings = Button::new("apply_settings");

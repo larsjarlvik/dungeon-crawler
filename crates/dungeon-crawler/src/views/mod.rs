@@ -55,7 +55,7 @@ impl Views {
         let mut root = match self.view.state {
             world::GameState::Reload | world::GameState::Loading => splash::splash(),
             world::GameState::Running => game::game(ctx, &mut self.state, world),
-            world::GameState::MainMenu => self.main_menu.draw(ctx, &mut self.state, world),
+            world::GameState::MainMenu => self.main_menu.draw(&mut self.state, world),
             world::GameState::Terminated => unreachable!(),
         };
 
