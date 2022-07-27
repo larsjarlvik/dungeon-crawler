@@ -37,7 +37,7 @@ impl Views {
         ImageContext::add_texture(ctx, "check", engine::file::read_bytes("icons/check.png"));
 
         Self {
-            ui_scale: 1000.0 / scale / ctx.settings.ui_scale,
+            ui_scale: 2000.0 / scale / ctx.settings.ui_scale,
             ui: ui::Ui::new(),
             state: ui::State::new(),
             view: Transition::new(view),

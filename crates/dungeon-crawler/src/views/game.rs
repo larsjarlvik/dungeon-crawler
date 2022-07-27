@@ -108,7 +108,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
                 height: Dimension::Auto,
             },
             max_size: Size {
-                width: Dimension::Points(250.0),
+                width: Dimension::Points(500.0),
                 height: Dimension::Auto,
             },
             ..Default::default()
@@ -121,7 +121,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
                 height: Dimension::Auto,
             },
             max_size: Size {
-                width: Dimension::Points(250.0),
+                width: Dimension::Points(500.0),
                 height: Dimension::Auto,
             },
             ..Default::default()

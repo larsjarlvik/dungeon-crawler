@@ -1,6 +1,7 @@
 use super::style;
 use crate::world;
 use crate::world::GameState;
+use engine::Settings;
 use ui::components::*;
 use ui::prelude::*;
 use ui::widgets::*;
@@ -15,7 +16,7 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<f32>) -> Box
         NodeWidget::new(FlexboxLayout {
             flex_direction: FlexDirection::Column,
             size: Size {
-                width: Dimension::Points(150.0),
+                width: Dimension::Points(300.0),
                 height: Dimension::Auto,
             },
             ..Default::default()
@@ -104,6 +105,11 @@ pub fn settings(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut
         world.game_state = GameState::Reload;
     }
 
+    let reset_settings = Button::new("reset_settings");
+    if ui_state.clicked(&reset_settings.key).is_some() {
+        ctx.settings = Settings::load();
+    }
+
     NodeWidget::new(FlexboxLayout {
         flex_direction: FlexDirection::Column,
         margin: Rect::from_points(0.0, 0.0, style::SL, style::SL),
@@ -125,12 +131,22 @@ pub fn settings(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut
             margin: Rect::from_points(0.0, 0.0, style::SM, 0.0),
             ..Default::default()
         })
-        .with_children(vec![apply_settings.draw(ButtonProps {
-            text: Some(("Apply".into(), style::BODY2)),
-            padding: Rect::from_points(style::SM, style::SM, style::SS, style::SS),
-            background: style::PALETTE_LIGHT_GOLD.extend(0.6),
-            border_radius: Dimension::Points(6.0),
-            ..Default::default()
-        })]),
+        .with_children(vec![
+            reset_settings.draw(ButtonProps {
+                text: Some(("Reset".into(), style::BODY2)),
+                padding: Rect::from_points(style::SM, style::SM, style::SS, style::SS),
+                margin: Rect::from_points(0.0, style::SM, 0.0, 0.0),
+                background: style::PALETTE_LIGHT_GRAY.extend(0.6),
+                border_radius: Dimension::Points(style::RADIUS_M),
+                ..Default::default()
+            }),
+            apply_settings.draw(ButtonProps {
+                text: Some(("Apply".into(), style::BODY2)),
+                padding: Rect::from_points(style::SM, style::SM, style::SS, style::SS),
+                background: style::PALETTE_LIGHT_GOLD.extend(0.6),
+                border_radius: Dimension::Points(style::RADIUS_M),
+                ..Default::default()
+            }),
+        ]),
     ])
 }

@@ -39,7 +39,7 @@ impl MainMenu {
                 flex_direction: FlexDirection::Column,
                 padding: Rect::<Dimension>::from_points(0.0, style::SM, 0.0, 0.0),
                 max_size: Size {
-                    width: Dimension::Points(400.0),
+                    width: Dimension::Points(800.0),
                     height: Dimension::Undefined,
                 },
                 size: Size {
@@ -103,7 +103,7 @@ fn menu_button_props(text: &str) -> ButtonProps {
         padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
         shadow_color: style::PALETTE_LIGHT_GOLD.extend(1.0),
         shadow_radius: Dimension::Points(style::SHADOW_S),
-        border_radius: Dimension::Points(5.0),
+        border_radius: Dimension::Points(style::RADIUS_M),
         ..Default::default()
     }
 }

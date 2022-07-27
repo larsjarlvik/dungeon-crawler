@@ -37,7 +37,7 @@ impl Bar {
         PanelWidget::new(
             AssetData {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
-                shadow_radius: Dimension::Points(1.0),
+                shadow_radius: Dimension::Points(2.0),
                 shadow_color: Vector4::new(1.0, 0.8, 0.0, 1.0),
                 ..Default::default()
             },
@@ -73,9 +73,9 @@ impl Bar {
             TextWidget::new(
                 TextData {
                     text: label.into(),
-                    size: 14.0,
+                    size: 28.0,
                 },
-                Rect::<Dimension>::from_points(2.0, 2.0, 1.0, 2.0),
+                Rect::<Dimension>::from_points(4.0, 4.0, 2.0, 4.0),
                 AlignSelf::Center,
             ),
         ])

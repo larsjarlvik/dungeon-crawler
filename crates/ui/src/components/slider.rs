@@ -21,7 +21,7 @@ impl Slider {
                 justify_content: JustifyContent::Center,
                 size: Size {
                     width: Dimension::Auto,
-                    height: Dimension::Points(24.0),
+                    height: Dimension::Points(48.0),
                 },
                 ..Default::default()
             },
@@ -33,8 +33,8 @@ impl Slider {
             },
             FlexboxLayout {
                 size: Size {
-                    width: Dimension::Points(260.0),
-                    height: Dimension::Points(4.0),
+                    width: Dimension::Points(520.0),
+                    height: Dimension::Points(6.0),
                 },
                 ..Default::default()
             },
@@ -48,7 +48,7 @@ impl Slider {
                 FlexboxLayout {
                     size: Size {
                         width: Dimension::Percent(self.value / self.max_value),
-                        height: Dimension::Points(4.0),
+                        height: Dimension::Points(6.0),
                     },
                     ..Default::default()
                 },
@@ -62,10 +62,10 @@ impl Slider {
                 FlexboxLayout {
                     position_type: PositionType::Absolute,
                     position: Rect::<Dimension>::from_percent(self.value / self.max_value, 0.0, 0.0, 0.0),
-                    margin: Rect::<Dimension>::from_points(-8.0, 0.0, -7.0, 0.0),
+                    margin: Rect::<Dimension>::from_points(-8.0, 0.0, -10.0, 0.0),
                     size: Size {
-                        width: Dimension::Points(16.0),
-                        height: Dimension::Points(16.0),
+                        width: Dimension::Points(24.0),
+                        height: Dimension::Points(24.0),
                     },
                     ..Default::default()
                 },
