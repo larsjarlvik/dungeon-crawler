@@ -47,7 +47,7 @@ impl MainMenu {
                     height: Dimension::Undefined,
                 },
                 size: Size {
-                    width: Dimension::Percent(0.35),
+                    width: Dimension::Percent(0.4),
                     height: Dimension::Percent(1.0),
                 },
                 ..Default::default()

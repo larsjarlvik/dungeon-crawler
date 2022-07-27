@@ -58,7 +58,7 @@ impl Settings {
 
         NodeWidget::new(FlexboxLayout {
             flex_direction: FlexDirection::Column,
-            margin: Rect::from_points(0.0, 0.0, style::SL, style::SL),
+            margin: Rect::from_points(0.0, 0.0, style::SM, 0.0),
             size: Size {
                 width: Dimension::Percent(1.0),
                 height: Dimension::Percent(1.0),
@@ -66,10 +66,18 @@ impl Settings {
             ..Default::default()
         })
         .with_children(vec![
-            setting("Contrast:", contrast.draw(), Some(contrast.value)),
-            setting("Render scale:", render_scale.draw(), Some(render_scale.value)),
-            setting("UI scale:", ui_scale.draw(), Some(ui_scale.value)),
-            setting("Shadow quality:", shadow_quality.draw(), Some(shadow_quality.value)),
+            setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
+            setting(
+                "Render scale:",
+                render_scale.draw(),
+                Some(format!("{:.0}%", render_scale.value)),
+            ),
+            setting("UI scale:", ui_scale.draw(), Some(format!("{:.0}%", ui_scale.value * 100.0))),
+            setting(
+                "Shadow quality:",
+                shadow_quality.draw(),
+                Some(format!("{:.2}", shadow_quality.value)),
+            ),
             setting("Anti aliasing:", anti_aliasing.draw(), None),
             setting("Sharpen:", sharpen.draw(), None),
             setting("Show FPS:", show_fps.draw(), None),
@@ -98,7 +106,7 @@ impl Settings {
     }
 }
 
-fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<f32>) -> Box<NodeWidget> {
+fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> Box<NodeWidget> {
     NodeWidget::new(FlexboxLayout {
         align_items: AlignItems::Center,
         margin: Rect::from_points(0.0, 0.0, 0.0, style::SM),
@@ -131,7 +139,7 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<f32>) -> Box
             vec![TextWidget::new(
                 TextData {
                     size: style::BODY2,
-                    text: format!("{:.2}", value),
+                    text: value,
                 },
                 Default::default(),
                 AlignSelf::FlexStart,
