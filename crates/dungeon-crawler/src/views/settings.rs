@@ -51,7 +51,7 @@ pub fn settings(ctx: &mut engine::Context, ui_state: &mut ui::State) -> Box<dyn 
     };
 
     if let Some(mouse) = ui_state.mouse_down(&contrast.key) {
-        ctx.settings.contrast = (mouse.x * 20.0).round() / 2.0;
+        ctx.settings.contrast = (mouse.x.max(0.0).min(1.0) * 20.0).round() / 2.0;
     }
 
     let render_scale = Slider {
@@ -61,7 +61,7 @@ pub fn settings(ctx: &mut engine::Context, ui_state: &mut ui::State) -> Box<dyn 
     };
 
     if let Some(mouse) = ui_state.mouse_down(&render_scale.key) {
-        ctx.settings.render_scale = (mouse.x * 20.0).round() / 20.0;
+        ctx.settings.render_scale = (mouse.x.max(0.0).min(1.0) * 20.0).round() / 20.0;
     }
 
     let shadow_quality = Slider {
@@ -71,7 +71,7 @@ pub fn settings(ctx: &mut engine::Context, ui_state: &mut ui::State) -> Box<dyn 
     };
 
     if let Some(mouse) = ui_state.mouse_down(&shadow_quality.key) {
-        ctx.settings.shadow_map_scale = (mouse.x * shadow_quality.max_value * 4.0).round() / 4.0;
+        ctx.settings.shadow_map_scale = (mouse.x.max(0.0).min(1.0) * shadow_quality.max_value * 4.0).round() / 4.0;
     }
 
     NodeWidget::new(FlexboxLayout {

@@ -25,6 +25,7 @@ pub struct Views {
     view: Transition<GameState>,
     element_rects: Vec<NodeLayout>,
     main_menu: MainMenu,
+    mouse_key: Option<(String, ui::widgets::NodeLayout)>,
 }
 
 impl Views {
@@ -41,6 +42,7 @@ impl Views {
             view: Transition::new(GameState::Loading),
             element_rects: vec![],
             main_menu: MainMenu::new(),
+            mouse_key: None,
         }
     }
 
@@ -63,6 +65,16 @@ impl Views {
         let mouse_pos = Point2::new(mouse.position.x / sx, mouse.position.y / sy);
 
         self.element_rects.clear();
+
+        if let Some((mouse_key, layout)) = &self.mouse_key {
+            self.state.set_event(
+                &Some(mouse_key.clone()),
+                Event::MouseDown(MouseData {
+                    x: (mouse_pos.x - layout.x) / layout.width,
+                    y: (mouse_pos.y - layout.y) / layout.height,
+                }),
+            );
+        }
 
         for (layout, widget) in nodes {
             let position = Point2::new(layout.x * sx, layout.y * sy);
@@ -87,6 +99,8 @@ impl Views {
                     let background = if is_hover(&mouse_pos, &layout) {
                         match mouse.state {
                             input::PressState::Released(repeat) => {
+                                self.mouse_key = None;
+
                                 if !repeat {
                                     self.state.set_event(
                                         &data.key,
@@ -104,13 +118,11 @@ impl Views {
                                 }
                             }
                             input::PressState::Pressed(_) => {
-                                self.state.set_event(
-                                    &data.key,
-                                    Event::MouseDown(MouseData {
-                                        x: (mouse_pos.x - layout.x) / layout.width,
-                                        y: (mouse_pos.y - layout.y) / layout.height,
-                                    }),
-                                );
+                                if self.mouse_key.is_none() {
+                                    if let Some(key) = &data.key {
+                                        self.mouse_key = Some((key.clone(), layout.clone()));
+                                    }
+                                }
                                 data.background_pressed.unwrap_or(data.background)
                             }
                         }
