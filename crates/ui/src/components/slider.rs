@@ -20,7 +20,7 @@ impl Slider {
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 size: Size {
-                    width: Dimension::Points(260.0),
+                    width: Dimension::Auto,
                     height: Dimension::Points(24.0),
                 },
                 ..Default::default()
@@ -28,13 +28,12 @@ impl Slider {
         )
         .with_children(vec![PanelWidget::new(
             AssetData {
-                key: self.key.clone().into(),
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
                 ..Default::default()
             },
             FlexboxLayout {
                 size: Size {
-                    width: Dimension::Points(200.0),
+                    width: Dimension::Points(260.0),
                     height: Dimension::Points(4.0),
                 },
                 ..Default::default()
