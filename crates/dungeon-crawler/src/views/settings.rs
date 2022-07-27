@@ -43,36 +43,30 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: f32) -> Box<NodeWid
     ])
 }
 
+fn create_slider<F: FnOnce(f32)>(ui_state: &mut ui::State, key: &str, value: f32, max_value: f32, handle: F) -> Slider {
+    if let Some(mouse) = ui_state.mouse_down(&key.to_string()) {
+        handle(mouse.x.max(0.0).min(1.0));
+    }
+
+    Slider {
+        key: key.into(),
+        value,
+        max_value,
+    }
+}
+
 pub fn settings(ctx: &mut engine::Context, ui_state: &mut ui::State) -> Box<dyn BaseWidget> {
-    let contrast = Slider {
-        key: "contrast".into(),
-        value: ctx.settings.contrast,
-        max_value: 10.0,
-    };
+    let contrast = create_slider(ui_state, "contrast", ctx.settings.contrast, 10.0, |val| {
+        ctx.settings.contrast = (val * 20.0).round() / 2.0;
+    });
 
-    if let Some(mouse) = ui_state.mouse_down(&contrast.key) {
-        ctx.settings.contrast = (mouse.x.max(0.0).min(1.0) * 20.0).round() / 2.0;
-    }
+    let render_scale = create_slider(ui_state, "render_scale", ctx.settings.render_scale * 100.0, 100.0, |val| {
+        ctx.settings.render_scale = (val * 20.0).round() / 20.0;
+    });
 
-    let render_scale = Slider {
-        key: "render_scale".into(),
-        value: ctx.settings.render_scale * 100.0,
-        max_value: 100.0,
-    };
-
-    if let Some(mouse) = ui_state.mouse_down(&render_scale.key) {
-        ctx.settings.render_scale = (mouse.x.max(0.0).min(1.0) * 20.0).round() / 20.0;
-    }
-
-    let shadow_quality = Slider {
-        key: "shadow_quality".into(),
-        value: ctx.settings.shadow_map_scale,
-        max_value: 4.0,
-    };
-
-    if let Some(mouse) = ui_state.mouse_down(&shadow_quality.key) {
-        ctx.settings.shadow_map_scale = (mouse.x.max(0.0).min(1.0) * shadow_quality.max_value * 4.0).round() / 4.0;
-    }
+    let shadow_quality = create_slider(ui_state, "shadow_quality", ctx.settings.shadow_map_scale, 4.0, |val| {
+        ctx.settings.shadow_map_scale = (val * 8.0).round() / 2.0;
+    });
 
     NodeWidget::new(FlexboxLayout {
         flex_direction: FlexDirection::Column,
