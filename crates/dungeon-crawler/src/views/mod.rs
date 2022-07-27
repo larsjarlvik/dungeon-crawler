@@ -42,7 +42,7 @@ impl Views {
             state: ui::State::new(),
             view: Transition::new(view),
             element_rects: vec![],
-            main_menu: MainMenu::new(),
+            main_menu: MainMenu::new(&ctx),
             mouse_key: None,
         }
     }

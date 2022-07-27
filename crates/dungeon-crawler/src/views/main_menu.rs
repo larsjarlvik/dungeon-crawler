@@ -1,4 +1,4 @@
-use super::{settings, style};
+use super::{settings::Settings, style};
 use crate::world::{self, GameState};
 use ui::{components::*, prelude::*, widgets::*};
 
@@ -9,11 +9,15 @@ enum SubMenu {
 
 pub struct MainMenu {
     sub_menu: SubMenu,
+    settings: Settings,
 }
 
 impl MainMenu {
-    pub fn new() -> Self {
-        Self { sub_menu: SubMenu::None }
+    pub fn new(ctx: &engine::Context) -> Self {
+        Self {
+            sub_menu: SubMenu::None,
+            settings: Settings::new(ctx),
+        }
     }
 
     pub fn draw(&mut self, ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
@@ -65,7 +69,7 @@ impl MainMenu {
 
         let mut children: Vec<Box<dyn BaseWidget>> = vec![menu_panel];
         match self.sub_menu {
-            SubMenu::Settings => children.push(settings::settings(ctx, ui_state, world)),
+            SubMenu::Settings => children.push(self.settings.draw(ctx, ui_state, world)),
             SubMenu::None => {}
         }
 
