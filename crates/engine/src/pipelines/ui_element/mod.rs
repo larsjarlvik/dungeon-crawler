@@ -7,7 +7,6 @@ pub mod context;
 pub struct UiElementPipeline {
     render_pipeline: builders::Pipeline,
     uniform_bind_group_layout: builders::MappedBindGroupLayout,
-    uniform_buffer: wgpu::Buffer,
     texture_bind_group_layout: builders::MappedBindGroupLayout,
     sampler: wgpu::Sampler,
 }
@@ -46,23 +45,25 @@ impl UiElementPipeline {
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
 
-        let builder = builders::RenderBundleBuilder::new(ctx, "asset");
-        let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<uniforms::Uniforms>() as u64);
         let sampler = texture::Texture::create_sampler(ctx, wgpu::AddressMode::ClampToEdge, wgpu::FilterMode::Linear, None);
 
         Self {
             render_pipeline,
             uniform_bind_group_layout,
-            uniform_buffer,
             texture_bind_group_layout,
             sampler,
         }
     }
 
     pub fn render(&self, ctx: &mut Context, target: &wgpu::TextureView) {
+        let mut bundles = vec![];
+
         for (id, data) in ctx.images.queue.iter() {
+            let builder = builders::RenderBundleBuilder::new(ctx, "asset");
+            let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<uniforms::Uniforms>() as u64);
+
             ctx.queue.write_buffer(
-                &self.uniform_buffer,
+                &uniform_buffer,
                 0,
                 bytemuck::cast_slice(&[Uniforms {
                     position: data.position.into(),
@@ -93,16 +94,18 @@ impl UiElementPipeline {
                 );
             }
 
-            let bundle = builders::RenderBundleBuilder::new(ctx, "asset")
-                .with_pipeline(&self.render_pipeline)
-                .with_uniform_bind_group(&self.uniform_bind_group_layout, &self.uniform_buffer)
-                .with_primitive(primitive_builder)
-                .build();
-
-            builders::RenderTargetBuilder::new(ctx, "particle")
-                .with_color_attachment(&target, wgpu::LoadOp::Load)
-                .execute_bundles(vec![&bundle]);
+            bundles.push(
+                builder
+                    .with_pipeline(&self.render_pipeline)
+                    .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer)
+                    .with_primitive(primitive_builder)
+                    .build(),
+            );
         }
+
+        builders::RenderTargetBuilder::new(ctx, "particle")
+            .with_color_attachment(&target, wgpu::LoadOp::Load)
+            .execute_bundles(bundles.iter().map(|b| b).collect());
 
         ctx.images.queue.clear();
     }
