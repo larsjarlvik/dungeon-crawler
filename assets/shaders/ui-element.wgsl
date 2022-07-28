@@ -1,29 +1,29 @@
 // Vertex shader
 struct Uniforms {
-    position: vec2<f32>;
-    size: vec2<f32>;
-    background: vec4<f32>;
-    background_end: vec4<f32>;
-    foreground: vec4<f32>;
-    shadow_color: vec4<f32>;
-    viewport_size: vec2<f32>;
-    shadow_offset: vec2<f32>;
-    border_radius: f32;
-    shadow_radius: f32;
-    opacity: f32;
-    has_image: bool;
-    gradient_angle: f32;
-};
+    position: vec2<f32>,
+    size: vec2<f32>,
+    background: vec4<f32>,
+    background_end: vec4<f32>,
+    foreground: vec4<f32>,
+    shadow_color: vec4<f32>,
+    viewport_size: vec2<f32>,
+    shadow_offset: vec2<f32>,
+    border_radius: f32,
+    shadow_radius: f32,
+    opacity: f32,
+    has_image: u32,
+    gradient_angle: f32,
+}
 
-[[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
 
 struct VertexOutput {
-    [[builtin(position)]] position: vec4<f32>;
-    [[location(0)]] coord: vec2<f32>;
-};
+    @builtin(position) position: vec4<f32>,
+    @location(0) coord: vec2<f32>,
+}
 
-[[stage(vertex)]]
-fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
+@vertex
+fn vert_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     let x = i32(vertex_index) / 2;
     let y = i32(vertex_index) & 1;
     let tc = vec2<f32>(f32(x), f32(y));
@@ -61,12 +61,12 @@ fn sigmoid(t: f32) -> f32 {
 }
 
 // Fragment shader
-[[group(1), binding(0)]] var t_texture: texture_2d<f32>;
-[[group(1), binding(1)]] var t_sampler: sampler;
+@group(1) @binding(0) var t_texture: texture_2d<f32>;
+@group(1) @binding(1) var t_sampler: sampler;
 
-[[stage(fragment)]]
-fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    if (uniforms.has_image == false) {
+@fragment
+fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
+    if (uniforms.has_image == u32(0)) {
         let position = in.position.xy + uniforms.shadow_radius * 0.5;
         let hsize = uniforms.size * 0.5;
         let center = uniforms.position + uniforms.size * 0.5;
@@ -98,7 +98,7 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
         // Gradient
         let angle = 1.5708 - uniforms.gradient_angle + atan2(in.coord.y, in.coord.x);
         let grad = cos(angle) * length(in.coord);
-        final_color = mix(final_color, uniforms.background_end, smoothStep(0.0, 1.0, grad));
+        final_color = mix(final_color, uniforms.background_end, smoothstep(0.0, 1.0, grad));
 
         return vec4<f32>(final_color.rgb, final_color.a * uniforms.opacity);
     }

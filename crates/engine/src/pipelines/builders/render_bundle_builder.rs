@@ -12,7 +12,7 @@ pub struct RenderBundleBuilder<'a> {
     pipeline: Option<&'a wgpu::RenderPipeline>,
     bind_groups: Vec<(u64, wgpu::BindGroup)>,
     primitives: Vec<primitive_builder::PrimitiveBuilder<'a>>,
-    color_targets: Option<&'a Vec<wgpu::TextureFormat>>,
+    color_targets: Option<&'a Vec<Option<wgpu::TextureFormat>>>,
     depth_target: &'a Option<wgpu::RenderBundleDepthStencil>,
     buffers: Vec<&'a wgpu::Buffer>,
     label: &'a str,
@@ -88,7 +88,7 @@ impl<'a> RenderBundleBuilder<'a> {
     pub fn build(self) -> wgpu::RenderBundle {
         let mut encoder = self.ctx.device.create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {
             label: Some(format!("{}_encoder", self.label).as_str()),
-            color_formats: self.color_targets.expect("Missing color target!").as_slice(),
+            color_formats: self.color_targets.expect("Missing color targets!").as_slice(),
             depth_stencil: *self.depth_target,
             sample_count: 1,
             multiview: None,

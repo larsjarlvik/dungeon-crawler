@@ -1,59 +1,60 @@
 // Vertex shader
 struct Light {
-    position: vec3<f32>;
-    radius: f32;
-    color: vec3<f32>;
-    bloom: f32;
-};
+    position: vec3<f32>,
+    radius: f32,
+    color: vec3<f32>,
+    bloom: f32,
+}
 
 struct Uniforms {
-    view_proj: mat4x4<f32>;
-    model: mat4x4<f32>;
-    inv_model: mat4x4<f32>;
-    joint_transforms: array<mat4x4<f32>, 64>;
-    highlight: f32;
-    is_animated: bool;
-};
+    view_proj: mat4x4<f32>,
+    model: mat4x4<f32>,
+    inv_model: mat4x4<f32>,
+    joint_transforms: array<mat4x4<f32>, 64>,
+    highlight: f32,
+    is_animated: u32,
+    _padding: vec2<f32>,
+}
 
 struct EnvironmentUniforms {
-    eye_pos: vec3<f32>;
-    target: vec3<f32>;
-    light: array<Light, 16>;
-    light_count: i32;
-    contrast: f32;
-};
+    eye_pos: vec3<f32>,
+    eye_target: vec3<f32>,
+    light: array<Light, 16>,
+    light_count: i32,
+    contrast: f32,
+}
 
 struct PrimitiveUniforms {
-    orm_factor: vec4<f32>;
-    base_color: vec4<f32>;
-    has_textures: bool;
-};
+    orm_factor: vec4<f32>,
+    base_color: vec4<f32>,
+    has_textures: u32,
+    _padding: vec3<f32>,
+}
 
-
-[[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
-[[group(1), binding(0)]] var<uniform> env_uniforms: EnvironmentUniforms;
-[[group(2), binding(0)]] var<uniform> primitive_uniforms: PrimitiveUniforms;
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(1) @binding(0) var<uniform> env_uniforms: EnvironmentUniforms;
+@group(2) @binding(0) var<uniform> primitive_uniforms: PrimitiveUniforms;
 
 struct VertexInput {
-    [[location(0)]] position: vec3<f32>;
-    [[location(1)]] normal: vec3<f32>;
-    [[location(2)]] tangent: vec4<f32>;
-    [[location(3)]] tex_coord: vec2<f32>;
-    [[location(4)]] weights: vec4<f32>;
-    [[location(5)]] joints: vec4<u32>;
-};
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) tangent: vec4<f32>,
+    @location(3) tex_coord: vec2<f32>,
+    @location(4) weights: vec4<f32>,
+    @location(5) joints: vec4<u32>,
+}
 
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] tex_coord: vec2<f32>;
-    [[location(1)]] normal_w: vec3<f32>;
-    [[location(2)]] tangent_w: vec3<f32>;
-    [[location(3)]] bitangent_w: vec3<f32>;
-    [[location(4)]] highlight: f32;
-    [[location(5)]] world_position: vec4<f32>;
-};
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) tex_coord: vec2<f32>,
+    @location(1) normal_w: vec3<f32>,
+    @location(2) tangent_w: vec3<f32>,
+    @location(3) bitangent_w: vec3<f32>,
+    @location(4) highlight: f32,
+    @location(5) world_position: vec4<f32>,
+}
 
-[[stage(vertex)]]
+@vertex
 fn vert_main(model: VertexInput) -> VertexOutput {
     var out: VertexOutput;
 
@@ -64,7 +65,7 @@ fn vert_main(model: VertexInput) -> VertexOutput {
         vec4<f32>(0.0, 0.0, 0.0, 0.0),
     );
 
-    if (uniforms.is_animated) {
+    if (uniforms.is_animated == u32(1)) {
         let w = model.weights;
 
         for (var i: i32 = 0; i < 4; i = i + 1) {
@@ -101,26 +102,26 @@ fn vert_main(model: VertexInput) -> VertexOutput {
 // Fragment shader
 let M_PI = 3.141592653589793;
 
-[[group(3), binding(0)]] var t_base_color: texture_2d<f32>;
-[[group(3), binding(1)]] var t_normal: texture_2d<f32>;
-[[group(3), binding(2)]] var t_occlusion_roughness_metallic: texture_2d<f32>;
-[[group(3), binding(3)]] var t_sampler: sampler;
+@group(3) @binding(0) var t_base_color: texture_2d<f32>;
+@group(3) @binding(1) var t_normal: texture_2d<f32>;
+@group(3) @binding(2) var t_occlusion_roughness_metallic: texture_2d<f32>;
+@group(3) @binding(3) var t_sampler: sampler;
 
 struct PBRInfo {
-    n_dot_l: f32;
-    n_dot_v: f32;
-    n_dot_h: f32;
-    l_dot_h: f32;
-    v_dot_h: f32;
-    roughness: f32;
-    metalness: f32;
-    reflectance0: vec3<f32>;
-    reflectance90: vec3<f32>;
-    roughness_sq: f32;
-    roughness_sq2: f32;
-    diffuse: vec3<f32>;
-    specular: vec3<f32>;
-};
+    n_dot_l: f32,
+    n_dot_v: f32,
+    n_dot_h: f32,
+    l_dot_h: f32,
+    v_dot_h: f32,
+    roughness: f32,
+    metalness: f32,
+    reflectance0: vec3<f32>,
+    reflectance90: vec3<f32>,
+    roughness_sq: f32,
+    roughness_sq2: f32,
+    diffuse: vec3<f32>,
+    specular: vec3<f32>,
+}
 
 fn specularReflection(pbr: PBRInfo) -> vec3<f32> {
     return pbr.reflectance0 + (pbr.reflectance90 - pbr.reflectance0) * pow(clamp(1.0 - pbr.v_dot_h, 0.0, 1.0), 5.0);
@@ -164,8 +165,8 @@ fn apply_point_glow(wpos: vec3<f32>, dir: vec3<f32>, max_dist: f32, position: ve
     return strength * 0.025 * pow(bloom, 0.65);
 }
 
-[[stage(fragment)]]
-fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var color: vec4<f32>;
     var orm: vec4<f32>;
     var tangent: vec4<f32>;
@@ -173,7 +174,7 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     var normal_t: vec4<f32>;
 
 
-    if (primitive_uniforms.has_textures) {
+    if (primitive_uniforms.has_textures == u32(1)) {
         color = textureSample(t_base_color, t_sampler, in.tex_coord);
         orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord) * primitive_uniforms.orm_factor;
 
@@ -201,7 +202,7 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     pbr.reflectance0 = pbr.specular.rgb;
     pbr.reflectance90 = vec3<f32>(1.0) * clamp(max(max(pbr.specular.r, pbr.specular.g), pbr.specular.b) * 5.0, 0.0, 1.0);
 
-    var total_light: vec3<f32> = vec3<f32>(smoothStep(0.1, 0.0, distance(env_uniforms.target, position) * 0.015) * 0.1);
+    var total_light: vec3<f32> = vec3<f32>(smoothstep(0.1, 0.0, distance(env_uniforms.eye_target, position) * 0.015) * 0.1);
 
     pbr.n_dot_v = clamp(abs(dot(normal.xyz, view_dir)), 0.001, 1.0);
     let reflection = -normalize(reflect(view_dir, normal.xyz));
@@ -211,7 +212,7 @@ fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
         let light_dist = distance(light.position, position);
         if (light_dist > light.radius) { continue; }
 
-        let attenuation = smoothStep(light.radius, 0.0, light_dist);
+        let attenuation = smoothstep(light.radius, 0.0, light_dist);
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(light_dir + view_dir);
 

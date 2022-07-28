@@ -2,9 +2,9 @@ use crate::world::*;
 use bevy_ecs::prelude::*;
 
 pub fn aggression(
-    mut query: QuerySet<(
-        QueryState<(&components::Target, &engine::ecs::components::Transform)>,
-        QueryState<(
+    mut query: ParamSet<(
+        Query<(&components::Target, &engine::ecs::components::Transform)>,
+        Query<(
             &mut components::Agressor,
             &mut components::Movement,
             &mut components::Action,
@@ -14,9 +14,9 @@ pub fn aggression(
         )>,
     )>,
 ) {
-    let targets: Vec<Vector3<f32>> = query.q0().iter().map(|t| t.1.translation.current.clone()).collect();
+    let targets: Vec<Vector3<f32>> = query.p0().iter().map(|t| t.1.translation.current.clone()).collect();
 
-    for (mut agressor, mut movement, mut action, stats, weapon, transform) in query.q1().iter_mut() {
+    for (mut agressor, mut movement, mut action, stats, weapon, transform) in query.p1().iter_mut() {
         for target_transform in targets.iter() {
             let distance = transform.translation.current.distance(*target_transform);
             let range = if agressor.is_aggressive {

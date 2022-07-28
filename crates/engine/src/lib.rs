@@ -175,7 +175,7 @@ impl Engine {
                     format: config::COLOR_TEXTURE_FORMAT,
                     width: self.ctx.viewport.width,
                     height: self.ctx.viewport.height,
-                    present_mode: wgpu::PresentMode::Immediate,
+                    present_mode: wgpu::PresentMode::AutoNoVsync,
                 },
             );
         }
@@ -228,7 +228,7 @@ pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, size: P
             format: config::COLOR_TEXTURE_FORMAT,
             width: size.x,
             height: size.y,
-            present_mode: wgpu::PresentMode::Immediate,
+            present_mode: wgpu::PresentMode::AutoNoVsync,
         },
     );
 }

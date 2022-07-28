@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use bevy_transform::hierarchy::{BuildChildren, DespawnRecursiveExt};
+use bevy_hierarchy::*;
 use rand::{prelude::StdRng, Rng, SeedableRng};
 
 use crate::world::*;

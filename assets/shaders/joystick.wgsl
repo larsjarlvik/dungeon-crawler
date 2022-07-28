@@ -1,20 +1,20 @@
 // Vertex shader
 struct Uniforms {
-    center: vec2<f32>;
-    current: vec2<f32>;
-    radius: f32;
-    aspect: f32;
-};
+    center: vec2<f32>,
+    current: vec2<f32>,
+    radius: f32,
+    aspect: f32,
+}
 
-[[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
 
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] coord: vec2<f32>;
-};
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) coord: vec2<f32>,
+}
 
-[[stage(vertex)]]
-fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
+@vertex
+fn vert_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     var out: VertexOutput;
 
     let x = i32(vertex_index) / 2;
@@ -31,8 +31,8 @@ fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> VertexOutput {
     return out;
 }
 
-[[stage(fragment)]]
-fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let fade = (1.0 - length(in.coord.xy)) + 0.3;
     let outer = step(length(in.coord.xy), 1.0);
     let inner = step(length(in.coord.xy), 0.95) * fade;

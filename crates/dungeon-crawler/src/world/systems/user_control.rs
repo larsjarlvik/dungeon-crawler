@@ -7,8 +7,8 @@ use winit::event::VirtualKeyCode;
 
 pub fn user_control(
     input: Res<resources::Input>,
-    mut query: QuerySet<(
-        QueryState<
+    mut query: ParamSet<(
+        Query<
             (
                 &engine::ecs::components::Transform,
                 &mut components::Movement,
@@ -18,13 +18,13 @@ pub fn user_control(
             ),
             With<components::UserControl>,
         >,
-        QueryState<(&components::Agressor, &engine::ecs::components::Transform)>,
+        Query<(&components::Agressor, &engine::ecs::components::Transform)>,
     )>,
 ) {
     let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
-    let targets: Vec<Vector3<f32>> = query.q1().iter().map(|(_, t)| t.translation.current.clone()).collect();
+    let targets: Vec<Vector3<f32>> = query.p1().iter().map(|(_, t)| t.translation.current.clone()).collect();
 
-    for (transform, mut movement, mut action, mut stats, weapon) in query.q0().iter_mut() {
+    for (transform, mut movement, mut action, mut stats, weapon) in query.p0().iter_mut() {
         if let Some(joystick) = &input.joystick {
             if action.current == components::CurrentAction::None {
                 movement.velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
