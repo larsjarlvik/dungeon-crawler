@@ -24,18 +24,49 @@ struct Uniforms {
 [[group(1), binding(0)]] var t_texture: texture_2d<f32>;
 [[group(1), binding(1)]] var t_sampler: sampler;
 
-fn sharp(pix_coord: f32) -> f32 {
-    let norm = (fract(pix_coord) - 0.5) * 2.0;
-    let norm2 = norm * norm;
-    return floor(pix_coord) + norm * pow(norm2, 2.0) / 2.0 + 0.5;
-}
 
 [[stage(fragment)]]
 fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
+    let uv = coord.xy / uniforms.viewport;
+    let col = textureSample(t_texture, t_sampler, uv);
+
     if (!uniforms.sharpen) {
-        return textureSample(t_texture, t_sampler, coord.xy / uniforms.viewport);
+        return col;
     }
 
-    let pos = vec2<f32>(sharp(coord.x * uniforms.scale) / uniforms.scale, sharp(coord.y * uniforms.scale) / uniforms.scale);
-    return textureSample(t_texture, t_sampler, pos / uniforms.viewport);
+    let scaled_size = uniforms.viewport / uniforms.scale;
+
+    var max_g: f32 = col.y;
+    var min_g: f32 = col.y;
+    var uvoff: vec4<f32> = vec4<f32>(1.0, 1.0, -1.0, -1.0) / vec4<f32>(scaled_size.x, scaled_size.x, scaled_size.y, scaled_size.y);
+    var col1: vec3<f32> = textureSample(t_texture, t_sampler, uv+uvoff.yw).xyz;
+    max_g = max(max_g, col1.y);
+    min_g = min(min_g, col1.y);
+    var colw: vec3<f32> = col1;
+    col1 = textureSample(t_texture, t_sampler, uv + uvoff.xy).xyz;
+    max_g = max(max_g, col1.y);
+    min_g = min(min_g, col1.y);
+    colw = colw + col1;
+    col1 = textureSample(t_texture, t_sampler, uv + uvoff.yz).xyz;
+    max_g = max(max_g, col1.y);
+    min_g = min(min_g, col1.y);
+    colw = colw + col1;
+    col1 = textureSample(t_texture, t_sampler, uv - uvoff.xy).xyz;
+    max_g = max(max_g, col1.y);
+    min_g = min(min_g, col1.y);
+    colw = colw + col1;
+
+    let d_min_g = min_g;
+    let d_max_g = 1.0 - max_g;
+    var amp: f32;
+    let max_g = max(0.0 , max_g);
+    if (d_max_g < d_min_g) {
+        amp = d_max_g / max_g;
+    } else {
+        amp = d_min_g / max_g;
+    }
+    amp = sqrt(max(0.0, amp)) * -0.18;
+    let col_out = (col.xyz + colw * vec3<f32>(amp)) / vec3<f32>(1.0 + 4.0 * amp);
+
+    return vec4<f32>(col_out, 1.0);
 }
