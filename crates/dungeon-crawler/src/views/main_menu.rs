@@ -46,8 +46,12 @@ impl MainMenu {
                     width: Dimension::Points(800.0),
                     height: Dimension::Undefined,
                 },
+                min_size: Size {
+                    width: Dimension::Points(500.0),
+                    height: Dimension::Undefined,
+                },
                 size: Size {
-                    width: Dimension::Percent(0.4),
+                    width: Dimension::Percent(0.3),
                     height: Dimension::Percent(1.0),
                 },
                 ..Default::default()
@@ -97,7 +101,7 @@ impl MainMenu {
 
 fn menu_button_props(text: &str) -> ButtonProps {
     ButtonProps {
-        background: style::PALETTE_GOLD.extend(0.15),
+        background: style::PALETTE_GOLD.extend(0.3),
         gradient: Some(Gradient {
             background_end: style::PALETTE_BROWN.extend(0.0),
             angle: 90.0,
