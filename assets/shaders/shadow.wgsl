@@ -1,19 +1,19 @@
 
 struct Uniforms {
-    shadow_matrix: mat4x4<f32>;
-    inv_view_proj: mat4x4<f32>;
-    viewport_size: vec2<f32>;
-};
+    shadow_matrix: mat4x4<f32>,
+    inv_view_proj: mat4x4<f32>,
+    viewport_size: vec2<f32>,
+}
 
-[[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
 
-[[group(1), binding(0)]] var t_depth: texture_2d<f32>;
-[[group(1), binding(1)]] var t_color: texture_2d<f32>;
-[[group(1), binding(2)]] var t_shadow: texture_depth_2d;
-[[group(1), binding(3)]] var t_shadow_sampler: sampler_comparison;
+@group(1) @binding(0) var t_depth: texture_2d<f32>;
+@group(1) @binding(1) var t_color: texture_2d<f32>;
+@group(1) @binding(2) var t_shadow: texture_depth_2d;
+@group(1) @binding(3) var t_shadow_sampler: sampler_comparison;
 
-[[stage(vertex)]]
-fn vert_main([[builtin(vertex_index)]] vertex_index: u32) -> [[builtin(position)]] vec4<f32> {
+@vertex
+fn vert_main(@builtin(vertex_index) vertex_index: u32) -> @builtin(position) vec4<f32> {
     let x = i32(vertex_index) / 2;
     let y = i32(vertex_index) & 1;
     let tc = vec2<f32>(f32(x) * 2.0, f32(y) * 2.0);
@@ -35,8 +35,8 @@ fn world_pos_from_depth(tex_coord: vec2<f32>, depth: f32, inv_matrix: mat4x4<f32
 
 let min_shadow = 0.3;
 
-[[stage(fragment)]]
-fn frag_main([[builtin(position)]] coord: vec4<f32>) -> [[location(0)]] vec4<f32> {
+@fragment
+fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     var c: vec2<i32> = vec2<i32>(coord.xy);
     var depth: f32 = textureLoad(t_depth, c, 0).r;
     let color = textureLoad(t_color, c, 0);

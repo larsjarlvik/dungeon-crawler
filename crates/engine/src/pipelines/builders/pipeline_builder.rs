@@ -22,7 +22,7 @@ pub struct PipelineBuilder<'a> {
 
 pub struct Pipeline {
     pub render_pipeline: wgpu::RenderPipeline,
-    pub color_targets: Vec<wgpu::TextureFormat>,
+    pub color_targets: Vec<Option<wgpu::TextureFormat>>,
     pub depth_target: Option<wgpu::RenderBundleDepthStencil>,
 }
 
@@ -44,7 +44,7 @@ impl<'a> PipelineBuilder<'a> {
     }
 
     pub fn with_shader(mut self, path: &str) -> Self {
-        self.shader = Some(self.ctx.device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+        self.shader = Some(self.ctx.device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some(format!("{}_shader", self.label).as_str()),
             source: wgpu::ShaderSource::Wgsl(Cow::from(file::read_string(path).as_str())),
         }));
@@ -117,8 +117,8 @@ impl<'a> PipelineBuilder<'a> {
         }
     }
 
-    pub fn with_color_targets(mut self, formats: Vec<wgpu::TextureFormat>) -> Self {
-        self.color_targets = formats;
+    pub fn with_color_targets(mut self, targets: Vec<wgpu::TextureFormat>) -> Self {
+        self.color_targets = targets;
         self
     }
 
@@ -170,13 +170,15 @@ impl<'a> PipelineBuilder<'a> {
         });
 
         let blend = self.blend;
-        let color_targets: Vec<wgpu::ColorTargetState> = self
+        let color_targets: Vec<Option<wgpu::ColorTargetState>> = self
             .color_targets
             .iter()
-            .map(|format| wgpu::ColorTargetState {
-                format: *format,
-                blend,
-                write_mask: wgpu::ColorWrites::ALL,
+            .map(|format| {
+                Some(wgpu::ColorTargetState {
+                    format: *format,
+                    blend,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })
             })
             .collect();
 
@@ -231,7 +233,7 @@ impl<'a> PipelineBuilder<'a> {
 
         Pipeline {
             render_pipeline,
-            color_targets: self.color_targets,
+            color_targets: self.color_targets.into_iter().map(|ct| Some(ct)).collect(),
             depth_target: self.depth_target,
         }
     }

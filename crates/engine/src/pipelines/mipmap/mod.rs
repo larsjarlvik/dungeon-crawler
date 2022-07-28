@@ -55,14 +55,14 @@ pub fn generate_mipmaps(ctx: &Context, encoder: &mut wgpu::CommandEncoder, textu
 
         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &views[target_mip],
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: None,
         });
 

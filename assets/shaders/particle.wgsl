@@ -2,31 +2,31 @@
 let M_PI = 3.141592653589793;
 
 struct Uniforms {
-    view: mat4x4<f32>;
-    proj: mat4x4<f32>;
-    model: mat4x4<f32>;
-    start_color: vec4<f32>;
-    end_color: vec4<f32>;
-    time: f32;
-    strength: f32;
-    size: f32;
-};
+    view: mat4x4<f32>,
+    proj: mat4x4<f32>,
+    model: mat4x4<f32>,
+    start_color: vec4<f32>,
+    end_color: vec4<f32>,
+    time: f32,
+    strength: f32,
+    size: f32,
+}
 
-[[group(0), binding(0)]] var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
 
 struct VertexInput {
-    [[location(0)]] position: vec2<f32>;
-    [[location(1)]] particle_life_speed: vec2<f32>;
-    [[location(2)]] particle_pos: vec3<f32>;
-};
+    @location(0) position: vec2<f32>,
+    @location(1) particle_life_speed: vec2<f32>,
+    @location(2) particle_pos: vec3<f32>,
+}
 
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] elapsed: f32;
-    [[location(1)]] position: vec2<f32>;
-};
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) elapsed: f32,
+    @location(1) position: vec2<f32>,
+}
 
-[[stage(vertex)]]
+@vertex
 fn vert_main(model: VertexInput) -> VertexOutput {
     var out: VertexOutput;
 
@@ -57,8 +57,8 @@ fn vert_main(model: VertexInput) -> VertexOutput {
 }
 
 // Fragment shader
-[[stage(fragment)]]
-fn frag_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let opacity = 1.0 - pow(distance(in.position, vec2<f32>(0.0, 0.0)) / uniforms.size, 0.5);
     let color = mix(uniforms.start_color, uniforms.end_color, clamp(in.elapsed * 4.0, 0.0, 1.0));
     return vec4<f32>(color.r, color.g, color.b, color.a * opacity * uniforms.strength);

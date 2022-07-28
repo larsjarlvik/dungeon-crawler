@@ -2,7 +2,7 @@ use crate::Context;
 
 pub struct RenderTargetBuilder<'a> {
     ctx: &'a Context,
-    color_attachments: Vec<wgpu::RenderPassColorAttachment<'a>>,
+    color_attachments: Vec<Option<wgpu::RenderPassColorAttachment<'a>>>,
     depth_attachment: Option<wgpu::RenderPassDepthStencilAttachment<'a>>,
     label: &'a str,
 }
@@ -18,11 +18,11 @@ impl<'a> RenderTargetBuilder<'a> {
     }
 
     pub fn with_color_attachment(mut self, view: &'a wgpu::TextureView, load: wgpu::LoadOp<wgpu::Color>) -> Self {
-        self.color_attachments.push(wgpu::RenderPassColorAttachment {
+        self.color_attachments.push(Some(wgpu::RenderPassColorAttachment {
             view,
             resolve_target: None,
             ops: wgpu::Operations { load, store: true },
-        });
+        }));
         self
     }
 
@@ -43,7 +43,7 @@ impl<'a> RenderTargetBuilder<'a> {
         encoder
             .begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some(format!("{}_render_pass", self.label).as_str()),
-                color_attachments: &self.color_attachments,
+                color_attachments: self.color_attachments.as_slice(),
                 depth_stencil_attachment: self.depth_attachment,
             })
             .execute_bundles(bundles.into_iter());
