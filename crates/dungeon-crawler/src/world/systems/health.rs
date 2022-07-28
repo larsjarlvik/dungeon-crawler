@@ -1,17 +1,17 @@
 use crate::{config, world::components};
 use bevy_ecs::prelude::*;
-use bevy_transform::hierarchy::DespawnRecursiveExt;
+use bevy_hierarchy::*;
 
 pub fn health(
     mut commands: Commands,
-    mut query: QuerySet<(
-        QueryState<(Entity, &mut components::Stats, Option<&mut components::Action>)>,
-        QueryState<&mut components::Stats>,
+    mut query: ParamSet<(
+        Query<(Entity, &mut components::Stats, Option<&mut components::Action>)>,
+        Query<&mut components::Stats>,
     )>,
 ) {
     let mut total_experience = vec![];
 
-    for (entity, mut stats, mut action) in query.q0().iter_mut() {
+    for (entity, mut stats, mut action) in query.p0().iter_mut() {
         let previous = stats.health.current;
 
         stats.health.changes = stats
@@ -55,7 +55,7 @@ pub fn health(
         }
     }
 
-    for mut stats in query.q1().iter_mut() {
+    for mut stats in query.p1().iter_mut() {
         let level = stats.get_level();
 
         for (exp, kill_level) in total_experience.iter() {

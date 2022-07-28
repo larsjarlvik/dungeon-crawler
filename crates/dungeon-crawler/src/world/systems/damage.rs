@@ -1,6 +1,5 @@
 use crate::world::components;
 use bevy_ecs::prelude::*;
-use bevy_transform::hierarchy::DespawnRecursiveExt;
 use cgmath::*;
 use engine::collision::{Intersection, Polygon, PolygonMethods};
 use rand::Rng;
@@ -39,7 +38,7 @@ pub fn damage(
             }
         }
 
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
 }
 

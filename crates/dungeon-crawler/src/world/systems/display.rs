@@ -4,23 +4,23 @@ use cgmath::*;
 
 pub fn display(
     mut commands: Commands,
-    mut query: QuerySet<(
-        QueryState<(&engine::ecs::components::Transform, &components::Movement), With<components::UserControl>>,
-        QueryState<(Entity, &components::Agressor, &engine::ecs::components::Transform)>,
-        QueryState<(Entity, &components::Display)>,
+    mut query: ParamSet<(
+        Query<(&engine::ecs::components::Transform, &components::Movement), With<components::UserControl>>,
+        Query<(Entity, &components::Agressor, &engine::ecs::components::Transform)>,
+        Query<(Entity, &components::Display)>,
     )>,
 ) {
-    for (entity, _) in query.q2().iter() {
+    for (entity, _) in query.p2().iter() {
         commands.entity(entity).remove::<components::Display>();
     }
 
     let targets: Vec<(Entity, Vector3<f32>)> = query
-        .q1()
+        .p1()
         .iter()
         .map(|(entity, _, t)| (entity, t.translation.current.clone()))
         .collect();
 
-    for (transform, movement) in query.q0().iter() {
+    for (transform, movement) in query.p0().iter() {
         let target: Option<&(Entity, Vector3<f32>)> = targets
             .iter()
             .filter(|(_, target)| {
