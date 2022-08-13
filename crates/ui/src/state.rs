@@ -15,7 +15,7 @@ pub enum Event {
 
 pub struct State {
     transitions: HashMap<String, Vector4<f32>>,
-    events: HashMap<String, Event>,
+    pub events: HashMap<String, Event>,
 }
 
 impl State {

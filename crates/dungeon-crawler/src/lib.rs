@@ -1,5 +1,3 @@
-use std::env;
-
 use cgmath::Point2;
 use engine::Settings;
 use views::Views;

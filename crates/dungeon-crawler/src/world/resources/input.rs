@@ -34,6 +34,15 @@ pub struct Mouse {
     pub touch: bool,
 }
 
+impl Mouse {
+    pub fn is_pressed(&self) -> bool {
+        match self.state {
+            PressState::Released(_) => false,
+            PressState::Pressed(_) => true,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Input {
     pub keys: HashMap<VirtualKeyCode, PressState>,
@@ -109,11 +118,12 @@ impl Input {
 
     pub fn mouse_set_pressed(&mut self, id: u64, touch: bool, pressed: bool, on_ui: bool) {
         self.mouse.touch = touch;
+        match pressed {
+            true => self.mouse.state = PressState::Pressed(false),
+            false => self.mouse.state = PressState::Released(false),
+        };
+
         if on_ui {
-            match pressed {
-                true => self.mouse.state = PressState::Pressed(false),
-                false => self.mouse.state = PressState::Released(false),
-            };
             return;
         }
 

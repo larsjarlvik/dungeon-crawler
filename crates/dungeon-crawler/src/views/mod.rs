@@ -100,8 +100,6 @@ impl Views {
                     let background = if is_hover(&mouse_pos, &layout) {
                         match mouse.state {
                             input::PressState::Released(repeat) => {
-                                self.mouse_key = None;
-
                                 if !repeat {
                                     self.state.set_event(
                                         &data.key,
@@ -118,8 +116,8 @@ impl Views {
                                     data.background_hover.unwrap_or(data.background)
                                 }
                             }
-                            input::PressState::Pressed(_) => {
-                                if self.mouse_key.is_none() {
+                            input::PressState::Pressed(repeat) => {
+                                if !repeat && self.mouse_key.is_none() {
                                     if let Some(key) = &data.key {
                                         self.mouse_key = Some((key.clone(), layout.clone()));
                                     }
@@ -169,6 +167,10 @@ impl Views {
                 }
                 _ => {}
             }
+        }
+
+        if !mouse.is_pressed() {
+            self.mouse_key = None;
         }
     }
 
