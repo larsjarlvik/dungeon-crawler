@@ -7,4 +7,10 @@ members = [
 resolver = "2"
 
 [profile.release]
-incremental = true
+lto = "thin"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3

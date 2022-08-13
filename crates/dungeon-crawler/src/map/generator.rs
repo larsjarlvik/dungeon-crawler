@@ -30,8 +30,7 @@ pub fn generate(rng: &mut StdRng, grid_size: usize, number_of_tiles: usize) -> V
                 }
             }
         }
-
-        tiles[check_pos.0 as usize + grid_size][check_pos.1 as usize + grid_size] = Some(Tile {
+        tiles[(check_pos.0 + grid_size as i32) as usize][(check_pos.1 + grid_size as i32) as usize] = Some(Tile {
             entrances: [false, false, false, false],
         });
 
