@@ -4,4 +4,5 @@ pub struct Uniforms {
     pub shadow_matrix: [[f32; 4]; 4],
     pub inv_view_proj: [[f32; 4]; 4],
     pub viewport_size: [f32; 4],
+    pub shadow_size: f32,
 }

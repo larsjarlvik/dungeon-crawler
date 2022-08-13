@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use wgpu_glyph::{ab_glyph::FontArc, GlyphBrush, GlyphBrushBuilder};
 pub mod bounding_box;
 pub mod bounding_sphere;
-pub mod camera;
 pub mod collision;
 pub mod config;
 pub mod ecs;

@@ -16,6 +16,7 @@ pub struct PipelineBuilder<'a> {
     buffer_layouts: Vec<wgpu::VertexBufferLayout<'a>>,
     primitve_topology: wgpu::PrimitiveTopology,
     depth_write: bool,
+    cull_mode: Option<wgpu::Face>,
     blend: Option<wgpu::BlendState>,
     label: &'a str,
 }
@@ -38,6 +39,7 @@ impl<'a> PipelineBuilder<'a> {
             buffer_layouts: vec![],
             primitve_topology: wgpu::PrimitiveTopology::TriangleList,
             blend: None,
+            cull_mode: Some(wgpu::Face::Back),
             depth_write: true,
             label,
         }
@@ -148,8 +150,8 @@ impl<'a> PipelineBuilder<'a> {
 
     pub fn with_depth_bias(mut self) -> Self {
         self.depth_bias = Some(wgpu::DepthBiasState {
-            constant: 6,
-            slope_scale: 2.0,
+            constant: 2,
+            slope_scale: 0.5,
             clamp: 0.0,
         });
         self
@@ -157,6 +159,11 @@ impl<'a> PipelineBuilder<'a> {
 
     pub fn with_depth_write(mut self, depth_write: bool) -> Self {
         self.depth_write = depth_write;
+        self
+    }
+
+    pub fn with_cull_mode(mut self, mode: Option<wgpu::Face>) -> Self {
+        self.cull_mode = mode;
         self
     }
 
@@ -221,7 +228,7 @@ impl<'a> PipelineBuilder<'a> {
                 topology: self.primitve_topology,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
+                cull_mode: self.cull_mode,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 unclipped_depth: false,
                 conservative: false,

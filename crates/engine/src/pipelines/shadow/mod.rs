@@ -108,6 +108,7 @@ impl ShadowPipeline {
             inv_view_proj: view_proj.invert().unwrap().into(),
             shadow_matrix: shadow_matrix.into(),
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
+            shadow_size: self.base_shadow_size * ctx.settings.shadow_map_scale,
         };
 
         ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
