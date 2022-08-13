@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::Component;
 use cgmath::*;
-use engine::{bounding_box::BoundingBox, collision::Polygon, ModelMetaData};
+use engine::{bounding_box::BoundingBox, collision::Polygon};
 
 pub enum TileState {
     Active,
@@ -30,7 +30,7 @@ pub struct DecorEmitter {
 }
 
 pub struct Decor {
-    pub model: ModelMetaData,
+    pub model: engine::ecs::components::Model,
     pub lights: Vec<DecorLight>,
     pub emitters: Vec<DecorEmitter>,
     pub rotation: f32,
@@ -39,7 +39,7 @@ pub struct Decor {
 }
 
 pub struct Hostile {
-    pub model: ModelMetaData,
+    pub model: engine::ecs::components::Model,
     pub collider: Vec<Polygon>,
     pub health: f32,
     pub position: Vector3<f32>,
@@ -47,7 +47,7 @@ pub struct Hostile {
 
 #[derive(Component)]
 pub struct Tile {
-    pub model: ModelMetaData,
+    pub model: engine::ecs::components::Model,
     pub state: TileState,
     pub center: Vector3<f32>,
     pub rotation: f32,
@@ -59,7 +59,7 @@ pub struct Tile {
 
 impl Tile {
     pub fn new(
-        model: engine::ModelMetaData,
+        model: engine::ecs::components::Model,
         collisions: Vec<Polygon>,
         center: Vector3<f32>,
         size: f32,

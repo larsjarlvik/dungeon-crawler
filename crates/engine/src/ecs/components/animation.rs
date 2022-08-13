@@ -1,4 +1,4 @@
-use crate::{config, ModelMetaData};
+use crate::config;
 use bevy_ecs::prelude::*;
 use std::{
     collections::HashMap,
@@ -24,7 +24,6 @@ pub struct Animation {
     pub elapsed: f32,
     pub speed: f32,
     pub run_type: AnimationRunType,
-    pub total_time: f32,
 }
 
 #[derive(Debug)]
@@ -49,13 +48,8 @@ pub struct Animations {
 }
 
 impl Animations {
-    pub fn new(model: &ModelMetaData, key: &str, animation: &str, run_type: AnimationRunType) -> Self {
+    pub fn new(key: &str, animation: &str, run_type: AnimationRunType) -> Self {
         let mut channels = HashMap::new();
-
-        let total_time = *model
-            .animation_times
-            .get(&animation.to_string())
-            .expect(format!("Could not find animation: {}", &animation).as_str());
 
         channels.insert(
             key.to_string(),
@@ -66,7 +60,6 @@ impl Animations {
                     elapsed: 0.0,
                     speed: 1.0,
                     run_type,
-                    total_time,
                 },
                 updated: Instant::now(),
             },
@@ -75,15 +68,10 @@ impl Animations {
         Self { channels }
     }
 
-    pub fn set_animation(&mut self, model: &ModelMetaData, channel: &str, animation: &str, speed: AnimationSpeed, run: AnimationRunType) {
-        let total_time = *model
-            .animation_times
-            .get(&animation.to_string())
-            .expect(format!("Could not find animation: {}", &animation).as_str());
-
+    pub fn set_animation(&mut self, channel: &str, animation: &str, speed: AnimationSpeed, run: AnimationRunType) {
         let speed = match speed {
             AnimationSpeed::Original => 1.0,
-            AnimationSpeed::Length(length) => total_time / length,
+            AnimationSpeed::Length(length) => length,
             AnimationSpeed::Speed(speed) => speed,
         };
 
@@ -101,7 +89,6 @@ impl Animations {
                 speed,
                 elapsed: 0.0,
                 run_type: run,
-                total_time,
             };
             channel.updated = Instant::now() - Duration::from_secs_f32((config::ANIMATION_BLEND_SECONDS - current_elapsed).max(0.0));
         } else {
@@ -114,7 +101,6 @@ impl Animations {
                         speed,
                         elapsed: 0.0,
                         run_type: run,
-                        total_time,
                     },
                     updated: Instant::now(),
                 },

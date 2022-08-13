@@ -68,8 +68,8 @@ impl ModelPipeline {
             let model_matrix = transform.to_matrix(alpha);
             let model = ctx
                 .model_instances
-                .get(&model_instance.model.key)
-                .expect(format!("Could not find model \"{}\"!", model_instance.model.key).as_str());
+                .get(&model_instance.key)
+                .expect(format!("Could not find model \"{}\"!", model_instance.key).as_str());
 
             if render.cull_frustum {
                 let transformed_bb = model.model.bounding_box.transform(model_matrix.into());

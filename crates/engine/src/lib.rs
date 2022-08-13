@@ -19,12 +19,6 @@ mod viewport;
 pub use settings::Settings;
 use smaa::{SmaaMode, SmaaTarget};
 
-#[derive(Clone)]
-pub struct ModelMetaData {
-    pub key: String,
-    pub animation_times: HashMap<String, f32>,
-}
-
 pub struct ModelInstance {
     pub key: String,
     pub model: pipelines::model::Model,
@@ -193,7 +187,7 @@ impl Engine {
         None
     }
 
-    pub fn initialize_model(&mut self, gltf_model: &model::GltfModel, name: &str) -> ModelMetaData {
+    pub fn initialize_model(&mut self, gltf_model: &model::GltfModel, name: &str, highlight: f32) -> ecs::components::Model {
         let model = pipelines::model::Model::new(&self.ctx, &self.model_pipeline, gltf_model, name);
         let nodes = gltf_model.nodes.clone();
         let animation_times = nodes.animations.iter().map(|(a, b)| (a.clone(), b.total_time)).collect();
@@ -208,9 +202,10 @@ impl Engine {
             },
         );
 
-        ModelMetaData {
+        ecs::components::Model {
             key: key.to_string(),
             animation_times,
+            highlight,
         }
     }
 

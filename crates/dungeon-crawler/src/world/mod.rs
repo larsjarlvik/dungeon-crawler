@@ -68,7 +68,7 @@ impl<'a> World {
         self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {
-            let character_model = engine.initialize_model(&resources.character, "character");
+            let character_model = engine.initialize_model(&resources.character, "character", 1.3);
             let collider = resources
                 .character
                 .collisions
@@ -76,13 +76,8 @@ impl<'a> World {
                 .expect("Could not find character collider!");
 
             self.components.spawn().insert_bundle((
-                engine::ecs::components::Animations::new(
-                    &character_model,
-                    "base",
-                    "idle",
-                    engine::ecs::components::AnimationRunType::Repeat,
-                ),
-                engine::ecs::components::Model::new(character_model, 1.3),
+                engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationRunType::Repeat),
+                character_model,
                 components::Collision::new(collider.clone()),
                 engine::ecs::components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),

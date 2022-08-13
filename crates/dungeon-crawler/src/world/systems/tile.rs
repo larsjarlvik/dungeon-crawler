@@ -19,7 +19,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
             components::TileState::Destroyed => {
                 if camera.frustum.test_bounding_box(&tile.bounding_box) {
                     let mut tile_entity = commands.spawn_bundle((
-                        engine::ecs::components::Model::new(tile.model.clone(), 1.0),
+                        tile.model.clone(),
                         engine::ecs::components::Render { cull_frustum: true },
                         engine::ecs::components::Transform::from_translation_angle(tile.center, tile.rotation),
                     ));
@@ -31,7 +31,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
 
                     for decor in tile.decor.iter() {
                         let mut decor_entity = commands.spawn_bundle((
-                            engine::ecs::components::Model::new(decor.model.clone(), 1.0),
+                            decor.model.clone(),
                             engine::ecs::components::Transform::from_translation_angle(decor.position, decor.rotation),
                             engine::ecs::components::Render { cull_frustum: true },
                             engine::ecs::components::Shadow,
@@ -79,14 +79,9 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                     for hostile in tile.hostiles.iter() {
                         commands.spawn_bundle((
                             components::Name::new("Skeleton Warrior"),
-                            engine::ecs::components::Model::new(hostile.model.clone(), 1.3),
+                            hostile.model.clone(),
                             components::Collision::new(hostile.collider.clone()),
-                            engine::ecs::components::Animations::new(
-                                &hostile.model,
-                                "base",
-                                "idle",
-                                engine::ecs::components::AnimationRunType::Repeat,
-                            ),
+                            engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationRunType::Repeat),
                             engine::ecs::components::Transform::from_translation_scale(hostile.position, 0.8),
                             engine::ecs::components::Render { cull_frustum: true },
                             components::Stats::new(10, 10, 12, components::stats::get_level_experience(3)),

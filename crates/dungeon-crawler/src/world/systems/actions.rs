@@ -6,7 +6,6 @@ pub fn actions(
     mut commands: Commands,
     time: Res<engine::ecs::resources::Time>,
     mut query: Query<(
-        &engine::ecs::components::Model,
         &components::Stats,
         &mut components::Movement,
         &mut engine::ecs::components::Transform,
@@ -16,7 +15,7 @@ pub fn actions(
         Option<&components::Collision>,
     )>,
 ) {
-    for (model, stats, mut movement, mut transform, mut animation, mut action, weapon, collision) in query.iter_mut() {
+    for (stats, mut movement, mut transform, mut animation, mut action, weapon, collision) in query.iter_mut() {
         let new_rot = cgmath::Quaternion::from_angle_y(Rad(movement.direction));
         let current_rot = transform.rotation.current;
         let current_trans = transform.translation.current;
@@ -36,7 +35,6 @@ pub fn actions(
                     let animation_velocity = velocity / 0.04;
                     if animation_velocity > 2.5 {
                         animation.set_animation(
-                            &model.model,
                             "base",
                             "run",
                             engine::ecs::components::AnimationSpeed::Speed(animation_velocity * 0.4),
@@ -44,7 +42,6 @@ pub fn actions(
                         );
                     } else if animation_velocity > 0.3 {
                         animation.set_animation(
-                            &model.model,
                             "base",
                             "walk",
                             engine::ecs::components::AnimationSpeed::Speed(animation_velocity),
@@ -54,7 +51,6 @@ pub fn actions(
                 } else {
                     transform.translation.freeze();
                     animation.set_animation(
-                        &model.model,
                         "base",
                         "idle",
                         engine::ecs::components::AnimationSpeed::Original,
@@ -72,7 +68,6 @@ pub fn actions(
                 if action.should_execute() {
                     if let Some(collision) = collision {
                         animation.set_animation(
-                            &model.model,
                             "base",
                             "attack",
                             engine::ecs::components::AnimationSpeed::Length(action.length),
@@ -99,7 +94,6 @@ pub fn actions(
             components::CurrentAction::Hit => {
                 if action.should_execute() {
                     animation.set_animation(
-                        &model.model,
                         "base",
                         "hit",
                         engine::ecs::components::AnimationSpeed::Length(action.length),
@@ -110,7 +104,6 @@ pub fn actions(
             components::CurrentAction::Death => {
                 if action.should_execute() {
                     animation.set_animation(
-                        &model.model,
                         "base",
                         "death",
                         engine::ecs::components::AnimationSpeed::Original,

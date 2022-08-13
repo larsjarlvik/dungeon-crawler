@@ -1,14 +1,9 @@
-use crate::ModelMetaData;
 use bevy_ecs::prelude::*;
+use std::collections::HashMap;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Model {
-    pub model: ModelMetaData,
+    pub key: String,
+    pub animation_times: HashMap<String, f32>,
     pub highlight: f32,
-}
-
-impl Model {
-    pub fn new(model: ModelMetaData, highlight: f32) -> Self {
-        Self { model, highlight }
-    }
 }
