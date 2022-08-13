@@ -14,9 +14,9 @@ crate-type = ["lib", "cdylib"]
 [dependencies]
 cgmath = "0.18.0"
 winit = "0.26.1"
-bevy_ecs = "0.7.0"
-bevy_hierarchy = "0.7.0"
-bevy_tasks = "0.7.0"
+bevy_ecs = "0.8.0"
+bevy_hierarchy = "0.8.0"
+bevy_tasks = "0.8.0"
 engine = { path = "../engine" }
 env_logger = "0.9"
 pollster = "0.2"
