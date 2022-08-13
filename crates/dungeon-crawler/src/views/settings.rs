@@ -22,7 +22,7 @@ impl Settings {
         });
 
         let render_scale = create_slider(ui_state, "render_scale", self.settings.render_scale * 100.0, 100.0, |val| {
-            self.settings.render_scale = (val * 20.0).round() / 20.0;
+            self.settings.render_scale = ((val * 20.0).round() / 20.0).max(0.05);
         });
 
         let ui_scale = create_slider(ui_state, "ui_scale", self.settings.ui_scale, 2.0, |val| {
