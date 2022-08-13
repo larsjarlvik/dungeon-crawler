@@ -2,8 +2,8 @@
 pub fn aquire_wakelock() {
     let native_activity = ndk_glue::native_activity();
     let vm_ptr = native_activity.vm();
-    let vm = unsafe { jni::JavaVM::from_raw(vm_ptr) }.unwrap();
-    let env = vm.attach_current_thread().unwrap();
+    let vm = unsafe { jni::JavaVM::from_raw(vm_ptr) }.expect("Failed to access Java VM!");
+    let env = vm.attach_current_thread().expect("Failed to attach current thread!");
 
     let window = env
         .call_method(native_activity.activity(), "getWindow", "()Landroid/view/Window;", &[])

@@ -13,7 +13,7 @@ crate-type = ["lib", "cdylib"]
 
 [dependencies]
 cgmath = "0.18.0"
-winit = "0.26.1"
+winit = "0.27.2"
 bevy_ecs = "0.8.0"
 bevy_hierarchy = "0.8.0"
 bevy_tasks = "0.8.0"
@@ -30,9 +30,9 @@ uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
 [target.'cfg(target_os = "android")'.dependencies]
 jni = "0.19.0"
 log = "0.4.14"
-ndk = "0.5.0"
-ndk-glue = { version = "0.5.0", features = ["logger"] }
-android_logger = "0.10.1"
+ndk = "0.7.0"
+ndk-glue = { version = "0.7.0", features = ["logger"] }
+android_logger = "0.11.1"
 
 [package.metadata.android]
 resources = "../../res"

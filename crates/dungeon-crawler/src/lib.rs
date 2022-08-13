@@ -1,3 +1,5 @@
+use std::env;
+
 use cgmath::Point2;
 use engine::Settings;
 use views::Views;
@@ -38,7 +40,7 @@ pub fn main() {
     };
 
     let event_loop = EventLoop::new();
-    let window = window.build(&event_loop).unwrap();
+    let window = window.build(&event_loop).expect("Failed to create window!");
 
     #[allow(unused_assignments)]
     let mut state: Option<state::State> = None;

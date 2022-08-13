@@ -93,7 +93,7 @@ impl Map {
     fn tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, rng: &mut StdRng, tile: &mut generator::Tile, pos: Vector3<f32>) {
         let entrances = tile.entrances.clone();
         let (t, rot) = determine_tile(&entrances);
-        let name = t.split('-').last().unwrap();
+        let name = t.split('-').last().expect("Could not get map name!");
 
         let decor = decor::get_decor(&format!("catacombs/{}", name).as_str(), rng)
             .iter()
