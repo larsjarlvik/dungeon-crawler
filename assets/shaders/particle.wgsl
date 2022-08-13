@@ -38,9 +38,9 @@ fn vert_main(model: VertexInput) -> VertexOutput {
     let z = model.particle_pos.z * clamp(life_time - y + 0.5, 0.0, 0.5);
 
     var m: mat4x4<f32> = uniforms.model;
-    m[3][0] = m[3][0] + x + sin(uniforms.time % (life_time * 20.0) * y) * 0.03;
-    m[3][1] = m[3][1] + y;
-    m[3][2] = m[3][2] + z + sin(uniforms.time % (life_time * 20.0) * y * 1.2) * 0.03;
+    m[3][0] += x + sin(uniforms.time % (life_time * 20.0) * y) * 0.03;
+    m[3][1] += y;
+    m[3][2] += z + sin(uniforms.time % (life_time * 20.0) * y * 1.2) * 0.03;
 
     var mv: mat4x4<f32> = uniforms.view * m;
     mv[0][0] = 1.0; mv[0][1] = 0.0; mv[0][2] = 0.0;

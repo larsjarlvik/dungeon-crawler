@@ -28,7 +28,7 @@ fn vert_main(model: VertexInput) -> @builtin(position) vec4<f32> {
             vec4<f32>(0.0, 0.0, 0.0, 0.0),
         );
 
-        for (var i: i32 = 0; i < 4; i = i + 1) {
+        for (var i: i32 = 0; i < 4; i += 1) {
             let j = model.joints[i];
             var jx: mat4x4<f32> = uniforms.joint_transforms[j];
 

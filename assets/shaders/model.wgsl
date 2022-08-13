@@ -68,7 +68,7 @@ fn vert_main(model: VertexInput) -> VertexOutput {
     if (uniforms.is_animated == u32(1)) {
         let w = model.weights;
 
-        for (var i: i32 = 0; i < 4; i = i + 1) {
+        for (var i: i32 = 0; i < 4; i += 1) {
             let j = model.joints[i];
             var jx: mat4x4<f32> = uniforms.joint_transforms[j];
 
@@ -207,7 +207,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     pbr.n_dot_v = clamp(abs(dot(normal.xyz, view_dir)), 0.001, 1.0);
     let reflection = -normalize(reflect(view_dir, normal.xyz));
 
-    for (var i: i32 = 0; i < env_uniforms.light_count; i = i + 1) {
+    for (var i: i32 = 0; i < env_uniforms.light_count; i += 1) {
         let light = env_uniforms.light[i];
         let light_dist = distance(light.position, position);
         if (light_dist > light.radius) { continue; }
@@ -230,16 +230,13 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
             let spec_contrib = F * G * D / (4.0 * pbr.n_dot_l * pbr.n_dot_v);
 
             let light_contrib = (pbr.n_dot_l * (diffuse_contrib + spec_contrib));
-            let new_light = attenuation * light.color * light_contrib;
-
-
-            total_light = total_light + new_light;
+            total_light += attenuation * light.color * light_contrib;
 
             if (light.bloom > 0.1) {
                 let dist = distance(position, env_uniforms.eye_pos.xyz);
                 let dir = (position - env_uniforms.eye_pos.xyz) / dist;
                 let bloom = light.color * apply_point_glow(env_uniforms.eye_pos, dir, dist, light.position, light.bloom);
-                total_light = total_light + bloom;
+                total_light += bloom;
             }
         }
     }

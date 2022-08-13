@@ -45,15 +45,15 @@ fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     col1 = textureSample(t_texture, t_sampler, uv + uvoff.xy).xyz;
     max_g = max(max_g, col1.y);
     min_g = min(min_g, col1.y);
-    colw = colw + col1;
+    colw += col1;
     col1 = textureSample(t_texture, t_sampler, uv + uvoff.yz).xyz;
     max_g = max(max_g, col1.y);
     min_g = min(min_g, col1.y);
-    colw = colw + col1;
+    colw += col1;
     col1 = textureSample(t_texture, t_sampler, uv - uvoff.xy).xyz;
     max_g = max(max_g, col1.y);
     min_g = min(min_g, col1.y);
-    colw = colw + col1;
+    colw += col1;
 
     let d_min_g = min_g;
     let d_max_g = 1.0 - max_g;
