@@ -2,7 +2,7 @@ use crate::{
     ui::{self, Views},
     world::{
         self,
-        resources::{self, mouse::PressState},
+        resources::{self, input::mouse::PressState},
     },
 };
 use cgmath::*;

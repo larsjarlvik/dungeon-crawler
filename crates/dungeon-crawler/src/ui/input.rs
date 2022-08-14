@@ -7,7 +7,7 @@ use ui::{
 };
 
 use crate::world::{
-    resources::{self, mouse},
+    resources::{self, input::mouse},
     World,
 };
 
@@ -30,12 +30,10 @@ impl Input {
             }
 
             for (id, button) in input.mouse.iter() {
-                if let Some(position) = on_element(&button.position, &layout, scale.x, scale.y) {
+                if let Some(position) = on_element(&button.press_position, &layout, scale.x, scale.y) {
                     match button.state {
                         mouse::PressState::Released(repeat) => {
-                            if repeat {
-                                widget.state = RenderWidgetState::Hover;
-                            } else {
+                            if !repeat {
                                 widget.state = RenderWidgetState::Clicked;
                                 ui_state.set_event(
                                     &widget.key,
@@ -46,10 +44,9 @@ impl Input {
                                 );
                             }
                         }
-                        mouse::PressState::Pressed(repeat) => {
-                            if !repeat {
-                                self.locks.insert(*id);
-                            }
+                        mouse::PressState::Pressed(_) => {
+                            widget.state = RenderWidgetState::Pressed;
+                            self.locks.insert(*id);
 
                             ui_state.set_event(
                                 &widget.key,
@@ -58,9 +55,10 @@ impl Input {
                                     y: (position.y - layout.y) / layout.height,
                                 }),
                             );
-                            widget.state = RenderWidgetState::Pressed;
                         }
                     }
+                } else if let Some(_) = on_element(&button.position, &layout, scale.x, scale.y) {
+                    widget.state = RenderWidgetState::Hover;
                 } else {
                     widget.state = RenderWidgetState::None;
                 }

@@ -6,7 +6,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{Fullscreen, WindowBuilder},
 };
-use world::{resources::mouse::PressState, GameState};
+use world::{resources::input::mouse::PressState, GameState};
 
 mod config;
 mod map;

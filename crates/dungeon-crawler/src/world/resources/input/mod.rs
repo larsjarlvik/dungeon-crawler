@@ -1,11 +1,12 @@
-use super::{
-    joystick::JoystickOrigin,
+use self::{
+    joystick::{Joystick, JoystickOrigin},
     mouse::{MouseButton, PressState},
-    Joystick,
 };
 use cgmath::*;
 use std::collections::HashMap;
 use winit::event::VirtualKeyCode;
+pub mod joystick;
+pub mod mouse;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum UiActionCode {

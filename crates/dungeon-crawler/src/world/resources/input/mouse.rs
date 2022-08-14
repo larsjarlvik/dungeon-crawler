@@ -33,7 +33,7 @@ impl MouseButton {
 
     pub fn mouse_move(&mut self, position: Point2<f32>) {
         self.position = Some(position);
-        if self.press_position.is_none() {
+        if self.press_position.is_none() && self.is_pressed() {
             self.press_position = Some(position);
         }
     }
@@ -41,9 +41,17 @@ impl MouseButton {
     pub fn press(&mut self, touch: bool, pressed: bool) {
         self.touch = touch;
         match pressed {
-            true => self.state = PressState::Pressed(false),
+            true => {
+                self.state = match self.state {
+                    PressState::Released(_) => PressState::Pressed(false),
+                    PressState::Pressed(_) => PressState::Pressed(true),
+                };
+            }
             false => {
-                self.state = PressState::Released(false);
+                self.state = match self.state {
+                    PressState::Released(_) => PressState::Released(true),
+                    PressState::Pressed(_) => PressState::Released(false),
+                };
                 self.press_position = None;
             }
         };
