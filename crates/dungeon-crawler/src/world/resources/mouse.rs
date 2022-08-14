@@ -35,7 +35,6 @@ impl MouseButton {
         self.position = Some(position);
         if self.press_position.is_none() {
             self.press_position = Some(position);
-            dbg!(self.press_position);
         }
     }
 

@@ -88,15 +88,22 @@ impl Input {
 
     pub fn set_joystick(&mut self, button_id: &u64, viewport_width: u32, viewport_height: u32) {
         if let Some(mouse) = self.mouse.get(&button_id) {
-            self.joystick = Some(Joystick {
-                id: *button_id,
-                area: point2(viewport_width as f32, viewport_height as f32),
-                origin: if mouse.touch {
-                    JoystickOrigin::Relative
-                } else {
-                    JoystickOrigin::Screen
-                },
-            });
+            match mouse.state {
+                PressState::Pressed(repeat) => {
+                    if !repeat {
+                        self.joystick = Some(Joystick {
+                            id: *button_id,
+                            area: point2(viewport_width as f32, viewport_height as f32),
+                            origin: if mouse.touch {
+                                JoystickOrigin::Relative
+                            } else {
+                                JoystickOrigin::Screen
+                            },
+                        });
+                    }
+                }
+                _ => {}
+            }
         }
     }
 }
