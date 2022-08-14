@@ -1,5 +1,5 @@
 use crate::{
-    views::{self, Views},
+    ui::{self, Views},
     world::{
         self,
         resources::{self, mouse::PressState},
@@ -13,7 +13,7 @@ use winit::{event::VirtualKeyCode, window::Window};
 pub struct State {
     pub engine: engine::Engine,
     pub world: world::World,
-    pub views: views::Views,
+    pub views: ui::Views,
 }
 
 impl State {
@@ -97,13 +97,24 @@ impl State {
         };
 
         self.views.update(&mut self.engine.ctx, &mut self.world, last_frame);
-        let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-        input.update(self.engine.ctx.viewport.width, self.engine.ctx.viewport.height);
 
-        let (center, current, touch) = input.get_joystick_data();
+        let joystick = {
+            let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
+            if input.joystick.properties.is_none() {
+                for (id, button) in input.pressed_buttons().iter() {
+                    if !self.views.prevent_click_through(id) && button.is_pressed() {
+                        input.set_joystick(id, self.engine.ctx.viewport.width, self.engine.ctx.viewport.height);
+                        break;
+                    }
+                }
+            }
+
+            input.update_joystick(self.engine.ctx.viewport.width, self.engine.ctx.viewport.height)
+        };
+
         self.engine
             .joystick_pipeline
-            .update(&self.engine.ctx, &self.world.components, center, current, touch);
+            .update(&self.engine.ctx, &self.world.components, &joystick);
     }
 
     pub fn render(&mut self) {

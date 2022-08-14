@@ -1,7 +1,7 @@
-use crate::config;
-
 use super::mouse::{MouseButton, PressState};
+use crate::config;
 use cgmath::*;
+use engine::pipelines::joystick::JoystickProperties;
 use std::collections::HashMap;
 use winit::event::VirtualKeyCode;
 
@@ -14,8 +14,7 @@ pub enum UiActionCode {
 #[derive(Debug)]
 pub struct Joystick {
     pub id: u64,
-    pub center: Option<Point2<f32>>,
-    pub current: Option<Point2<f32>>,
+    pub properties: Option<JoystickProperties>,
     pub strength: f32,
 }
 
@@ -24,7 +23,7 @@ pub struct Input {
     pub keys: HashMap<VirtualKeyCode, PressState>,
     pub ui: HashMap<UiActionCode, PressState>,
     pub mouse: HashMap<u64, MouseButton>,
-    pub joystick: Option<Joystick>,
+    pub joystick: Joystick,
     pub blocked: bool,
 }
 
@@ -34,7 +33,11 @@ impl Default for Input {
             keys: HashMap::new(),
             ui: HashMap::new(),
             mouse: HashMap::new(),
-            joystick: None,
+            joystick: Joystick {
+                id: 0,
+                strength: 0.0,
+                properties: None,
+            },
             blocked: false,
         }
     }
@@ -84,49 +87,47 @@ impl Input {
         }
     }
 
-    pub fn update(&mut self, viewport_width: u32, viewport_height: u32) {
-        if let Some(mouse) = self.mouse.get(&0) {
-            if mouse.is_pressed() {
-                if self.joystick.is_none() {
-                    self.joystick = Some(Joystick {
-                        id: 0,
-                        strength: 0.0,
-                        center: None,
-                        current: None,
-                    });
-                }
-            } else {
-                self.joystick = None;
-            }
-        } else {
-            self.joystick = None;
-        }
-
-        if let Some(joystick) = &mut self.joystick {
-            if let Some(mouse) = self.mouse.get(&joystick.id) {
-                if let Some(relative) = mouse.get_relative(viewport_width, viewport_height) {
-                    if let Some(center) = joystick.center {
-                        joystick.strength = (relative.distance(center) * config::JOYSTICK_SENSITIVITY).min(1.0);
-                        let angle = (relative.y - center.y).atan2(relative.x - center.x);
-
-                        let x = joystick.strength * angle.cos();
-                        let y = joystick.strength * angle.sin();
-                        joystick.current = Some(Point2::new(x, y));
-                    } else {
-                        joystick.center = Some(if mouse.touch { relative } else { Point2::new(0.0, 0.0) });
-                    }
-                }
+    pub fn set_joystick(&mut self, button_id: &u64, viewport_width: u32, viewport_height: u32) {
+        if let Some(mouse) = self.mouse.get(&button_id) {
+            if let Some(relative) = mouse.get_relative(viewport_width, viewport_height) {
+                self.joystick.id = *button_id;
+                self.joystick.strength = 0.0;
+                self.joystick.properties = Some(JoystickProperties {
+                    center: if mouse.touch { relative } else { Point2::new(0.0, 0.0) },
+                    current: if mouse.touch { relative } else { Point2::new(0.0, 0.0) },
+                    show_ui: mouse.touch,
+                });
+                dbg!("set");
             }
         }
     }
 
-    pub fn get_joystick_data(&self) -> (Option<Point2<f32>>, Option<Point2<f32>>, bool) {
-        if let Some(joystick) = &self.joystick {
-            if let Some(mouse) = self.mouse.get(&joystick.id) {
-                return (joystick.center, joystick.current, mouse.touch);
+    pub fn update_joystick(&mut self, viewport_width: u32, viewport_height: u32) -> Option<JoystickProperties> {
+        if let Some(properties) = &mut self.joystick.properties {
+            if let Some(mouse) = self.mouse.get(&self.joystick.id) {
+                if mouse.is_pressed() {
+                    if let Some(relative) = mouse.get_relative(viewport_width, viewport_height) {
+                        self.joystick.strength = (relative.distance(properties.center) * config::JOYSTICK_SENSITIVITY).min(1.0);
+                        let angle = (relative.y - properties.center.y).atan2(relative.x - properties.center.x);
+
+                        let x = self.joystick.strength * angle.cos();
+                        let y = self.joystick.strength * angle.sin();
+                        properties.current = Point2::new(x, y);
+                    }
+                } else {
+                    self.joystick.properties = None;
+                }
             }
         }
 
-        (None, None, false)
+        self.joystick.properties.clone()
+    }
+
+    pub fn pressed_buttons(&self) -> HashMap<u64, MouseButton> {
+        self.mouse
+            .iter()
+            .filter(|(_, button)| button.is_pressed())
+            .map(|(id, button)| (*id, button.clone()))
+            .collect()
     }
 }

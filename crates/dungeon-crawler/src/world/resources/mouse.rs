@@ -6,7 +6,7 @@ pub enum PressState {
     Pressed(bool),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MouseButton {
     pub press_position: Option<Point2<f32>>,
     pub position: Option<Point2<f32>>,

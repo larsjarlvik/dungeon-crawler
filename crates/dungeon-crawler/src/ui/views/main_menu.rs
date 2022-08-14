@@ -1,5 +1,8 @@
-use super::{settings::Settings, style};
-use crate::world::{self, GameState};
+use super::settings::Settings;
+use crate::{
+    ui::style,
+    world::{self, GameState},
+};
 use ui::{components::*, prelude::*, widgets::*};
 
 enum SubMenu {

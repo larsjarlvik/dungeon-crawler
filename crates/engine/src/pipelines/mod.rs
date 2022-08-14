@@ -1,6 +1,6 @@
 pub mod builders;
 pub mod glyph;
-mod joystick;
+pub mod joystick;
 pub mod mipmap;
 pub mod model;
 mod particle;

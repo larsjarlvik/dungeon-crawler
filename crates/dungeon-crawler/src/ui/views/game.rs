@@ -1,13 +1,14 @@
-use crate::world::{
-    self, components,
-    resources::{self, input::UiActionCode},
-    GameState,
+use crate::{
+    ui::style,
+    world::{
+        self, components,
+        resources::{self, input::UiActionCode},
+        GameState,
+    },
 };
 use bevy_ecs::prelude::*;
 use cgmath::*;
 use ui::{components::*, prelude::*, widgets::*};
-
-use super::style;
 
 fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> Box<PanelWidget> {
     Bar::new().draw(

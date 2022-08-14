@@ -4,6 +4,13 @@ use crate::{config, ecs::resources, Context};
 use cgmath::*;
 pub use uniforms::Uniforms;
 
+#[derive(Debug, Clone)]
+pub struct JoystickProperties {
+    pub center: Point2<f32>,
+    pub current: Point2<f32>,
+    pub show_ui: bool,
+}
+
 pub struct JoystickPipeline {
     render_bundle: wgpu::RenderBundle,
     uniform_buffer: wgpu::Buffer,
@@ -56,29 +63,20 @@ impl JoystickPipeline {
         }
     }
 
-    pub fn update(
-        &mut self,
-        ctx: &Context,
-        components: &bevy_ecs::world::World,
-        center: Option<Point2<f32>>,
-        current: Option<Point2<f32>>,
-        touch: bool,
-    ) {
+    pub fn update(&mut self, ctx: &Context, components: &bevy_ecs::world::World, properties: &Option<JoystickProperties>) {
         self.is_visible = false;
         let camera = components.get_resource::<resources::Camera>().unwrap();
 
-        if let Some(center) = center {
-            if let Some(current) = current {
-                let uniforms = uniforms::Uniforms {
-                    center: center.into(),
-                    current: current.into(),
-                    radius: config::JOYSTICK_RADIUS,
-                    aspect: camera.aspect,
-                };
+        if let Some(properties) = properties {
+            let uniforms = uniforms::Uniforms {
+                center: properties.center.into(),
+                current: properties.current.into(),
+                radius: config::JOYSTICK_RADIUS,
+                aspect: camera.aspect,
+            };
 
-                ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
-                self.is_visible = touch;
-            }
+            ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
+            self.is_visible = properties.show_ui;
         }
     }
 

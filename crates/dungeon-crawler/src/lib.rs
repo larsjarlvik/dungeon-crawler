@@ -1,6 +1,6 @@
+use crate::ui::Views;
 use cgmath::Point2;
 use engine::Settings;
-use views::Views;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -11,8 +11,8 @@ use world::{resources::mouse::PressState, GameState};
 mod config;
 mod map;
 mod state;
+mod ui;
 mod utils;
-mod views;
 mod world;
 
 #[cfg_attr(
