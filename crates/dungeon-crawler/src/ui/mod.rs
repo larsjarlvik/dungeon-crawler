@@ -123,7 +123,7 @@ impl Views {
         }
     }
 
-    pub fn prevent_click_through(&self, button_id: &u64) -> bool {
+    pub fn is_click_through(&self, button_id: &u64) -> bool {
         self.input.locks.contains(button_id)
     }
 }

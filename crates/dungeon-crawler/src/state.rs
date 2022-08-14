@@ -100,16 +100,20 @@ impl State {
 
         let joystick = {
             let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-            if input.joystick.properties.is_none() {
+            if input.joystick.is_none() {
                 for (id, button) in input.pressed_buttons().iter() {
-                    if !self.views.prevent_click_through(id) && button.is_pressed() {
+                    if !self.views.is_click_through(id) && button.is_pressed() {
                         input.set_joystick(id, self.engine.ctx.viewport.width, self.engine.ctx.viewport.height);
                         break;
                     }
                 }
             }
 
-            input.update_joystick(self.engine.ctx.viewport.width, self.engine.ctx.viewport.height)
+            if let Some(joystick) = &input.joystick {
+                joystick.get_properties(&input.mouse)
+            } else {
+                None
+            }
         };
 
         self.engine

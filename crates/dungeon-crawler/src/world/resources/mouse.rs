@@ -32,29 +32,21 @@ impl MouseButton {
     }
 
     pub fn mouse_move(&mut self, position: Point2<f32>) {
+        self.position = Some(position);
         if self.press_position.is_none() {
             self.press_position = Some(position);
+            dbg!(self.press_position);
         }
-
-        self.position = Some(position);
     }
 
     pub fn press(&mut self, touch: bool, pressed: bool) {
         self.touch = touch;
         match pressed {
             true => self.state = PressState::Pressed(false),
-            false => self.state = PressState::Released(false),
+            false => {
+                self.state = PressState::Released(false);
+                self.press_position = None;
+            }
         };
-    }
-
-    pub fn get_relative(&self, width: u32, height: u32) -> Option<Point2<f32>> {
-        if let Some(position) = self.position {
-            Some(Point2::new(
-                position.x / width as f32 * 2.0 - 1.0,
-                position.y / height as f32 * 2.0 - 1.0,
-            ))
-        } else {
-            None
-        }
     }
 }
