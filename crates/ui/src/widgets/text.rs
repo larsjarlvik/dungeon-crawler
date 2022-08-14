@@ -1,6 +1,6 @@
 use super::{
-    base::{self, RenderWidget},
-    NodeLayout,
+    base::{self},
+    NodeLayout, RenderWidget, RenderWidgetType,
 };
 use taffy::prelude::*;
 
@@ -51,6 +51,6 @@ impl base::BaseWidget for TextWidget {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
-        vec![(layout, RenderWidget::Text(&self.data))]
+        vec![(layout, RenderWidget::new(None, RenderWidgetType::Text(&self.data)))]
     }
 }

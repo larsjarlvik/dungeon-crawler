@@ -62,7 +62,7 @@ impl JoystickPipeline {
         components: &bevy_ecs::world::World,
         center: Option<Point2<f32>>,
         current: Option<Point2<f32>>,
-        is_touch: bool,
+        touch: bool,
     ) {
         self.is_visible = false;
         let camera = components.get_resource::<resources::Camera>().unwrap();
@@ -77,7 +77,7 @@ impl JoystickPipeline {
                 };
 
                 ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));
-                self.is_visible = is_touch;
+                self.is_visible = touch;
             }
         }
     }

@@ -1,4 +1,4 @@
-use super::TextData;
+use super::RenderWidget;
 use cgmath::*;
 use taffy::prelude::*;
 
@@ -10,7 +10,6 @@ pub struct Gradient {
 
 #[derive(Debug)]
 pub struct AssetData {
-    pub key: Option<String>,
     pub asset_id: Option<String>,
     pub background: Vector4<f32>,
     pub gradient: Option<Gradient>,
@@ -27,7 +26,6 @@ pub struct AssetData {
 impl Default for AssetData {
     fn default() -> Self {
         Self {
-            key: None,
             asset_id: None,
             background: Vector4::new(0.0, 0.0, 0.0, 0.0),
             foreground: Vector4::new(0.0, 0.0, 0.0, 0.0),
@@ -41,13 +39,6 @@ impl Default for AssetData {
             visible: true,
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub enum RenderWidget<'a> {
-    Text(&'a TextData),
-    Asset(&'a AssetData),
-    None,
 }
 
 #[derive(Debug, Clone)]

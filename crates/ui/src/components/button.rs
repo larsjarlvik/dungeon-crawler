@@ -46,6 +46,7 @@ impl Button {
 
         if let Some((icon, size)) = props.icon.clone() {
             children.push(AssetWidget::new(
+                None,
                 AssetData {
                     asset_id: Some(icon),
                     foreground: props.foreground,
@@ -70,8 +71,8 @@ impl Button {
         }
 
         PanelWidget::new(
+            Some(self.key.clone().into()),
             AssetData {
-                key: Some(self.key.clone().into()),
                 background: props.background,
                 background_hover: Some(props.background.lerp(props.foreground, 0.2)),
                 background_pressed: Some(props.background.lerp(props.foreground, 0.3)),

@@ -2,7 +2,7 @@ use crate::{
     views::{self, Views},
     world::{
         self,
-        resources::{self, input::PressState},
+        resources::{self, mouse::PressState},
     },
 };
 use cgmath::*;
@@ -76,21 +76,12 @@ impl State {
 
     pub fn mouse_move(&mut self, id: u64, x: f32, y: f32) {
         let mut input = self.world.components.get_resource_mut::<world::resources::Input>().unwrap();
-        input.mouse_move(
-            id,
-            Point2::new(x, y),
-            self.engine.ctx.viewport.width,
-            self.engine.ctx.viewport.height,
-        );
+        input.mouse_button(id).mouse_move(Point2::new(x, y));
     }
 
     pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-
-        let ui_coords = self.views.to_ui_coords(&self.engine.ctx, &input.mouse.position);
-        let on_ui = self.views.within_ui(&ui_coords);
-
-        input.mouse_set_pressed(id, touch, pressed, on_ui);
+        input.mouse_button(id).press(touch, pressed);
     }
 
     pub fn update(&mut self) {
@@ -107,14 +98,9 @@ impl State {
 
         self.views.update(&mut self.engine.ctx, &mut self.world, last_frame);
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-        input.update();
+        input.update(self.engine.ctx.viewport.width, self.engine.ctx.viewport.height);
 
-        let (center, current, touch) = if let Some(joystick) = &input.joystick {
-            (joystick.center, joystick.current, joystick.touch)
-        } else {
-            (None, None, false)
-        };
-
+        let (center, current, touch) = input.get_joystick_data();
         self.engine
             .joystick_pipeline
             .update(&self.engine.ctx, &self.world.components, center, current, touch);
