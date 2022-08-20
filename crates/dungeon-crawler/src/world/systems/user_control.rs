@@ -31,7 +31,7 @@ pub fn user_control(
                     movement.velocity = strength * 8.0 / config::UPDATES_PER_SECOND;
                 }
 
-                movement.towards(rot.rotate_vector(direction));
+                movement.towards(rot.rotate_vector(vec3(direction.x, 0.0, direction.y)));
             }
         }
 

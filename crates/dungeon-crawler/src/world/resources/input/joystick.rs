@@ -31,7 +31,7 @@ impl Joystick {
         }
     }
 
-    pub fn get_direction_strength(&self, mouse: &HashMap<u64, mouse::MouseButton>) -> Option<(Vector3<f32>, f32)> {
+    pub fn get_direction_strength(&self, mouse: &HashMap<u64, mouse::MouseButton>) -> Option<(Vector2<f32>, f32)> {
         if let Some((_, direction, strength)) = self.get_center_direction_strength(mouse) {
             Some((direction, strength))
         } else {
@@ -39,7 +39,7 @@ impl Joystick {
         }
     }
 
-    fn get_center_direction_strength(&self, mouse: &HashMap<u64, mouse::MouseButton>) -> Option<(Point2<f32>, Vector3<f32>, f32)> {
+    fn get_center_direction_strength(&self, mouse: &HashMap<u64, mouse::MouseButton>) -> Option<(Point2<f32>, Vector2<f32>, f32)> {
         if let Some(mouse) = mouse.get(&self.id) {
             if mouse.is_pressed() {
                 if let Some(position) = self.get_relative(mouse.position) {
@@ -50,7 +50,7 @@ impl Joystick {
 
                     let strength = (position.distance(center) * config::JOYSTICK_SENSITIVITY).min(1.0);
                     let angle = (position.y - center.y).atan2(position.x - center.x);
-                    let direction = vec3(strength * angle.cos(), 0.0, strength * angle.sin());
+                    let direction = vec2(strength * angle.cos(), strength * angle.sin());
                     return Some((center, direction, strength));
                 }
             }
@@ -63,7 +63,7 @@ impl Joystick {
         if let Some(position) = position {
             Some(Point2::new(
                 position.x / self.area.x * 2.0 - 1.0,
-                position.y / self.area.y * 2.0 - 1.0,
+                (position.y / self.area.y * 2.0 - 1.0) * (self.area.y / self.area.x),
             ))
         } else {
             None
