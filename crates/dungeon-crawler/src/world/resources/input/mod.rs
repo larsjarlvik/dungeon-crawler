@@ -38,13 +38,10 @@ impl Default for Input {
 impl Input {
     pub fn keyboard(&mut self, input: &winit::event::KeyboardInput) {
         if let Some(key_code) = input.virtual_keycode {
-            if input.state == winit::event::ElementState::Pressed {
-                self.keys.insert(key_code, PressState::Pressed(self.keys.contains_key(&key_code)));
-            }
-
-            if input.state == winit::event::ElementState::Released {
-                self.keys.remove(&key_code);
-            }
+            match input.state {
+                winit::event::ElementState::Pressed => self.keys.insert(key_code, PressState::Pressed(self.keys.contains_key(&key_code))),
+                winit::event::ElementState::Released => self.keys.remove(&key_code),
+            };
         }
     }
 
@@ -53,30 +50,44 @@ impl Input {
     }
 
     pub fn key_state(&self, key: VirtualKeyCode) -> PressState {
-        if let Some(state) = self.keys.get(&key) {
-            *state
-        } else {
-            PressState::Released(false)
+        match self.keys.get(&key) {
+            Some(state) => *state,
+            None => PressState::Released(false),
         }
     }
 
     pub fn is_pressed(&self, key: VirtualKeyCode) -> bool {
-        if let Some(state) = self.keys.get(&key) {
-            match state {
+        match self.keys.get(&key) {
+            Some(state) => match state {
                 PressState::Released(_) => false,
                 PressState::Pressed(_) => true,
+            },
+            None => false,
+        }
+    }
+
+    pub fn update(&mut self) {
+        if let Some(joystick) = &self.joystick {
+            if let Some(button) = self.mouse.get(&joystick.id) {
+                if !button.is_pressed() {
+                    self.joystick = None;
+                }
             }
-        } else {
-            false
+        }
+
+        for (_, button) in self.mouse.iter_mut() {
+            match button.state {
+                PressState::Released(_) => button.state = PressState::Released(true),
+                PressState::Pressed(_) => button.state = PressState::Pressed(true),
+            }
         }
     }
 
     pub fn set_from_ui(&mut self, action_code: UiActionCode, pressed: bool) {
-        if pressed {
-            self.ui.insert(action_code, PressState::Pressed(self.ui.contains_key(&action_code)));
-        } else {
-            self.ui.remove(&action_code);
-        }
+        match pressed {
+            true => self.ui.insert(action_code, PressState::Pressed(self.ui.contains_key(&action_code))),
+            false => self.ui.remove(&action_code),
+        };
     }
 
     pub fn pressed_buttons(&self) -> HashMap<u64, MouseButton> {

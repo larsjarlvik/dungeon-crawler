@@ -85,9 +85,6 @@ impl State {
     }
 
     pub fn update(&mut self) {
-        self.world.update();
-        self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
-
         let last_frame = {
             self.world
                 .components
@@ -96,10 +93,13 @@ impl State {
                 .last_frame
         };
 
+        self.world.update();
+        self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
         self.views.update(&mut self.engine.ctx, &mut self.world, last_frame);
 
+        let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
+
         let joystick = {
-            let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
             if input.joystick.is_none() {
                 for (id, _) in input.pressed_buttons().iter() {
                     if !self.views.is_click_through(id) {
@@ -116,6 +116,7 @@ impl State {
             }
         };
 
+        input.update();
         self.engine
             .joystick_pipeline
             .update(&self.engine.ctx, &self.world.components, &joystick);
