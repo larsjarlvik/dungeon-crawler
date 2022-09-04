@@ -28,9 +28,9 @@ pub fn user_control(
         movement.target_velocity = 0.0;
 
         if let Some(joystick) = &input.joystick {
-            if let Some(current) = joystick.current {
-                movement.target_velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
-                movement.towards(rot.rotate_vector(vec3(current.x, 0.0, current.y)));
+            if let Some((direction, strength)) = joystick.get_direction_strength(&input.mouse) {
+                movement.target_velocity = strength * 8.0 / config::UPDATES_PER_SECOND;
+                movement.towards(rot.rotate_vector(vec3(direction.x, 0.0, direction.y)));
             }
         }
 

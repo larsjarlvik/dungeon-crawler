@@ -4,6 +4,7 @@ use ui::widgets::*;
 
 pub fn splash() -> Box<dyn BaseWidget> {
     PanelWidget::new(
+        None,
         AssetData {
             background: Vector4::new(0.0, 0.0, 0.0, 1.0),
             ..Default::default()
@@ -20,6 +21,7 @@ pub fn splash() -> Box<dyn BaseWidget> {
         },
     )
     .with_children(vec![AssetWidget::new(
+        None,
         AssetData {
             asset_id: Some("logo".into()),
             ..Default::default()

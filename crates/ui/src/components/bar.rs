@@ -35,6 +35,7 @@ impl Bar {
 
     pub fn draw(&self, label: &str, props: BarProps) -> Box<PanelWidget> {
         PanelWidget::new(
+            None,
             AssetData {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
                 shadow_radius: Dimension::Points(2.0),
@@ -55,6 +56,7 @@ impl Bar {
         )
         .with_children(vec![
             PanelWidget::new(
+                None,
                 AssetData {
                     background: props.color,
                     gradient: props.gradient,

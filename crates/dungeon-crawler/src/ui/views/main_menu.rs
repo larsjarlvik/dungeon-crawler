@@ -1,5 +1,8 @@
-use super::{settings::Settings, style};
-use crate::world::{self, GameState};
+use super::settings::Settings;
+use crate::{
+    ui::style,
+    world::{self, GameState},
+};
 use ui::{components::*, prelude::*, widgets::*};
 
 enum SubMenu {
@@ -38,6 +41,7 @@ impl MainMenu {
         }
 
         let menu_panel = PanelWidget::new(
+            None,
             AssetData { ..Default::default() },
             FlexboxLayout {
                 flex_direction: FlexDirection::Column,
@@ -78,6 +82,7 @@ impl MainMenu {
         }
 
         PanelWidget::new(
+            None,
             AssetData {
                 background: style::PALETTE_BROWN.extend(0.5),
                 gradient: Some(Gradient {
