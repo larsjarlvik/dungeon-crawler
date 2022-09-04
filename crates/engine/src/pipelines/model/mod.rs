@@ -183,8 +183,7 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
 
         animation.channels.iter().for_each(|(_, channel)| {
             for (index, animation) in channel.queue.iter().enumerate() {
-                let blend_factor = channel.get_blend_factor(index);
-                animate(&mut nodes, animation, blend_factor);
+                animate(&mut nodes, animation, channel.get_blend_factor(index));
             }
 
             for (index, parent_index) in &nodes.depth_first_taversal_indices {
@@ -220,11 +219,15 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
     }
 }
 
-fn animate(nodes: &mut GltfModelNodes, animation: &components::Animation, blend_factor: f32) -> bool {
+fn animate(nodes: &mut GltfModelNodes, animation: &components::Animation, blend_factor: f32) {
+    if blend_factor < 0.01 {
+        return;
+    }
+
     let cur_model_animation = nodes
         .animations
         .get(&animation.name)
         .expect(format!("Could not find animation: {}", &animation.name).as_str());
 
-    cur_model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed, blend_factor)
+    cur_model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed, blend_factor);
 }
