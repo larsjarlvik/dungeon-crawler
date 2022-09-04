@@ -4,7 +4,10 @@ use crate::{
 };
 use bevy_ecs::{prelude::World, world::EntityMut};
 use cgmath::*;
-use engine::Engine;
+use engine::{
+    collision::{Polygon, PolygonMethods},
+    Engine,
+};
 use rand::{prelude::StdRng, Rng, SeedableRng};
 use std::env;
 mod decor;
@@ -95,14 +98,28 @@ impl Map {
         let (t, rot) = determine_tile(&entrances);
         let name = t.split('-').last().expect("Could not get map name!");
 
-        let decor = decor::get_decor(&format!("catacombs/{}", name).as_str(), rng)
+        let decor: Vec<components::Decor> = decor::get_decor(&format!("catacombs/{}", name).as_str(), rng)
             .iter()
             .map(|d| self.add_decor(engine, d, pos, rot))
             .collect();
 
+        let decor_collisions = decor
+            .iter()
+            .flat_map(|d| {
+                d.collisions
+                    .iter()
+                    .map(|polygon| polygon.transform(d.position, Quaternion::from_angle_y(Deg(d.rotation))))
+                    .collect::<Vec<Polygon>>()
+            })
+            .collect();
+
         let mut hostiles = vec![];
-        for _ in 0..(rng.gen::<f32>() * 3.0) as usize {
-            hostiles.push(self.add_hostile(rng, engine, pos));
+
+        // Do not spawn hostiles on starting tile
+        if pos.distance(Vector3::zero()) > 1.0 {
+            for _ in 0..(rng.gen::<f32>() * 3.0) as usize {
+                hostiles.push(self.add_hostile(rng, engine, pos, &decor_collisions));
+            }
         }
 
         let collisions = self
@@ -187,15 +204,15 @@ impl Map {
         }
     }
 
-    fn add_hostile(&self, rng: &mut StdRng, engine: &mut engine::Engine, tile_center: Vector3<f32>) -> components::Hostile {
+    fn add_hostile(
+        &self,
+        rng: &mut StdRng,
+        engine: &mut engine::Engine,
+        tile_center: Vector3<f32>,
+        collisions: &Vec<Polygon>,
+    ) -> components::Hostile {
         let model = engine.initialize_model(&self.hostiles, "skeleton", 1.3);
-
-        let position = tile_center
-            + vec3(
-                (rng.gen::<f32>() - 0.5) * (self.tile_size - 2.0),
-                0.0,
-                (rng.gen::<f32>() - 0.5) * (self.tile_size - 2.0),
-            );
+        let mut position;
 
         let collider = self
             .hostiles
@@ -203,6 +220,28 @@ impl Map {
             .get("skeleton")
             .expect("Could not find skeleton collider!")
             .clone();
+
+        loop {
+            let mut is_colliding = false;
+            position = tile_center
+                + vec3(
+                    (rng.gen::<f32>() - 0.5) * (self.tile_size - 3.0),
+                    0.0,
+                    (rng.gen::<f32>() - 0.5) * (self.tile_size - 3.0),
+                );
+
+            for polygon in collider.iter() {
+                let p = polygon.transform(position, Quaternion::zero());
+                if engine::collision::check_collision_array(Vector3::zero(), &p, &collisions) {
+                    is_colliding = true;
+                    break;
+                }
+            }
+
+            if !is_colliding {
+                break;
+            }
+        }
 
         components::Hostile {
             model,

@@ -1,7 +1,6 @@
 use crate::world::*;
 use bevy_ecs::prelude::*;
-use cgmath::*;
-use engine::collision::{Intersection, Polygon, PolygonMethods};
+use engine::collision::{Polygon, PolygonMethods};
 
 pub fn collision(
     mut movement_query: Query<(
@@ -33,30 +32,7 @@ pub fn collision(
             .collect();
 
         for polygon in collider.iter() {
-            let closest_target = get_collision_offset(movement.to, &polygon, &collisions);
-            movement.to = closest_target;
+            movement.to = engine::collision::get_collision_offset(movement.to, &polygon, &collisions);
         }
     }
-}
-
-fn get_collision_offset(position: Vector3<f32>, collider: &Polygon, collisions: &Vec<Polygon>) -> Vector3<f32> {
-    let mut offset = position;
-    let mut hits = 0;
-
-    for collision in collisions.iter() {
-        if collision.center().distance(collider.center()) > 3.0 {
-            continue;
-        }
-
-        let result = engine::collision::check_collision(&collider, &collision, vec2(position.x, position.z));
-        offset = match result {
-            Intersection::WillIntersect(mtv) => {
-                hits += 1;
-                offset + position + vec3(mtv.x, 0.0, mtv.y)
-            }
-            _ => offset,
-        };
-    }
-
-    offset / (hits + 1) as f32
 }

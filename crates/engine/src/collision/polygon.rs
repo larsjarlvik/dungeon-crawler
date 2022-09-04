@@ -4,6 +4,7 @@ pub type Polygon = Vec<Vector2<f32>>;
 
 pub trait PolygonMethods {
     fn transform(&self, translation: Vector3<f32>, rot: Quaternion<f32>) -> Polygon;
+    fn scale(&self, scale: f32) -> Polygon;
     fn center(&self) -> Vector2<f32>;
     fn edges(&self) -> Vec<Vector2<f32>>;
 }
@@ -17,6 +18,10 @@ impl PolygonMethods for Polygon {
                 vec2(f.x, f.z)
             })
             .collect()
+    }
+
+    fn scale(&self, scale: f32) -> Polygon {
+        self.iter().map(|p| vec2(p.x * scale, p.y * scale)).collect()
     }
 
     fn center(&self) -> Vector2<f32> {

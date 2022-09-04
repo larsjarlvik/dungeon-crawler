@@ -69,6 +69,41 @@ pub fn check_collision(a: &Polygon, b: &Polygon, velocity: Vector2<f32>) -> Inte
     Intersection::None
 }
 
+pub fn check_collision_array(position: Vector3<f32>, collider: &Polygon, collisions: &Vec<Polygon>) -> bool {
+    for collision in collisions.iter() {
+        let result = check_collision(&collider, &collision, vec2(position.x, position.z));
+
+        match result {
+            Intersection::None => {}
+            Intersection::Intersect | Intersection::WillIntersect(_) => return true,
+        }
+    }
+
+    return false;
+}
+
+pub fn get_collision_offset(position: Vector3<f32>, collider: &Polygon, collisions: &Vec<Polygon>) -> Vector3<f32> {
+    let mut offset = position;
+    let mut hits = 0;
+
+    for collision in collisions.iter() {
+        if collision.center().distance(collider.center()) > 3.0 {
+            continue;
+        }
+
+        let result = check_collision(&collider, &collision, vec2(position.x, position.z));
+        offset = match result {
+            Intersection::WillIntersect(mtv) => {
+                hits += 1;
+                offset + position + vec3(mtv.x, 0.0, mtv.y)
+            }
+            _ => offset,
+        };
+    }
+
+    offset / (hits + 1) as f32
+}
+
 fn project_polygon(axis: Vector2<f32>, polygon: &Polygon) -> (f32, f32) {
     let mut dot_product = axis.dot(polygon[0]);
     let mut min = dot_product;
