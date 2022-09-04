@@ -1,18 +1,18 @@
+use crate::ui::Views;
 use cgmath::Point2;
 use engine::Settings;
-use views::Views;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::{Fullscreen, WindowBuilder},
 };
-use world::{resources::input::PressState, GameState};
+use world::{resources::input::mouse::PressState, GameState};
 
 mod config;
 mod map;
 mod state;
+mod ui;
 mod utils;
-mod views;
 mod world;
 
 #[cfg_attr(
@@ -92,22 +92,6 @@ pub fn main() {
                                     Some(_) => window.set_fullscreen(None),
                                     None => window.set_fullscreen(Some(Fullscreen::Borderless(None))),
                                 }
-                            }
-
-                            if input.is_pressed(VirtualKeyCode::LControl)
-                                && input.key_state(VirtualKeyCode::A) == PressState::Pressed(false)
-                            {
-                                state.engine.ctx.settings.smaa = !state.engine.ctx.settings.smaa;
-                                state.engine.ctx.settings.store();
-                                state.world.game_state = GameState::Reload;
-                            }
-
-                            if input.is_pressed(VirtualKeyCode::LControl)
-                                && input.key_state(VirtualKeyCode::S) == PressState::Pressed(false)
-                            {
-                                state.engine.ctx.settings.sharpen = !state.engine.ctx.settings.sharpen;
-                                state.engine.ctx.settings.store();
-                                state.world.game_state = GameState::Reload;
                             }
                         }
                         WindowEvent::CursorMoved { position, .. } => {

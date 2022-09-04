@@ -1,8 +1,8 @@
 use crate::{
-    views::{self, Views},
+    ui::{self, Views},
     world::{
         self,
-        resources::{self, input::PressState},
+        resources::{self, input::mouse::PressState},
     },
 };
 use cgmath::*;
@@ -13,7 +13,7 @@ use winit::{event::VirtualKeyCode, window::Window};
 pub struct State {
     pub engine: engine::Engine,
     pub world: world::World,
-    pub views: views::Views,
+    pub views: ui::Views,
 }
 
 impl State {
@@ -76,27 +76,15 @@ impl State {
 
     pub fn mouse_move(&mut self, id: u64, x: f32, y: f32) {
         let mut input = self.world.components.get_resource_mut::<world::resources::Input>().unwrap();
-        input.mouse_move(
-            id,
-            Point2::new(x, y),
-            self.engine.ctx.viewport.width,
-            self.engine.ctx.viewport.height,
-        );
+        input.mouse_button(id).mouse_move(Point2::new(x, y));
     }
 
     pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-
-        let ui_coords = self.views.to_ui_coords(&self.engine.ctx, &input.mouse.position);
-        let on_ui = self.views.within_ui(&ui_coords);
-
-        input.mouse_set_pressed(id, touch, pressed, on_ui);
+        input.mouse_button(id).press(touch, pressed);
     }
 
     pub fn update(&mut self) {
-        self.world.update();
-        self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
-
         let last_frame = {
             self.world
                 .components
@@ -105,19 +93,33 @@ impl State {
                 .last_frame
         };
 
+        self.world.update();
+        self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
         self.views.update(&mut self.engine.ctx, &mut self.world, last_frame);
-        let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
-        input.update();
 
-        let (center, current, touch) = if let Some(joystick) = &input.joystick {
-            (joystick.center, joystick.current, joystick.touch)
-        } else {
-            (None, None, false)
+        let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
+
+        let joystick = {
+            if input.joystick.is_none() {
+                for (id, _) in input.pressed_buttons().iter() {
+                    if !self.views.is_click_through(id) {
+                        input.set_joystick(id, self.engine.ctx.viewport.width, self.engine.ctx.viewport.height);
+                        break;
+                    }
+                }
+            }
+
+            if let Some(joystick) = &input.joystick {
+                joystick.get_properties(&input.mouse)
+            } else {
+                None
+            }
         };
 
+        input.update();
         self.engine
             .joystick_pipeline
-            .update(&self.engine.ctx, &self.world.components, center, current, touch);
+            .update(&self.engine.ctx, &self.world.components, &joystick);
     }
 
     pub fn render(&mut self) {

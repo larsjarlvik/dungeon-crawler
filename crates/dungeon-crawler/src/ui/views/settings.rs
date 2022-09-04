@@ -1,4 +1,4 @@
-use super::style;
+use crate::ui::style;
 use crate::world;
 use crate::world::GameState;
 use ui::components::*;

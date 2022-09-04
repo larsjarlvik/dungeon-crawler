@@ -1,18 +1,24 @@
 use super::{
-    base::{self, RenderWidget},
-    AssetData, NodeLayout,
+    base::{self},
+    AssetData, NodeLayout, RenderWidget, RenderWidgetType,
 };
 use taffy::prelude::*;
 
 pub struct AssetWidget {
+    pub key: Option<String>,
     pub data: AssetData,
     node: Option<Node>,
     layout: FlexboxLayout,
 }
 
 impl AssetWidget {
-    pub fn new(data: AssetData, layout: FlexboxLayout) -> Box<Self> {
-        Box::new(Self { data, layout, node: None })
+    pub fn new(key: Option<String>, data: AssetData, layout: FlexboxLayout) -> Box<Self> {
+        Box::new(Self {
+            key,
+            data,
+            layout,
+            node: None,
+        })
     }
 }
 
@@ -27,6 +33,6 @@ impl base::BaseWidget for AssetWidget {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let layout = NodeLayout::new(parent_layout, layout);
 
-        vec![(layout, RenderWidget::Asset(&self.data))]
+        vec![(layout, RenderWidget::new(self.key.clone(), RenderWidgetType::Asset(&self.data)))]
     }
 }
