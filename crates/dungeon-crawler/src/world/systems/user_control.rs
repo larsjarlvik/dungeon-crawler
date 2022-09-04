@@ -26,7 +26,7 @@ pub fn user_control(
 
     for (transform, mut movement, mut action, mut stats, weapon) in query.p0().iter_mut() {
         if let Some(joystick) = &input.joystick {
-            if action.current == components::CurrentAction::None {
+            if action.get() == components::CurrentAction::None {
                 movement.velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
             }
 
@@ -53,7 +53,6 @@ pub fn user_control(
                     components::CurrentAction::Attack,
                     (weapon.time + stats.get_attack_time()) / 2.0,
                     (weapon.time + stats.get_attack_time()) / 2.0 * 0.3,
-                    false,
                 );
             }
         }

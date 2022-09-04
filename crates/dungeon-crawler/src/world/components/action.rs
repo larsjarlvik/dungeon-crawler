@@ -1,3 +1,4 @@
+use crate::config;
 use bevy_ecs::prelude::*;
 use std::time::Instant;
 
@@ -11,7 +12,7 @@ pub enum CurrentAction {
 
 #[derive(Component)]
 pub struct Action {
-    pub current: CurrentAction,
+    current: CurrentAction,
     pub set: Instant,
     pub length: f32,
     pub activation_time: f32,
@@ -29,8 +30,16 @@ impl Action {
         }
     }
 
-    pub fn set_action(&mut self, action: CurrentAction, min_action_time: f32, activation_time: f32, force: bool) {
-        if !force && self.current != CurrentAction::None {
+    pub fn get(&self) -> CurrentAction {
+        if self.set.elapsed().as_secs_f32() <= self.length + config::time_step().as_secs_f32() {
+            self.current
+        } else {
+            CurrentAction::None
+        }
+    }
+
+    pub fn set_action(&mut self, action: CurrentAction, min_action_time: f32, activation_time: f32) {
+        if self.current == action && self.set.elapsed().as_secs_f32() <= self.length {
             return;
         }
 
@@ -41,12 +50,8 @@ impl Action {
         self.executed = false;
     }
 
-    pub fn reset(&mut self) {
-        self.current = CurrentAction::None;
-    }
-
     pub fn should_execute(&mut self) -> bool {
-        let activated = self.set.elapsed().as_secs_f32() > self.activation_time;
+        let activated = self.set.elapsed().as_secs_f32() >= self.activation_time;
         if activated && !self.executed {
             self.executed = true;
             return true;

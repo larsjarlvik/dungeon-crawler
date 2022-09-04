@@ -20,11 +20,7 @@ pub fn actions(
         let current_rot = transform.rotation.current;
         let current_trans = transform.translation.current;
 
-        if action.set.elapsed().as_secs_f32() >= action.length {
-            action.reset();
-        }
-
-        match &action.current {
+        match &action.get() {
             components::CurrentAction::None => {
                 transform.rotation.set(current_rot.slerp(new_rot, 0.2), time.frame);
 
@@ -71,19 +67,18 @@ pub fn actions(
                             "base",
                             "attack",
                             engine::ecs::components::AnimationSpeed::Length(action.length),
-                            engine::ecs::components::AnimationRunType::Default,
+                            engine::ecs::components::AnimationRunType::Repeat,
                         );
 
                         if let Some(weapon) = weapon {
                             let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;
-
-                            let base = stats.get_attack_damage();
-                            let weapon = weapon.damage.clone();
+                            let damage_base = stats.get_attack_damage();
+                            let damage_weapon = weapon.damage.clone();
 
                             commands.spawn().insert_bundle((
                                 components::Attack {
                                     collision_key: collision.key.clone(),
-                                    damage: (base.start * weapon.start)..(base.end * weapon.end),
+                                    damage: (damage_base.start * damage_weapon.start)..(damage_base.end * damage_weapon.end),
                                 },
                                 engine::ecs::components::Transform::from_translation(transform.translation.current + dir),
                             ));

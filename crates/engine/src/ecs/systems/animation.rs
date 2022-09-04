@@ -4,10 +4,8 @@ use bevy_ecs::prelude::*;
 pub fn animation(time: Res<resources::Time>, mut query: Query<(&mut components::Animations, &components::Model)>) {
     for (mut animation, model) in query.iter_mut() {
         for (_, channel) in animation.channels.iter_mut() {
-            animate_channel(&model, &mut channel.current, time.last_frame);
-
-            if let Some(previous) = &mut channel.prev {
-                animate_channel(&model, previous, time.last_frame);
+            for animation in channel.queue.iter_mut() {
+                animate_channel(&model, animation, time.last_frame);
             }
         }
     }

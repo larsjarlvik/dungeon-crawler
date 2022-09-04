@@ -25,18 +25,13 @@ pub fn aggression(
                 agressor.start_range
             };
 
-            if action.current == components::CurrentAction::None {
+            if action.get() == components::CurrentAction::None {
                 movement.towards(target_transform - transform.translation.current);
 
                 // TODO: Attack range
                 if distance < 1.0 {
                     if let Some(weapon) = weapon {
-                        action.set_action(
-                            components::CurrentAction::Attack,
-                            weapon.time * stats.get_attack_time(),
-                            0.3,
-                            false,
-                        );
+                        action.set_action(components::CurrentAction::Attack, weapon.time * stats.get_attack_time(), 0.3);
                     }
                 } else if transform.translation.current.distance(*target_transform) < range {
                     movement.velocity = 0.07;
