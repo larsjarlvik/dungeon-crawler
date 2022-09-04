@@ -7,7 +7,7 @@ pub fn aggression(
         Query<(
             &mut components::Agressor,
             &mut components::Movement,
-            &mut components::Action,
+            &mut components::ActionExecutor,
             &components::Stats,
             Option<&components::Weapon>,
             &engine::ecs::components::Transform,
@@ -25,13 +25,13 @@ pub fn aggression(
                 agressor.start_range
             };
 
-            if action.get() == components::CurrentAction::None {
+            if action.get() == components::Action::None {
                 movement.towards(target_transform - transform.translation.current);
 
                 // TODO: Attack range
                 if distance < 1.0 {
                     if let Some(weapon) = weapon {
-                        action.set_action(components::CurrentAction::Attack, weapon.time * stats.get_attack_time(), 0.3);
+                        action.set_action(components::Action::Attack, weapon.time * stats.get_attack_time(), 0.3);
                     }
                 } else if transform.translation.current.distance(*target_transform) < range {
                     movement.velocity = 0.07;

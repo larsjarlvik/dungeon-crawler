@@ -81,7 +81,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                             components::Name::new("Skeleton Warrior"),
                             hostile.model.clone(),
                             components::Collision::new(hostile.collider.clone()),
-                            engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationRunType::Repeat),
+                            engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationStatus::Repeat),
                             engine::ecs::components::Transform::from_translation_scale(hostile.position, 0.8),
                             engine::ecs::components::Render { cull_frustum: true },
                             components::Stats::new(10, 10, 12, components::stats::get_level_experience(3)),
@@ -92,7 +92,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                             components::Agressor::new(6.0),
                             components::Movement::new(10.0),
                             engine::ecs::components::Shadow,
-                            components::Action::new(),
+                            components::ActionExecutor::new(),
                         ));
                     }
 

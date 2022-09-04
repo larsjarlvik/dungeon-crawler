@@ -22,19 +22,25 @@ fn animate_channel(model: &components::Model, animation: &mut components::Animat
         .get(&animation.name.to_string())
         .expect(format!("Could not find animation: {}", &animation.name).as_str());
 
-    animation.elapsed = match animation.run_type {
-        components::AnimationRunType::Default => {
-            let new_elapsed = animation.elapsed + last_frame * animation.speed;
+    let speed = match animation.speed {
+        components::AnimationSpeed::Original => 1.0,
+        components::AnimationSpeed::Length(length) => total_time / length,
+        components::AnimationSpeed::Speed(speed) => speed,
+    };
+
+    animation.elapsed = match animation.status {
+        components::AnimationStatus::Default => {
+            let new_elapsed = animation.elapsed + last_frame * speed;
 
             if new_elapsed >= total_time {
-                animation.run_type = components::AnimationRunType::Stopped;
+                animation.status = components::AnimationStatus::Stopped;
                 total_time
             } else {
                 new_elapsed
             }
         }
-        components::AnimationRunType::Repeat => (animation.elapsed + last_frame * animation.speed) % total_time,
-        components::AnimationRunType::Stopped => total_time,
+        components::AnimationStatus::Repeat => (animation.elapsed + last_frame * speed) % total_time,
+        components::AnimationStatus::Stopped => total_time,
     };
 }
 

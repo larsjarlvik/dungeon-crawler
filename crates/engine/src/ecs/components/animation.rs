@@ -2,6 +2,7 @@ use crate::config;
 use bevy_ecs::prelude::*;
 use std::{collections::HashMap, time::Instant};
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum AnimationSpeed {
     Original,
     Length(f32),
@@ -9,7 +10,7 @@ pub enum AnimationSpeed {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum AnimationRunType {
+pub enum AnimationStatus {
     Default,
     Repeat,
     Stopped,
@@ -20,8 +21,8 @@ pub struct Animation {
     pub name: String,
     pub elapsed: f32,
     pub started: Instant,
-    pub speed: f32,
-    pub run_type: AnimationRunType,
+    pub speed: AnimationSpeed,
+    pub status: AnimationStatus,
 }
 
 #[derive(Debug)]
@@ -51,7 +52,7 @@ pub struct Animations {
 }
 
 impl Animations {
-    pub fn new(key: &str, animation: &str, run_type: AnimationRunType) -> Self {
+    pub fn new(key: &str, animation: &str, status: AnimationStatus) -> Self {
         let mut channels = HashMap::new();
 
         channels.insert(
@@ -61,8 +62,8 @@ impl Animations {
                     name: animation.to_string(),
                     elapsed: 0.0,
                     started: Instant::now(),
-                    speed: 1.0,
-                    run_type,
+                    speed: AnimationSpeed::Original,
+                    status,
                 }],
             },
         );
@@ -70,13 +71,7 @@ impl Animations {
         Self { channels }
     }
 
-    pub fn set_animation(&mut self, channel: &str, animation: &str, speed: AnimationSpeed, run: AnimationRunType) {
-        let speed = match speed {
-            AnimationSpeed::Original => 1.0,
-            AnimationSpeed::Length(length) => length,
-            AnimationSpeed::Speed(speed) => speed,
-        };
-
+    pub fn set_animation(&mut self, channel: &str, animation: &str, speed: AnimationSpeed, run: AnimationStatus) {
         if let Some(channel) = self.channels.get_mut(&channel.to_string()) {
             if let Some(last) = channel.queue.last_mut() {
                 if last.name == animation {
@@ -90,7 +85,7 @@ impl Animations {
                 speed,
                 elapsed: 0.0,
                 started: Instant::now(),
-                run_type: run,
+                status: run,
             });
         } else {
             self.channels.insert(
@@ -101,10 +96,18 @@ impl Animations {
                         speed,
                         elapsed: 0.0,
                         started: Instant::now(),
-                        run_type: run,
+                        status: run,
                     }],
                 },
             );
+        }
+    }
+
+    pub fn set_speed(&mut self, channel: &str, animation: &str, speed: AnimationSpeed) {
+        if let Some(channel) = self.channels.get_mut(&channel.to_string()) {
+            for animation in channel.queue.iter_mut().filter(|a| a.name == animation) {
+                animation.speed = speed.clone();
+            }
         }
     }
 }

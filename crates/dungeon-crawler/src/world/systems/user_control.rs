@@ -12,7 +12,7 @@ pub fn user_control(
             (
                 &engine::ecs::components::Transform,
                 &mut components::Movement,
-                &mut components::Action,
+                &mut components::ActionExecutor,
                 &mut components::Stats,
                 Option<&components::Weapon>,
             ),
@@ -25,12 +25,11 @@ pub fn user_control(
     let targets: Vec<Vector3<f32>> = query.p1().iter().map(|(_, t)| t.translation.current.clone()).collect();
 
     for (transform, mut movement, mut action, mut stats, weapon) in query.p0().iter_mut() {
-        if let Some(joystick) = &input.joystick {
-            if action.get() == components::CurrentAction::None {
-                movement.velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
-            }
+        movement.target_velocity = 0.0;
 
+        if let Some(joystick) = &input.joystick {
             if let Some(current) = joystick.current {
+                movement.target_velocity = joystick.strength * 8.0 / config::UPDATES_PER_SECOND;
                 movement.towards(rot.rotate_vector(vec3(current.x, 0.0, current.y)));
             }
         }
@@ -49,11 +48,7 @@ pub fn user_control(
             };
 
             if let Some(weapon) = weapon {
-                action.set_action(
-                    components::CurrentAction::Attack,
-                    (weapon.time + stats.get_attack_time()) / 2.0,
-                    (weapon.time + stats.get_attack_time()) / 2.0 * 0.3,
-                );
+                action.set_action(components::Action::Attack, weapon.time * stats.get_attack_time(), 0.3);
             }
         }
 
