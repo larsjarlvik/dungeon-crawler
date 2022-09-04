@@ -38,9 +38,10 @@ impl<'a> World {
             SystemStage::parallel()
                 .with_system(systems::flicker)
                 .with_system(systems::user_control)
-                .with_system(systems::actions.label("movement"))
-                .with_system(systems::collision.after("movement"))
-                .with_system(systems::damage.after("movement"))
+                .with_system(systems::actions.label("actions"))
+                .with_system(systems::collision.label("collision").after("actions"))
+                .with_system(systems::damage.after("actions"))
+                .with_system(systems::movement.after("collision"))
                 .with_system(systems::aggression)
                 .with_system(systems::health),
         );
@@ -76,12 +77,12 @@ impl<'a> World {
                 .expect("Could not find character collider!");
 
             self.components.spawn().insert_bundle((
-                engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationRunType::Repeat),
+                engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationStatus::Repeat),
                 character_model,
                 components::Collision::new(collider.clone()),
                 engine::ecs::components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),
-                components::Action::new(),
+                components::ActionExecutor::new(),
                 components::Stats::new(15, 15, 15, 0),
                 components::Weapon {
                     damage: 2.0..7.0,

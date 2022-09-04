@@ -16,8 +16,6 @@ pub fn collision(
             continue;
         }
 
-        let mut velocity_dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * movement.velocity;
-
         let collisions: Vec<Polygon> = collision_query
             .iter()
             .filter(|(c, _)| c.key != collider.key)
@@ -35,16 +33,14 @@ pub fn collision(
             .collect();
 
         for polygon in collider.iter() {
-            let collision = get_collision_offset(velocity_dir, &polygon, &collisions);
-            velocity_dir = collision;
+            let closest_target = get_collision_offset(movement.to, &polygon, &collisions);
+            movement.to = closest_target;
         }
-
-        movement.velocity_dir = velocity_dir;
     }
 }
 
-fn get_collision_offset(velocity_dir: Vector3<f32>, collider: &Polygon, collisions: &Vec<Polygon>) -> Vector3<f32> {
-    let mut offset = velocity_dir;
+fn get_collision_offset(position: Vector3<f32>, collider: &Polygon, collisions: &Vec<Polygon>) -> Vector3<f32> {
+    let mut offset = position;
     let mut hits = 0;
 
     for collision in collisions.iter() {
@@ -52,11 +48,11 @@ fn get_collision_offset(velocity_dir: Vector3<f32>, collider: &Polygon, collisio
             continue;
         }
 
-        let result = engine::collision::check_collision(&collider, &collision, vec2(velocity_dir.x, velocity_dir.z));
+        let result = engine::collision::check_collision(&collider, &collision, vec2(position.x, position.z));
         offset = match result {
             Intersection::WillIntersect(mtv) => {
                 hits += 1;
-                offset + velocity_dir + vec3(mtv.x, 0.0, mtv.y)
+                offset + position + vec3(mtv.x, 0.0, mtv.y)
             }
             _ => offset,
         };

@@ -5,7 +5,7 @@ use bevy_hierarchy::*;
 pub fn health(
     mut commands: Commands,
     mut query: ParamSet<(
-        Query<(Entity, &mut components::Stats, Option<&mut components::Action>)>,
+        Query<(Entity, &mut components::Stats, Option<&mut components::ActionExecutor>)>,
         Query<&mut components::Stats>,
     )>,
 ) {
@@ -40,14 +40,14 @@ pub fn health(
         if stats.health.current < previous {
             if let Some(action) = &mut action {
                 if stats.health.current <= 0.0 {
-                    action.set_action(components::CurrentAction::Death, 100.0, 0.0, true);
+                    action.set_action(components::Action::Death, 100.0, 0.0);
                     total_experience.push((stats.get_kill_experience(), stats.get_level()));
 
                     commands
                         .entity(entity)
                         .remove_bundle::<(components::Agressor, components::Target, components::Collision)>();
                 } else {
-                    action.set_action(components::CurrentAction::Hit, stats.get_recovery_time(), 0.25, true);
+                    action.set_action(components::Action::Hit, stats.get_recovery_time(), 0.0);
                 }
             } else if stats.health.current <= 0.0 {
                 commands.entity(entity).despawn_recursive();

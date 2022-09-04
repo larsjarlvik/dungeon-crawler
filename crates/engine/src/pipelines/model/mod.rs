@@ -182,23 +182,20 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
         let mut nodes = nodes.clone();
 
         animation.channels.iter().for_each(|(_, channel)| {
-            let blend_factor = channel.get_blend_factor();
+            for (index, animation) in channel.queue.iter().enumerate() {
+                animate(&mut nodes, animation, channel.get_blend_factor(index));
+            }
 
-            let has_cur_animation = animate(&mut nodes, &Some(&channel.current), 1.0);
-            let has_prev_animation = animate(&mut nodes, &channel.prev.as_ref(), 1.0 - blend_factor);
+            for (index, parent_index) in &nodes.depth_first_taversal_indices {
+                let parent_transform = parent_index
+                    .map(|id| {
+                        let parent = &nodes.nodes[id];
+                        parent.global_transform_matrix
+                    })
+                    .or(Matrix4::identity().into());
 
-            if has_cur_animation || has_prev_animation {
-                for (index, parent_index) in &nodes.depth_first_taversal_indices {
-                    let parent_transform = parent_index
-                        .map(|id| {
-                            let parent = &nodes.nodes[id];
-                            parent.global_transform_matrix
-                        })
-                        .or(Matrix4::identity().into());
-
-                    let node = &mut nodes.nodes[*index];
-                    node.apply_transform(parent_transform);
-                }
+                let node = &mut nodes.nodes[*index];
+                node.apply_transform(parent_transform);
             }
 
             for node in nodes.nodes.iter() {
@@ -222,16 +219,15 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
     }
 }
 
-fn animate(nodes: &mut GltfModelNodes, animation: &Option<&components::Animation>, blend_factor: f32) -> bool {
-    match animation {
-        Some(animation) => {
-            let cur_model_animation = nodes
-                .animations
-                .get(&animation.name)
-                .expect(format!("Could not find animation: {}", &animation.name).as_str());
-
-            cur_model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed, blend_factor)
-        }
-        None => false,
+fn animate(nodes: &mut GltfModelNodes, animation: &components::Animation, blend_factor: f32) {
+    if blend_factor < 0.01 {
+        return;
     }
+
+    let cur_model_animation = nodes
+        .animations
+        .get(&animation.name)
+        .expect(format!("Could not find animation: {}", &animation.name).as_str());
+
+    cur_model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed, blend_factor);
 }

@@ -13,7 +13,7 @@ mod user_control;
 mod weapon;
 
 pub use action::Action;
-pub use action::CurrentAction;
+pub use action::ActionExecutor;
 pub use aggression::*;
 pub use attack::Attack;
 pub use collision::Collision;

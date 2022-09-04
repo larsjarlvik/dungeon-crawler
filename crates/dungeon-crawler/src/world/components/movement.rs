@@ -5,8 +5,9 @@ use cgmath::*;
 pub struct Movement {
     pub max_velocity: f32,
     pub velocity: f32,
+    pub target_velocity: f32,
     pub direction: f32,
-    pub velocity_dir: Vector3<f32>,
+    pub to: Vector3<f32>,
 }
 
 impl Movement {
@@ -14,8 +15,9 @@ impl Movement {
         Self {
             max_velocity,
             velocity: 0.0,
+            target_velocity: 0.0,
             direction: 0.0,
-            velocity_dir: Vector3::zero(),
+            to: Vector3::zero(),
         }
     }
 
