@@ -80,15 +80,17 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
     }
 
     let mut top_right: Vec<Box<dyn BaseWidget>> = vec![];
-    for (stats, name) in world
+    let display_target: Vec<&components::DisplayTarget> = world
         .components
-        .query_filtered::<(&components::Stats, &components::Name), With<components::Display>>()
+        .query::<&components::DisplayTarget>()
         .iter(&world.components)
-    {
+        .collect();
+
+    if let Some(display_target) = display_target.first() {
         top_right.push(status_bar(
-            &name.name,
-            stats.health.current,
-            stats.get_base_health(),
+            &display_target.name,
+            display_target.current_health,
+            display_target.max_health,
             style::PALETTE_LIGHT_RED,
         ));
     }

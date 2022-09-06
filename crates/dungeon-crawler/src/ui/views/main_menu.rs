@@ -52,7 +52,7 @@ impl MainMenu {
             AssetData { ..Default::default() },
             FlexboxLayout {
                 flex_direction: FlexDirection::Column,
-                padding: Rect::<Dimension>::from_points(0.0, style::SM, 0.0, 0.0),
+                padding: Rect::<Dimension>::from_points(style::SM, style::SL, 0.0, 0.0),
                 max_size: Size {
                     width: Dimension::Points(800.0),
                     height: Dimension::Undefined,
@@ -93,7 +93,7 @@ impl MainMenu {
         }
 
         PanelWidget::new(
-            None,
+            Some("main_menu".into()),
             AssetData {
                 background: style::PALETTE_BROWN.extend(0.5),
                 gradient: Some(Gradient {

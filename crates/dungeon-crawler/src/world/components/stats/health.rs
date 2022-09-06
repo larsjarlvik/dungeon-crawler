@@ -25,6 +25,7 @@ impl HealthChange {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Health {
     pub max: f32,
     pub current: f32,

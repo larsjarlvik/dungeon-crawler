@@ -31,7 +31,7 @@ pub fn aggression(
                 // TODO: Attack range
                 if distance < 1.0 {
                     if let Some(weapon) = weapon {
-                        action.set_action(components::Action::Attack, weapon.time * stats.get_attack_time(), 0.3);
+                        action.set_action(components::Action::Attack, weapon.time * stats.get_attack_time(), 0.25);
                     }
                 } else if transform.translation.current.distance(*target_transform) < range {
                     movement.velocity = 0.07;
