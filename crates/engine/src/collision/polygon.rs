@@ -6,6 +6,7 @@ pub trait PolygonMethods {
     fn transform(&self, translation: Vector3<f32>, rot: Quaternion<f32>) -> Polygon;
     fn scale(&self, scale: f32) -> Polygon;
     fn center(&self) -> Vector2<f32>;
+    fn radius(&self, center: Vector2<f32>) -> f32;
     fn edges(&self) -> Vec<Vector2<f32>>;
 }
 
@@ -31,6 +32,15 @@ impl PolygonMethods for Polygon {
         }
 
         center / self.len() as f32
+    }
+
+    fn radius(&self, center: Vector2<f32>) -> f32 {
+        let mut radius: f32 = 0.0;
+        for point in self {
+            radius = radius.max(center.distance(*point));
+        }
+
+        radius
     }
 
     fn edges(&self) -> Vec<Vector2<f32>> {

@@ -10,9 +10,9 @@ pub fn collision(
     )>,
     collision_query: Query<(&components::Collision, &engine::ecs::components::Transform)>,
 ) {
-    for (mut movement, collider, transform) in movement_query.iter_mut() {
+    movement_query.par_for_each_mut(1, |(mut movement, collider, transform)| {
         if movement.velocity == 0.0 {
-            continue;
+            return;
         }
 
         let collisions: Vec<Polygon> = collision_query
@@ -25,14 +25,9 @@ pub fn collision(
             })
             .collect();
 
-        let collider: Vec<Polygon> = collider
-            .polygons
-            .iter()
-            .map(|p| p.transform(transform.translation.current, transform.rotation.current))
-            .collect();
-
-        for polygon in collider.iter() {
+        for polygon in collider.polygons.iter() {
+            let polygon = polygon.transform(transform.translation.current, transform.rotation.current);
             movement.to = engine::collision::get_collision_offset(movement.to, &polygon, &collisions);
         }
-    }
+    });
 }

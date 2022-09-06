@@ -87,7 +87,9 @@ pub fn get_collision_offset(position: Vector3<f32>, collider: &Polygon, collisio
     let mut hits = 0;
 
     for collision in collisions.iter() {
-        if collision.center().distance(collider.center()) > 3.0 {
+        let collision_center = collision.center();
+        let collider_center = collider.center();
+        if collision_center.distance(collider_center) > collision.radius(collision_center) + collider.radius(collider_center) {
             continue;
         }
 
