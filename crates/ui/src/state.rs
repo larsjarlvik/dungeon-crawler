@@ -30,7 +30,10 @@ impl State {
         if let Some(key) = &key {
             let prev_val = *self.transitions.get(key).unwrap_or(&to);
             let new_val = prev_val.lerp(to, 10.0 * frame_time);
-            *self.transitions.entry(key.clone()).or_insert(new_val) = new_val;
+
+            if new_val.w > 0.0 {
+                *self.transitions.entry(key.clone()).or_insert(new_val) = new_val;
+            }
             return new_val;
         }
 
