@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum HealthChangeType {
     Once,
     #[allow(dead_code)]
@@ -8,7 +8,7 @@ pub enum HealthChangeType {
     OverTime(Duration),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct HealthChange {
     pub amount: f32,
     pub change_type: HealthChangeType,

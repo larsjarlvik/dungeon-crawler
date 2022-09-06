@@ -14,26 +14,36 @@ pub fn health(
     for (entity, mut stats, mut action) in query.p0().iter_mut() {
         let previous = stats.health.current;
 
-        stats.health.changes = stats
-            .health
-            .changes
-            .clone()
-            .into_iter()
-            .filter(|change| match change.change_type {
-                components::HealthChangeType::Once => {
-                    stats.health.current += change.amount;
-                    false
-                }
-                components::HealthChangeType::Forever => {
-                    stats.health.current += change.amount / config::UPDATES_PER_SECOND;
-                    true
-                }
-                components::HealthChangeType::OverTime(length) => {
-                    stats.health.current += change.amount / config::UPDATES_PER_SECOND;
-                    change.start.elapsed() < length
-                }
-            })
-            .collect();
+        if stats.health.current >= 0.0 {
+            stats.health.changes = stats
+                .health
+                .changes
+                .clone()
+                .into_iter()
+                .filter(|change| match change.change_type {
+                    components::HealthChangeType::Once => {
+                        stats.health.current += change.amount;
+                        false
+                    }
+                    components::HealthChangeType::Forever => {
+                        if stats.health.current > 0.0 {
+                            stats.health.current += change.amount / config::UPDATES_PER_SECOND;
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    components::HealthChangeType::OverTime(length) => {
+                        if stats.health.current > 0.0 && stats.health.current < stats.health.max {
+                            stats.health.current += change.amount / config::UPDATES_PER_SECOND;
+                            change.start.elapsed() < length
+                        } else {
+                            false
+                        }
+                    }
+                })
+                .collect();
+        }
 
         stats.health.current = stats.health.current.min(stats.get_base_health()).max(0.0);
 
