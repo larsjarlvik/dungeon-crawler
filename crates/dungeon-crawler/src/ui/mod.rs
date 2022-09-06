@@ -1,4 +1,5 @@
-use crate::world::{self, GameState, World};
+use crate::world::{components, GameState, World};
+use bevy_ecs::query::With;
 use cgmath::*;
 use engine::pipelines::{
     glyph::*,
@@ -12,17 +13,25 @@ mod input;
 mod style;
 use self::transition::Transition;
 
+#[derive(PartialEq, Clone)]
+enum ViewState {
+    Splash,
+    InGame,
+    Dead,
+    MainMenu,
+}
+
 pub struct Views {
     ui_scale: f32,
     ui: ui::Ui,
     input: input::Input,
     state: ui::State,
-    view: Transition<GameState>,
+    view: Transition<ViewState>,
     main_menu: views::MainMenu,
 }
 
 impl Views {
-    pub fn new(ctx: &mut engine::Context, scale: f32, view: GameState) -> Self {
+    pub fn new(ctx: &mut engine::Context, scale: f32) -> Self {
         ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("icon.png"));
         ImageContext::add_texture(ctx, "menu", engine::file::read_bytes("icons/menu.png"));
         ImageContext::add_texture(ctx, "health", engine::file::read_bytes("icons/health.png"));
@@ -34,28 +43,28 @@ impl Views {
             ui: ui::Ui::new(),
             input: input::Input::new(),
             state: ui::State::new(),
-            view: Transition::new(view),
+            view: Transition::new(ViewState::Splash),
             main_menu: views::MainMenu::new(&ctx),
         }
     }
 
-    pub fn update(&mut self, ctx: &mut engine::Context, world: &mut World, frame_time: f32) {
-        self.view.set(world.game_state.clone());
-        let ui_scale_x = self.ui_scale * ctx.viewport.get_aspect();
+    pub fn update(&mut self, engine: &mut engine::Engine, world: &mut World, frame_time: f32) {
+        self.view.set(map_view_state(world));
+        let ui_scale_x = self.ui_scale * engine.ctx.viewport.get_aspect();
         let opacity = self.view.tick();
         let scale = point2(
-            ctx.viewport.width as f32 / ui_scale_x,
-            ctx.viewport.height as f32 / self.ui_scale,
+            engine.ctx.viewport.width as f32 / ui_scale_x,
+            engine.ctx.viewport.height as f32 / self.ui_scale,
         );
 
         let mut root = match self.view.state {
-            world::GameState::Reload | world::GameState::Loading => views::splash(),
-            world::GameState::Running => views::game(ctx, &mut self.state, world),
-            world::GameState::MainMenu => self.main_menu.draw(&mut self.state, world),
-            world::GameState::Terminated => unreachable!(),
+            ViewState::Splash => views::splash(),
+            ViewState::InGame => views::game(&mut engine.ctx, &mut self.state, world),
+            ViewState::Dead => views::dead(&mut self.state, world),
+            ViewState::MainMenu => self.main_menu.draw(engine, &mut self.state, world),
         };
 
-        let mut nodes = self.ui.render(ctx, &mut root, ui_scale_x, self.ui_scale);
+        let mut nodes = self.ui.render(&mut engine.ctx, &mut root, ui_scale_x, self.ui_scale);
         self.input.process(&mut nodes, &mut self.state, world, scale);
 
         for (layout, widget) in nodes {
@@ -65,7 +74,7 @@ impl Views {
             match widget.widget {
                 RenderWidgetType::Text(data) => {
                     GlyphPipeline::queue(
-                        ctx,
+                        &mut engine.ctx,
                         GlyphProps {
                             position,
                             text: data.text.clone(),
@@ -89,7 +98,7 @@ impl Views {
                             (background, 0.0)
                         };
 
-                        ctx.images.queue(
+                        engine.ctx.images.queue(
                             context::Data {
                                 position,
                                 size,
@@ -125,5 +134,25 @@ impl Views {
 
     pub fn is_click_through(&self, button_id: &u64) -> bool {
         self.input.locks.contains(button_id)
+    }
+}
+
+fn map_view_state(world: &mut World) -> ViewState {
+    match world.game_state {
+        GameState::Reload | GameState::Terminated | GameState::Loading => ViewState::Splash,
+        GameState::Running => {
+            let status = world
+                .components
+                .query_filtered::<&components::Stats, With<components::UserControl>>()
+                .get_single(&world.components)
+                .expect("No character stats found!");
+
+            if status.health.current > 0.0 {
+                ViewState::InGame
+            } else {
+                ViewState::Dead
+            }
+        }
+        GameState::MainMenu => ViewState::MainMenu,
     }
 }

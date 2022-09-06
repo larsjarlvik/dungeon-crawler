@@ -140,6 +140,16 @@ impl<'a> World {
             _ => {}
         }
     }
+
+    pub fn is_dead(&mut self) -> bool {
+        let status = self
+            .components
+            .query_filtered::<&components::Stats, With<components::UserControl>>()
+            .get_single(&self.components)
+            .expect("No character stats found!");
+
+        status.health.current <= 0.0
+    }
 }
 
 pub fn create_components(ctx: &engine::Context) -> bevy_ecs::world::World {

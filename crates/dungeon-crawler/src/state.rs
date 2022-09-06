@@ -29,7 +29,7 @@ impl State {
         .await;
 
         let world = world::World::new(&engine);
-        let views = Views::new(&mut engine.ctx, window.scale_factor() as f32, world::GameState::Loading);
+        let views = Views::new(&mut engine.ctx, window.scale_factor() as f32);
 
         println!("Startup {} ms", start.elapsed().as_millis());
         Self { engine, world, views }
@@ -95,7 +95,7 @@ impl State {
 
         self.world.update();
         self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
-        self.views.update(&mut self.engine.ctx, &mut self.world, last_frame);
+        self.views.update(&mut self.engine, &mut self.world, last_frame);
 
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
 

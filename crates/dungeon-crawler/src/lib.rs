@@ -51,7 +51,7 @@ pub fn main() {
                 }
                 GameState::Reload => {
                     state.engine.ctx.settings = Settings::load();
-                    state.views = Views::new(&mut state.engine.ctx, window.scale_factor() as f32, GameState::Running);
+                    state.views = Views::new(&mut state.engine.ctx, window.scale_factor() as f32);
                     state.resize(&window);
                     state.engine.reload_pipelines();
                     state.world.game_state = GameState::Running;
