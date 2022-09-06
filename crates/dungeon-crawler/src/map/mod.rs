@@ -117,7 +117,7 @@ impl Map {
 
         // Do not spawn hostiles on starting tile
         if pos.distance(Vector3::zero()) > 1.0 {
-            for _ in 0..(rng.gen::<f32>() * 3.0) as usize {
+            for _ in 0..(rng.gen::<f32>() * 4.0) as usize {
                 hostiles.push(self.add_hostile(rng, engine, pos, &decor_collisions));
             }
         }
