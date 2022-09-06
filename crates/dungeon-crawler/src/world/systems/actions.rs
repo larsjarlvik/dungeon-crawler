@@ -22,16 +22,13 @@ pub fn actions(
                 movement.velocity = vec1(movement.velocity).lerp(vec1(movement.target_velocity), 0.1).x;
                 if movement.velocity.abs() <= 0.01 {
                     movement.velocity = 0.0;
-                }
-
-                if movement.velocity > 0.01 {
+                    animation.set_animation("base", "idle", AnimationSpeed::Original, AnimationStatus::Repeat);
+                } else {
                     if movement.velocity > 0.08 {
                         animation.set_animation("base", "run", AnimationSpeed::Speed(1.0), AnimationStatus::Repeat);
                     } else {
                         animation.set_animation("base", "walk", AnimationSpeed::Speed(1.0), AnimationStatus::Repeat);
                     }
-                } else {
-                    animation.set_animation("base", "idle", AnimationSpeed::Original, AnimationStatus::Repeat);
                 }
             }
             Action::Attack => {
