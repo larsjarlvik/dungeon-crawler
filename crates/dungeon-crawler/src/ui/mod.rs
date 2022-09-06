@@ -1,5 +1,4 @@
-use crate::world::{components, GameState, World};
-use bevy_ecs::query::With;
+use crate::world::{GameState, World};
 use cgmath::*;
 use engine::pipelines::{
     glyph::*,
@@ -141,13 +140,7 @@ fn map_view_state(world: &mut World) -> ViewState {
     match world.game_state {
         GameState::Reload | GameState::Terminated | GameState::Loading => ViewState::Splash,
         GameState::Running => {
-            let status = world
-                .components
-                .query_filtered::<&components::Stats, With<components::UserControl>>()
-                .get_single(&world.components)
-                .expect("No character stats found!");
-
-            if status.health.current > 0.0 {
+            if !world.is_dead() {
                 ViewState::InGame
             } else {
                 ViewState::Dead
