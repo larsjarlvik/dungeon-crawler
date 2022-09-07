@@ -6,7 +6,7 @@ pub fn health(
     mut commands: Commands,
     mut query: ParamSet<(
         Query<(Entity, &mut components::Stats, Option<&mut components::ActionExecutor>)>,
-        Query<&mut components::Stats>,
+        Query<&mut components::Stats, With<components::UserControl>>,
     )>,
 ) {
     let mut total_experience = vec![];

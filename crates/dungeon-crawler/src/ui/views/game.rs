@@ -43,29 +43,31 @@ fn action_button(button: &Button, icon: &str, foreground: Vector3<f32>, icon_siz
 
 fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidget> {
     let mut top_left: Vec<Box<dyn BaseWidget>> = vec![];
-    for stats in world
+
+    let stats = world
         .components
         .query_filtered::<&components::Stats, With<components::UserControl>>()
-        .iter(&world.components)
-    {
-        let max = stats.get_base_health();
-        top_left.push(status_bar(
-            &format!("{} / {}", stats.health.current.floor(), max),
-            stats.health.current,
-            max,
-            style::PALETTE_LIGHT_RED,
-        ));
+        .get_single(&world.components)
+        .expect("No character stats found!");
 
-        let level = components::stats::get_level(stats.experience);
-        let level_experience = components::stats::get_level_experience(level);
-        let next_level_experience = components::stats::get_level_experience(level + 1);
-        top_left.push(status_bar(
-            &format!("Level: {}", level),
-            (stats.experience - level_experience) as f32,
-            (next_level_experience - level_experience) as f32,
-            style::PALETTE_LIGHT_GOLD,
-        ));
-    }
+    let max = stats.get_base_health();
+    top_left.push(status_bar(
+        &format!("{} / {}", stats.health.current.floor(), max),
+        stats.health.current,
+        max,
+        style::PALETTE_LIGHT_RED,
+    ));
+
+    let level = components::stats::get_level(stats.experience);
+    let level_experience = components::stats::get_level_experience(level);
+    let next_level_experience = components::stats::get_level_experience(level + 1);
+
+    top_left.push(status_bar(
+        &format!("Level: {}", level),
+        (stats.experience - level_experience) as f32,
+        (next_level_experience - level_experience) as f32,
+        style::PALETTE_LIGHT_GOLD,
+    ));
 
     if ctx.settings.show_fps {
         let fps = world.components.get_resource::<resources::Fps>().unwrap();
