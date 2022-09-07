@@ -1,4 +1,5 @@
 use cgmath::*;
+use engine::{config, utils};
 use std::collections::HashMap;
 
 #[derive(Clone, Copy)]
@@ -52,6 +53,7 @@ impl State {
                 Event::Click(data) => {
                     let data = *data;
                     self.events.remove(key);
+                    utils::vibrate(config::VIBRATION_LENGTH);
                     return Some(data);
                 }
                 _ => {}

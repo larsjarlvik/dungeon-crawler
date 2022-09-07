@@ -98,14 +98,15 @@ impl State {
         self.views.update(&mut self.engine, &mut self.world, last_frame);
 
         let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
+        let pressed_buttons = input.pressed_buttons();
+        let views = &self.views;
 
         let joystick = {
             if input.joystick.is_none() {
-                for (id, _) in input.pressed_buttons().iter() {
-                    if !self.views.is_click_through(id) {
-                        input.set_joystick(id, self.engine.ctx.viewport.width, self.engine.ctx.viewport.height);
-                        break;
-                    }
+                let first = pressed_buttons.iter().filter(|(id, _)| !views.is_click_through(id)).nth(0);
+
+                if let Some((id, _)) = first {
+                    input.set_joystick(id, self.engine.ctx.viewport.width, self.engine.ctx.viewport.height);
                 }
             }
 

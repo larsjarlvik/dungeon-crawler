@@ -15,6 +15,7 @@ pub mod pipelines;
 mod settings;
 pub mod texture;
 pub mod transform;
+pub mod utils;
 mod viewport;
 pub use settings::Settings;
 use smaa::{SmaaMode, SmaaTarget};

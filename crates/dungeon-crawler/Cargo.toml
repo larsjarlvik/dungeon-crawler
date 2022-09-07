@@ -31,6 +31,7 @@ uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
 jni = "0.19.0"
 log = "0.4.14"
 ndk = "0.7.0"
+ndk-context = "0.1.1"
 ndk-glue = { version = "0.7.0", features = ["logger"] }
 android_logger = "0.11.1"
 
@@ -47,6 +48,9 @@ colorMode = "wideColorGamut"
 [package.metadata.android.application.activity]
 label = "Dungeon Crawler"
 orientation = "landscape"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.VIBRATE"
 
 [package.metadata.android.sdk]
 min_sdk_version = 17

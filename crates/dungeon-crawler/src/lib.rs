@@ -24,7 +24,7 @@ pub fn main() {
     env_logger::init();
 
     #[cfg(target_os = "android")]
-    utils::aquire_wakelock();
+    engine::utils::aquire_wakelock();
 
     let settings = Settings::load();
     let mut window = WindowBuilder::new().with_title("Dungeon Crawler").with_decorations(true);

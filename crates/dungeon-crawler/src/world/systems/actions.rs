@@ -1,7 +1,10 @@
 use crate::world::{components::Action, *};
 use bevy_ecs::prelude::*;
 use cgmath::*;
-use engine::ecs::components::{AnimationSpeed, AnimationStatus};
+use engine::{
+    ecs::components::{AnimationSpeed, AnimationStatus},
+    utils,
+};
 
 pub fn actions(
     mut commands: Commands,
@@ -60,6 +63,7 @@ pub fn actions(
                 movement.velocity *= 0.6;
 
                 if action.should_execute() {
+                    utils::vibrate(engine::config::VIBRATION_LENGTH * 2.0);
                     animation.set_animation("base", "hit", AnimationSpeed::Length(action.length), AnimationStatus::Default);
                 }
             }
@@ -67,6 +71,7 @@ pub fn actions(
                 movement.velocity *= 0.0;
 
                 if action.should_execute() {
+                    utils::vibrate(engine::config::VIBRATION_LENGTH * 2.0);
                     commands.entity(entity).remove::<components::Movement>();
                     animation.set_animation("base", "death", AnimationSpeed::Original, AnimationStatus::Default);
                 }
