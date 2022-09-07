@@ -51,6 +51,10 @@ impl MouseButton {
                     PressState::Released(_) => PressState::Released(true),
                     PressState::Pressed(_) => PressState::Released(false),
                 };
+
+                if self.touch {
+                    self.position = None;
+                }
             }
         };
     }

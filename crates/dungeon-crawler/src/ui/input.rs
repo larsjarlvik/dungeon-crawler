@@ -61,8 +61,11 @@ impl Input {
                             }
                         }
                     }
+
+                    break;
                 } else if let Some(_) = on_element(&button.position, &layout, scale) {
                     widget.state = RenderWidgetState::Hover;
+                    break;
                 } else {
                     widget.state = RenderWidgetState::None;
                 }
