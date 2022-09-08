@@ -21,7 +21,11 @@ impl Input {
     }
 
     pub fn process(&mut self, nodes: &mut Vec<(NodeLayout, RenderWidget)>, ui_state: &mut State, world: &mut World, scale: Point2<f32>) {
-        let input = &world.components.get_resource::<resources::Input>().unwrap();
+        let mut input = world.components.get_resource_mut::<resources::Input>().unwrap();
+
+        if ui_state.blocked {
+            input.mouse.clear();
+        }
 
         for (layout, widget) in nodes.iter_mut() {
             if widget.key.is_none() {

@@ -64,6 +64,8 @@ impl Views {
         };
 
         let mut nodes = self.ui.render(&mut engine.ctx, &mut root, ui_scale_x, self.ui_scale);
+
+        self.state.blocked = opacity < 1.0;
         self.input.process(&mut nodes, &mut self.state, world, scale);
 
         for (layout, widget) in nodes {

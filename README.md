@@ -19,6 +19,9 @@ cargo run --release
 ```
 
 #### Android
+* Install Android SDK
+* Set `$ANDROID_SDK_ROOT` environment variable
+
 ```
 cargo apk run -p dungeon-crawler
 cargo apk run --release -p dungeon-crawler

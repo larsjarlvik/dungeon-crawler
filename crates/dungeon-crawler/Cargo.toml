@@ -38,6 +38,7 @@ android_logger = "0.11.1"
 [package.metadata.android]
 resources = "../../res"
 assets = "../../assets"
+build_targets = ["aarch64-linux-android", "armv7-linux-androideabi"]
 
 [package.metadata.android.application]
 label = "Dungeon Crawler"
@@ -53,5 +54,4 @@ orientation = "landscape"
 name = "android.permission.VIBRATE"
 
 [package.metadata.android.sdk]
-min_sdk_version = 17
-target_sdk_version = 29
+target_sdk_version = 31

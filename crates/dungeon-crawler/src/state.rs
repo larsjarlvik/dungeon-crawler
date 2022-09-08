@@ -3,6 +3,7 @@ use crate::{
     world::{
         self,
         resources::{self, input::mouse::PressState},
+        GameState,
     },
 };
 use cgmath::*;
@@ -111,7 +112,11 @@ impl State {
             }
 
             if let Some(joystick) = &input.joystick {
-                joystick.get_properties(&input.mouse)
+                if self.world.game_state == GameState::Running {
+                    joystick.get_properties(&input.mouse)
+                } else {
+                    None
+                }
             } else {
                 None
             }

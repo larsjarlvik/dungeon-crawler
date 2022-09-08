@@ -1,4 +1,5 @@
 mod animation;
+mod audio;
 mod follow;
 mod light;
 mod model;
@@ -9,6 +10,7 @@ mod text;
 mod transform;
 
 pub use animation::*;
+pub use audio::Sound;
 pub use follow::Follow;
 pub use light::Light;
 pub use model::Model;

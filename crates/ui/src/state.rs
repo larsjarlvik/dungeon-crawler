@@ -15,6 +15,7 @@ pub enum Event {
 }
 
 pub struct State {
+    pub blocked: bool,
     transitions: HashMap<String, Vector4<f32>>,
     pub events: HashMap<String, Event>,
 }
@@ -22,6 +23,7 @@ pub struct State {
 impl State {
     pub fn new() -> Self {
         Self {
+            blocked: false,
             transitions: HashMap::new(),
             events: HashMap::new(),
         }
@@ -48,6 +50,10 @@ impl State {
     }
 
     pub fn clicked(&mut self, key: &String) -> Option<MouseData> {
+        if self.blocked {
+            return None;
+        }
+
         if let Some(event) = self.events.get(key) {
             match event {
                 Event::Click(data) => {
