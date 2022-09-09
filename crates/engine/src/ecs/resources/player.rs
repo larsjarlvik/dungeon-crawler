@@ -1,9 +1,4 @@
-use std::{thread::sleep, time::Duration};
-
-use ambisonic::{
-    rodio::{self, source::SineWave, Source},
-    Ambisonic, AmbisonicBuilder,
-};
+use std::{fs::File, io::Cursor};
 
 use crate::file;
 
@@ -17,13 +12,12 @@ impl Default for Player {
 
 impl Player {
     pub fn play(&mut self, sound: &String) {
-        let scene = AmbisonicBuilder::default().build();
+        let (_stream, handle) = rodio::OutputStream::try_default().unwrap();
+        let sink = rodio::Sink::try_new(&handle).unwrap();
 
-        for _ in 0..500 {
-            let source = rodio::source::SineWave::new(440).amplify(0.001);
-            let _ = scene.play_omni(source);
-        }
+        let file = Cursor::new(file::read_bytes("sounds/steps-stone.ogg"));
+        sink.append(rodio::Decoder::new(file).unwrap());
 
-        sleep(Duration::from_secs(10));
+        sink.sleep_until_end();
     }
 }
