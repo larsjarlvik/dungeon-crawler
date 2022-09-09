@@ -24,8 +24,6 @@ pub fn actions(
             Action::None => {
                 movement.velocity = vec1(movement.velocity).lerp(vec1(movement.target_velocity), 0.1).x;
 
-                commands.entity(entity).insert(engine::ecs::components::Sound::new("step"));
-
                 if movement.velocity.abs() <= 0.01 {
                     movement.velocity = 0.0;
                     animation.set_animation("base", "idle", AnimationSpeed::Original, AnimationStatus::Repeat);
@@ -45,6 +43,8 @@ pub fn actions(
                 }
 
                 if action.should_execute() {
+                    commands.entity(entity).insert(engine::ecs::components::Sound::new("step"));
+
                     if let Some(collision) = collision {
                         if let Some(weapon) = weapon {
                             let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;

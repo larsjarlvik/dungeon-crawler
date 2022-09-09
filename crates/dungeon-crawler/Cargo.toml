@@ -13,7 +13,7 @@ crate-type = ["lib", "cdylib"]
 
 [dependencies]
 cgmath = "0.18.0"
-winit = "0.27.2"
+winit = "0.27.0"
 bevy_ecs = "0.8.0"
 bevy_hierarchy = "0.8.0"
 bevy_tasks = "0.8.0"
@@ -54,4 +54,4 @@ orientation = "landscape"
 name = "android.permission.VIBRATE"
 
 [package.metadata.android.sdk]
-target_sdk_version = 31
+target_sdk_version = 30
