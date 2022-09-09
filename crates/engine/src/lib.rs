@@ -18,6 +18,7 @@ pub mod transform;
 pub mod utils;
 mod viewport;
 pub use settings::Settings;
+pub mod audio;
 use smaa::{SmaaMode, SmaaTarget};
 
 pub struct ModelInstance {
@@ -37,6 +38,7 @@ pub struct Context {
     pub emitter_instances: HashMap<String, pipelines::ParticleEmitter>,
     pub glyph_brush: GlyphBrush<()>,
     pub images: ImageContext,
+    pub audio: audio::Player,
 }
 
 pub struct Engine {
@@ -101,6 +103,7 @@ impl Engine {
             emitter_instances: HashMap::new(),
             glyph_brush,
             images: ImageContext::new(),
+            audio: audio::Player::new(),
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);

@@ -2,7 +2,7 @@
 use std::ffi::CString;
 #[cfg(not(target_os = "android"))]
 use std::fs;
-use std::{fs::File, str};
+use std::str;
 
 #[cfg(not(target_os = "android"))]
 pub fn read_string(path: &str) -> String {
@@ -12,10 +12,6 @@ pub fn read_string(path: &str) -> String {
 #[cfg(not(target_os = "android"))]
 pub fn read_bytes(path: &str) -> Vec<u8> {
     fs::read(format!("./assets/{}", path)).expect(format!("Could not find file: {}!", path).as_str())
-}
-#[cfg(not(target_os = "android"))]
-pub fn read_buffer(path: &str) -> File {
-    std::fs::File::open(format!("./assets/{}", path)).expect(format!("Could not find file: {}!", path).as_str())
 }
 
 #[cfg(target_os = "android")]
