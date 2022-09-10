@@ -129,8 +129,6 @@ impl State {
     }
 
     pub fn render(&mut self) {
-        self.engine.ctx.audio.play(&mut self.world.components);
-
         if let Some((frame, view)) = self.engine.get_output_frame() {
             let anti_aliasing = self
                 .engine

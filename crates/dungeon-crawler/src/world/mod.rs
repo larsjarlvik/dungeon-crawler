@@ -53,7 +53,8 @@ impl<'a> World {
                 .with_system(systems::display)
                 .with_system(systems::tile)
                 .with_system(engine::ecs::systems::camera)
-                .with_system(engine::ecs::systems::animation),
+                .with_system(engine::ecs::systems::animation)
+                .with_system(engine::ecs::systems::player),
         );
 
         Self {
@@ -157,6 +158,7 @@ pub fn create_components(ctx: &engine::Context) -> bevy_ecs::world::World {
 
     components.insert_resource(engine::ecs::resources::Camera::new(ctx.viewport.get_aspect()));
     components.insert_resource(engine::ecs::resources::Time::default());
+    components.insert_non_send_resource(engine::ecs::resources::Player::default());
     components.insert_resource(resources::Input::default());
     components.insert_resource(resources::Fps::default());
 
