@@ -20,22 +20,22 @@ pub fn animation(
             for animation in channel.queue.iter_mut() {
                 let total_time = *model
                     .animation_times
-                    .get(&animation.name.to_string())
+                    .get(&animation.name)
                     .expect(format!("Could not find animation: {}", &animation.name).as_str());
 
                 let new_elapsed = animate_channel(animation, total_time, time.last_frame);
 
                 // TODO: Separate system?
                 if let Some(sound_effects) = &mut sound_effects {
-                    if let Some(sound_effect) = model.animation_sound_effects.get(&animation.name.to_string()) {
-                        for timestamp in sound_effect.timestamps.clone().into_iter() {
-                            if timestamp > animation.elapsed % total_time && timestamp <= new_elapsed % total_time {
-                                sound_effects.set(
-                                    format!("{}_{}_{}", &model.key, &animation.name, &sound_effect.name),
-                                    Sound::new(sound_effect.name.as_str()),
-                                );
-                            }
-                        }
+                    if let Some(sound_effect) = model.animation_sound_effects.get(&animation.name) {
+                        sound_effect
+                            .timestamps
+                            .iter()
+                            .filter(|t| t > &&(animation.elapsed % total_time) && t <= &&(new_elapsed % total_time))
+                            .for_each(|_t| {
+                                let sink = format!("{}_{}_{}", &model.key, &animation.name, &sound_effect.name);
+                                sound_effects.set(sink, Sound::new(sound_effect.name.as_str()));
+                            });
                     }
                 }
 

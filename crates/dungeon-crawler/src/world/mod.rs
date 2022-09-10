@@ -53,8 +53,8 @@ impl<'a> World {
                 .with_system(systems::display)
                 .with_system(systems::tile)
                 .with_system(engine::ecs::systems::camera)
-                .with_system(engine::ecs::systems::animation)
-                .with_system(engine::ecs::systems::player),
+                .with_system(engine::ecs::systems::animation.label("animation"))
+                .with_system(engine::ecs::systems::player.after("animation")),
         );
 
         Self {
