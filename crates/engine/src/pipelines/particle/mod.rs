@@ -46,7 +46,7 @@ impl ParticlePipeline {
                 },
                 alpha: wgpu::BlendComponent::OVER,
             })
-            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
+            .with_color_targets(vec![ctx.color_format])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .build();
 

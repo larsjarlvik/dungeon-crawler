@@ -26,7 +26,7 @@ impl ShadowPipeline {
 
         let (width, height) = ctx.viewport.get_render_size();
         let depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "shadow_depth_texture");
-        let color_texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "shadow_color_texture");
+        let color_texture = texture::Texture::create_texture(ctx, ctx.color_format, width, height, "shadow_color_texture");
         let base_shadow_size = ctx.device.limits().max_texture_dimension_2d as f32 / 4.0;
 
         let shadow_texture = texture::Texture::create_depth_texture(
@@ -63,7 +63,7 @@ impl ShadowPipeline {
         let render_pipeline = pipeline_builder
             .with_shader("shaders/shadow.wgsl")
             .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
-            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
+            .with_color_targets(vec![ctx.color_format])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
@@ -88,7 +88,7 @@ impl ShadowPipeline {
     pub fn resize(&mut self, ctx: &Context) {
         let (width, height) = ctx.viewport.get_render_size();
         self.depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "shadow_depth_texture");
-        self.texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "shadow_color_texture");
+        self.texture = texture::Texture::create_texture(ctx, ctx.color_format, width, height, "shadow_color_texture");
 
         self.shadow_texture = texture::Texture::create_depth_texture(
             &ctx,

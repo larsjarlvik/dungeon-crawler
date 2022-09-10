@@ -45,7 +45,7 @@ impl PipelineDisplay {
 
         let render_pipeline = builder
             .with_shader("shaders/model.wgsl")
-            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
+            .with_color_targets(vec![ctx.color_format])
             .with_depth_target(config::DEPTH_FORMAT)
             .with_buffer_layouts(vec![model::Vertex::desc()])
             .with_bind_group_layout(&uniform_bind_group_layout)

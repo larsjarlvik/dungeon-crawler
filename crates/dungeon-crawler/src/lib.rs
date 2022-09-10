@@ -119,6 +119,7 @@ pub fn main() {
                         engine::configure_surface(
                             &surface,
                             &state.engine.ctx.device,
+                            state.engine.ctx.color_format,
                             Point2::new(window.inner_size().width, window.inner_size().height),
                         );
                         state.engine.ctx.surface = Some(surface);

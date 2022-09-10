@@ -36,7 +36,7 @@ impl ScalingPipeline {
 
         let render_pipeline = builder
             .with_shader("shaders/scaling.wgsl")
-            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
+            .with_color_targets(vec![ctx.color_format])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
@@ -44,7 +44,7 @@ impl ScalingPipeline {
         let render_bundle_builder = builders::RenderBundleBuilder::new(ctx, "scaling");
 
         let (width, height) = ctx.viewport.get_render_size();
-        let texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "scaling_texture");
+        let texture = texture::Texture::create_texture(ctx, ctx.color_format, width, height, "scaling_texture");
         let depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "scaling_depth_texture");
 
         let uniform_buffer = render_bundle_builder.create_uniform_buffer_init(bytemuck::cast_slice(&[Uniforms {
@@ -87,7 +87,7 @@ impl ScalingPipeline {
             return;
         }
 
-        self.texture = texture::Texture::create_texture(ctx, config::COLOR_TEXTURE_FORMAT, width, height, "scaling_texture");
+        self.texture = texture::Texture::create_texture(ctx, ctx.color_format, width, height, "scaling_texture");
         ctx.queue.write_buffer(
             &self.uniform_buffer,
             0,
