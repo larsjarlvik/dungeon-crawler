@@ -192,6 +192,13 @@ impl Engine {
         let model = pipelines::model::Model::new(&self.ctx, &self.model_pipeline, gltf_model, name);
         let nodes = gltf_model.nodes.clone();
         let animation_times = nodes.animations.iter().map(|(a, b)| (a.clone(), b.total_time)).collect();
+        let animation_sound_effects = nodes
+            .animations
+            .iter()
+            .filter(|(_, b)| b.sound_effect.is_some())
+            .map(|(a, b)| (a.clone(), b.sound_effect.clone().unwrap()))
+            .collect();
+
         let key = uuid::Uuid::new_v4().to_string();
 
         self.ctx.model_instances.insert(
@@ -206,6 +213,7 @@ impl Engine {
         ecs::components::Model {
             key: key.to_string(),
             animation_times,
+            animation_sound_effects,
             highlight,
         }
     }

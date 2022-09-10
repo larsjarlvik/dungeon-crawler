@@ -1,14 +1,45 @@
 use crate::{
     config,
-    ecs::{components, resources},
+    ecs::{
+        components::{self, Sound},
+        resources,
+    },
 };
 use bevy_ecs::prelude::*;
 
-pub fn animation(time: Res<resources::Time>, mut query: Query<(&mut components::Animations, &components::Model)>) {
-    for (mut animation, model) in query.iter_mut() {
+pub fn animation(
+    time: Res<resources::Time>,
+    mut query: Query<(
+        &mut components::Animations,
+        &components::Model,
+        Option<&mut components::SoundEffects>,
+    )>,
+) {
+    for (mut animation, model, mut sound_effects) in query.iter_mut() {
         for (_, channel) in animation.channels.iter_mut() {
             for animation in channel.queue.iter_mut() {
-                animate_channel(&model, animation, time.last_frame);
+                let total_time = *model
+                    .animation_times
+                    .get(&animation.name.to_string())
+                    .expect(format!("Could not find animation: {}", &animation.name).as_str());
+
+                let new_elapsed = animate_channel(animation, total_time, time.last_frame);
+
+                // TODO: Separate system?
+                if let Some(sound_effects) = &mut sound_effects {
+                    if let Some(sound_effect) = model.animation_sound_effects.get(&animation.name.to_string()) {
+                        for timestamp in sound_effect.timestamps.clone().into_iter() {
+                            if timestamp > animation.elapsed % total_time && timestamp <= new_elapsed % total_time {
+                                sound_effects.set(
+                                    format!("{}_{}_{}", &model.key, &animation.name, &sound_effect.name),
+                                    Sound::new(sound_effect.name.as_str()),
+                                );
+                            }
+                        }
+                    }
+                }
+
+                animation.elapsed = new_elapsed;
             }
 
             cleanup_channel(channel);
@@ -16,19 +47,14 @@ pub fn animation(time: Res<resources::Time>, mut query: Query<(&mut components::
     }
 }
 
-fn animate_channel(model: &components::Model, animation: &mut components::Animation, last_frame: f32) {
-    let total_time = *model
-        .animation_times
-        .get(&animation.name.to_string())
-        .expect(format!("Could not find animation: {}", &animation.name).as_str());
-
+fn animate_channel(animation: &mut components::Animation, total_time: f32, last_frame: f32) -> f32 {
     let speed = match animation.speed {
         components::AnimationSpeed::Original => 1.0,
         components::AnimationSpeed::Length(length) => total_time / length,
         components::AnimationSpeed::Speed(speed) => speed,
     };
 
-    animation.elapsed = match animation.status {
+    let new_elapsed = match animation.status {
         components::AnimationStatus::Default => {
             let new_elapsed = animation.elapsed + last_frame * speed;
 
@@ -42,6 +68,8 @@ fn animate_channel(model: &components::Model, animation: &mut components::Animat
         components::AnimationStatus::Repeat => (animation.elapsed + last_frame * speed) % total_time,
         components::AnimationStatus::Stopped => total_time,
     };
+
+    new_elapsed
 }
 
 fn cleanup_channel(channel: &mut components::Channel) {

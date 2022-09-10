@@ -43,8 +43,6 @@ pub fn actions(
                 }
 
                 if action.should_execute() {
-                    commands.entity(entity).insert(engine::ecs::components::Sound::new("step"));
-
                     if let Some(collision) = collision {
                         if let Some(weapon) = weapon {
                             let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;

@@ -10,7 +10,7 @@ mod text;
 mod transform;
 
 pub use animation::*;
-pub use audio::Sound;
+pub use audio::*;
 pub use follow::Follow;
 pub use light::Light;
 pub use model::Model;

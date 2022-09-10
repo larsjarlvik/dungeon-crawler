@@ -90,6 +90,7 @@ impl<'a> World {
                     time: 1.0,
                 },
                 components::UserControl,
+                engine::ecs::components::SoundEffects::new(),
                 engine::ecs::components::Render { cull_frustum: false },
                 engine::ecs::components::Shadow,
                 engine::ecs::components::Follow,
