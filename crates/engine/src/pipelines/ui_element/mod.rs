@@ -1,6 +1,6 @@
 mod uniforms;
 use self::uniforms::Uniforms;
-use crate::{config, pipelines::builders, texture, Context};
+use crate::{pipelines::builders, texture, Context};
 use std::mem;
 pub mod context;
 
@@ -40,7 +40,7 @@ impl UiElementPipeline {
                 },
                 alpha: wgpu::BlendComponent::OVER,
             })
-            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
+            .with_color_targets(vec![ctx.color_format])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();

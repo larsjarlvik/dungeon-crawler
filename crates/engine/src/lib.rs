@@ -37,6 +37,7 @@ pub struct Context {
     pub emitter_instances: HashMap<String, pipelines::ParticleEmitter>,
     pub glyph_brush: GlyphBrush<()>,
     pub images: ImageContext,
+    pub color_format: wgpu::TextureFormat,
 }
 
 pub struct Engine {
@@ -85,10 +86,27 @@ impl Engine {
             .await
             .unwrap();
 
-        configure_surface(&surface, &device, size);
+        let preferred_formats = [
+            wgpu::TextureFormat::Rgb10a2Unorm,
+            wgpu::TextureFormat::Rgba8Unorm,
+            wgpu::TextureFormat::Bgra8Unorm,
+        ];
+
+        let mut supported_formats = surface.get_supported_formats(&adapter);
+        supported_formats.sort_by(|a, b| {
+            preferred_formats
+                .iter()
+                .position(|&f| f == a.clone())
+                .unwrap_or(1000)
+                .cmp(&preferred_formats.iter().position(|f| f == b).unwrap_or(1000))
+        });
+
+        let color_format = *supported_formats.first().expect("Failed to select color format!");
+
+        configure_surface(&surface, &device, color_format, size);
 
         let font = FontArc::try_from_vec(font_data).expect("Failed to load font!");
-        let glyph_brush = GlyphBrushBuilder::using_font(font.clone()).build(&device, config::COLOR_TEXTURE_FORMAT);
+        let glyph_brush = GlyphBrushBuilder::using_font(font.clone()).build(&device, color_format);
 
         let ctx = Context {
             instance,
@@ -101,6 +119,7 @@ impl Engine {
             emitter_instances: HashMap::new(),
             glyph_brush,
             images: ImageContext::new(),
+            color_format,
         };
 
         let model_pipeline = pipelines::ModelPipeline::new(&ctx);
@@ -115,7 +134,7 @@ impl Engine {
             &ctx.queue,
             size.x,
             size.y,
-            config::COLOR_TEXTURE_FORMAT,
+            ctx.color_format,
             if ctx.settings.smaa { SmaaMode::Smaa1X } else { SmaaMode::Disabled },
         );
 
@@ -144,7 +163,7 @@ impl Engine {
             &self.ctx.queue,
             self.ctx.viewport.width,
             self.ctx.viewport.height,
-            config::COLOR_TEXTURE_FORMAT,
+            self.ctx.color_format,
             if self.ctx.settings.smaa {
                 SmaaMode::Smaa1X
             } else {
@@ -166,7 +185,7 @@ impl Engine {
                 &self.ctx.device,
                 &wgpu::SurfaceConfiguration {
                     usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                    format: config::COLOR_TEXTURE_FORMAT,
+                    format: self.ctx.color_format,
                     width: self.ctx.viewport.width,
                     height: self.ctx.viewport.height,
                     present_mode: wgpu::PresentMode::AutoNoVsync,
@@ -223,12 +242,12 @@ impl Engine {
     }
 }
 
-pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, size: Point2<u32>) {
+pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, color_format: wgpu::TextureFormat, size: Point2<u32>) {
     surface.configure(
         &device,
         &wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: config::COLOR_TEXTURE_FORMAT,
+            format: color_format,
             width: size.x,
             height: size.y,
             present_mode: wgpu::PresentMode::AutoNoVsync,

@@ -30,7 +30,7 @@ impl JoystickPipeline {
         let render_pipeline = builder
             .with_shader("shaders/joystick.wgsl")
             .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
-            .with_color_targets(vec![config::COLOR_TEXTURE_FORMAT])
+            .with_color_targets(vec![ctx.color_format])
             .with_blend(wgpu::BlendState {
                 color: wgpu::BlendComponent {
                     operation: wgpu::BlendOperation::Add,
