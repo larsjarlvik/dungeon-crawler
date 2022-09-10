@@ -38,6 +38,7 @@ fn vibrate_android(duration: f32) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[allow(unused_variables)]
 pub fn vibrate(duration: f32) {
     #[cfg(target_os = "android")]
     match vibrate_android(duration) {
@@ -46,6 +47,4 @@ pub fn vibrate(duration: f32) {
             println!("Failed to vibrate!");
         }
     }
-
-    dbg!(duration);
 }
