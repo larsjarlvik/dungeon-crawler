@@ -1,6 +1,7 @@
 mod assets;
 mod file;
 
+pub use file::exists;
 pub use file::read_file;
 pub use file::write_file;
 

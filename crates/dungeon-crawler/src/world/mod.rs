@@ -152,6 +152,23 @@ impl<'a> World {
 
         stats.health.current <= 0.0
     }
+
+    pub fn load_resources(&mut self, ctx: &engine::Context) {
+        let start = Instant::now();
+        let character = engine::load_model(ctx, "models/character.glb");
+        let map = map::Map::new(ctx, 42312, 3);
+
+        let mut player = self
+            .components
+            .get_non_send_resource_mut::<engine::ecs::resources::Player>()
+            .unwrap();
+
+        player.load_sounds(&character.get_sound_effects());
+        player.load_sounds(&map.sound_effects);
+
+        println!("Load resources {} ms", start.elapsed().as_millis());
+        self.resources = Some(Resources { map, character });
+    }
 }
 
 pub fn setup_world(ctx: &engine::Context) -> bevy_ecs::world::World {
@@ -164,13 +181,4 @@ pub fn setup_world(ctx: &engine::Context) -> bevy_ecs::world::World {
     components.insert_resource(resources::Fps::default());
 
     components
-}
-
-pub fn load_resources(ctx: &engine::Context) -> Resources {
-    let start = Instant::now();
-    let character = engine::load_model(ctx, "models/character.glb");
-    let map = map::Map::new(ctx, 42312, 3);
-
-    println!("Load resources {} ms", start.elapsed().as_millis());
-    Resources { map, character }
 }

@@ -21,6 +21,7 @@ pub struct Map {
     tiles: engine::model::GltfModel,
     decor: engine::model::GltfModel,
     hostiles: engine::model::GltfModel,
+    pub sound_effects: Vec<String>,
 }
 
 impl Map {
@@ -28,6 +29,9 @@ impl Map {
         let tiles = engine::load_model(ctx, "models/catacombs.glb");
         let decor = engine::load_model(ctx, "models/decor.glb");
         let hostiles = engine::load_model(ctx, "models/skeleton.glb");
+
+        let sound_effects = hostiles.get_sound_effects();
+
         let number_of_tiles = 25;
 
         Self {
@@ -38,6 +42,7 @@ impl Map {
             tiles,
             decor,
             hostiles,
+            sound_effects,
         }
     }
 

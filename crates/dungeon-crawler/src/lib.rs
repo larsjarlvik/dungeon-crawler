@@ -148,7 +148,7 @@ pub fn main() {
 
                 if let Some(state) = &mut state {
                     if state.world.resources.is_none() {
-                        state.world.resources = Some(world::load_resources(&state.engine.ctx));
+                        state.world.load_resources(&state.engine.ctx);
                         state.world.init(&mut state.engine);
                         state.world.game_state = GameState::Running;
                     }

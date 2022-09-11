@@ -12,42 +12,7 @@ pub struct Player {
 
 impl Default for Player {
     fn default() -> Self {
-        let mut sounds = HashMap::new();
-
-        sounds.insert(
-            "human-steps".to_string(),
-            vec![
-                file::read_bytes("sounds/human-steps-1.ogg"),
-                file::read_bytes("sounds/human-steps-2.ogg"),
-            ],
-        );
-        sounds.insert(
-            "human-attack".to_string(),
-            vec![
-                file::read_bytes("sounds/human-attack-1.ogg"),
-                file::read_bytes("sounds/human-attack-2.ogg"),
-            ],
-        );
-        sounds.insert("human-hit".to_string(), vec![file::read_bytes("sounds/human-hit-1.ogg")]);
-        sounds.insert("human-death".to_string(), vec![file::read_bytes("sounds/human-death-1.ogg")]);
-
-        sounds.insert(
-            "skeleton-steps".to_string(),
-            vec![
-                file::read_bytes("sounds/skeleton-steps-1.ogg"),
-                file::read_bytes("sounds/skeleton-steps-2.ogg"),
-            ],
-        );
-        sounds.insert(
-            "skeleton-attack".to_string(),
-            vec![file::read_bytes("sounds/skeleton-attack-1.ogg")],
-        );
-        sounds.insert("skeleton-hit".to_string(), vec![file::read_bytes("sounds/skeleton-hit-1.ogg")]);
-        sounds.insert(
-            "skeleton-death".to_string(),
-            vec![file::read_bytes("sounds/skeleton-death-1.ogg")],
-        );
-
+        let sounds = HashMap::new();
         let (stream, handle) = rodio::OutputStream::try_default().unwrap();
 
         Self {
@@ -60,6 +25,23 @@ impl Default for Player {
 }
 
 impl Player {
+    pub fn load_sounds(&mut self, sounds: &Vec<String>) {
+        for key in sounds.iter() {
+            let mut effect_sounds = vec![];
+
+            loop {
+                let path = format!("sounds/{}-{}.ogg", key, effect_sounds.len() + 1);
+                if !file::exists(path.as_str()) {
+                    break;
+                }
+
+                effect_sounds.push(file::read_bytes(path.as_str()));
+            }
+
+            self.sounds.insert(key.clone(), effect_sounds);
+        }
+    }
+
     pub fn play(&mut self, sink: &String, sound: &String) {
         let sink = self
             .sinks
