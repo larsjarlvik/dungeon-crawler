@@ -30,7 +30,7 @@ pub struct World {
 
 impl<'a> World {
     pub fn new(engine: &engine::Engine) -> Self {
-        let components = create_components(&engine.ctx);
+        let components = setup_world(&engine.ctx);
 
         let mut schedule = Schedule::default();
         schedule.add_stage(
@@ -154,7 +154,7 @@ impl<'a> World {
     }
 }
 
-pub fn create_components(ctx: &engine::Context) -> bevy_ecs::world::World {
+pub fn setup_world(ctx: &engine::Context) -> bevy_ecs::world::World {
     let mut components = bevy_ecs::world::World::new();
 
     components.insert_resource(engine::ecs::resources::Camera::new(ctx.viewport.get_aspect()));
