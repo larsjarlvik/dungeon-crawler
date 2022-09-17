@@ -158,13 +158,13 @@ impl<'a> World {
         let character = engine::load_model(ctx, "models/character.glb");
         let map = map::Map::new(ctx, 42312, 3);
 
-        let mut player = self
+        let mut sound_effects = self
             .components
-            .get_non_send_resource_mut::<engine::ecs::resources::Player>()
+            .get_non_send_resource_mut::<engine::ecs::resources::SoundEffects>()
             .unwrap();
 
-        player.load_sounds(&character.get_sound_effects());
-        player.load_sounds(&map.sound_effects);
+        sound_effects.load(&character.get_sound_effects());
+        sound_effects.load(&map.sound_effects);
 
         println!("Load resources {} ms", start.elapsed().as_millis());
         self.resources = Some(Resources { map, character });
@@ -176,7 +176,7 @@ pub fn setup_world(ctx: &engine::Context) -> bevy_ecs::world::World {
 
     components.insert_resource(engine::ecs::resources::Camera::new(ctx.viewport.get_aspect()));
     components.insert_resource(engine::ecs::resources::Time::default());
-    components.insert_non_send_resource(engine::ecs::resources::Player::default());
+    components.insert_non_send_resource(engine::ecs::resources::SoundEffects::default());
     components.insert_resource(resources::Input::default());
     components.insert_resource(resources::Fps::default());
 

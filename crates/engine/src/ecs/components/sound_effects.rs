@@ -6,6 +6,7 @@ use bevy_ecs::prelude::Component;
 pub struct Sound {
     pub name: String,
     pub amplification: f32,
+    pub started: bool,
 }
 
 impl Sound {
@@ -13,6 +14,7 @@ impl Sound {
         Self {
             name: name.into(),
             amplification: 1.0,
+            started: false,
         }
     }
 }
