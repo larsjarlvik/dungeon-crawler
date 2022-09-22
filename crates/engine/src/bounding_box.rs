@@ -7,13 +7,6 @@ pub struct BoundingBox {
 }
 
 impl BoundingBox {
-    pub fn new() -> Self {
-        Self {
-            min: Point3::new(0.0, 0.0, 0.0),
-            max: Point3::new(0.0, 0.0, 0.0),
-        }
-    }
-
     pub fn transform(&self, transform: Matrix4<f32>) -> Self {
         let b1: Point3<f32> = transform.transform_point(self.min);
         let b2: Point3<f32> = transform.transform_point(self.max);
@@ -36,6 +29,15 @@ impl BoundingBox {
                 self.max.y.max(bounding_box.max.y),
                 self.max.z.max(bounding_box.max.z),
             ),
+        }
+    }
+}
+
+impl Default for BoundingBox {
+    fn default() -> Self {
+        Self {
+            min: Point3::new(0.0, 0.0, 0.0),
+            max: Point3::new(0.0, 0.0, 0.0),
         }
     }
 }

@@ -2,7 +2,7 @@ use crate::config;
 use bevy_ecs::prelude::*;
 use std::time::Instant;
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Action {
     None,
     Attack,

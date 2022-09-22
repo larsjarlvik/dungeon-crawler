@@ -1,8 +1,6 @@
 use cgmath::*;
-use std::{
-    collections::{hash_map::Entry, HashMap},
-    usize,
-};
+use fxhash::FxHashMap;
+use std::{collections::hash_map::Entry, usize};
 pub mod animation;
 mod emitter;
 mod interpolation;
@@ -26,7 +24,7 @@ pub struct GltfModelNodes {
     pub depth_first_taversal_indices: Vec<(usize, Option<usize>)>,
     pub nodes: Vec<node::Node>,
     pub skins: Vec<skin::Skin>,
-    pub animations: HashMap<String, animation::Animation>,
+    pub animations: FxHashMap<String, animation::Animation>,
 }
 
 pub struct GltfModel {
@@ -34,7 +32,7 @@ pub struct GltfModel {
     pub lights: Vec<light::Light>,
     pub emitters: Vec<emitter::Emitter>,
     pub materials: Vec<material::Material>,
-    pub collisions: HashMap<String, Vec<collision::Polygon>>,
+    pub collisions: FxHashMap<String, Vec<collision::Polygon>>,
     pub nodes: GltfModelNodes,
 }
 
@@ -45,7 +43,7 @@ impl GltfModel {
         let mut meshes = vec![];
         let mut skins = vec![];
         let mut nodes = vec![];
-        let mut collisions: HashMap<String, Vec<collision::Polygon>> = HashMap::new();
+        let mut collisions: FxHashMap<String, Vec<collision::Polygon>> = FxHashMap::default();
         let mut lights = vec![];
         let mut emitters = vec![];
 
@@ -57,7 +55,7 @@ impl GltfModel {
             nodes.insert(node.index(), node::Node::new(&node));
 
             if let Some(light) = node.light() {
-                let n = gltf.nodes().filter(|n| n.name() == light.name()).collect();
+                let n: Vec<gltf::Node> = gltf.nodes().filter(|n| n.name() == light.name()).collect();
                 lights.push(light::Light::new(&light, &n));
             }
         }
@@ -65,7 +63,7 @@ impl GltfModel {
         let roots_indices = gltf.default_scene().unwrap().nodes().map(|n| n.index()).collect::<Vec<_>>();
         let depth_first_taversal_indices = build_graph_run_indices(&roots_indices, &nodes);
 
-        let materials = gltf
+        let materials: Vec<material::Material> = gltf
             .materials()
             .into_iter()
             .map(|material| material::Material::new(ctx, &material, &images))
@@ -88,7 +86,7 @@ impl GltfModel {
                 let words: Vec<&str> = mesh.name.split(|c| c == '_' || c == '.').collect();
 
                 if words.iter().any(|w| w == &"col") {
-                    let key = mesh_name.split("_").collect::<Vec<&str>>()[0].to_string();
+                    let key = mesh_name.split('_').collect::<Vec<&str>>()[0].to_string();
                     let primitives: Vec<gltf::Primitive> = gltf_mesh.primitives().collect();
                     let mut polygons = build_collision_polygon(&primitives[0], &buffers);
 
@@ -103,7 +101,7 @@ impl GltfModel {
                 }
 
                 if words.iter().any(|w| w == &"emit") {
-                    emitters.push(emitter::Emitter::new(&gltf_mesh, &mesh.primitives.first().unwrap(), &materials));
+                    emitters.push(emitter::Emitter::new(&gltf_mesh, mesh.primitives.first().unwrap(), &materials));
                 }
 
                 meshes.insert(gltf_mesh.index(), mesh);
@@ -129,7 +127,7 @@ impl GltfModel {
         self.meshes
             .iter()
             .find(|m| m.name == name)
-            .expect(format!("Failed to find mesh: {0}!", name).as_str())
+            .unwrap_or_else(|| panic!("Failed to find mesh: {0}!", name))
     }
 
     pub fn get_material(&self, material: Option<usize>) -> Option<&material::Material> {
@@ -143,16 +141,13 @@ impl GltfModel {
     pub fn get_emitters(&self, name: &str) -> Vec<emitter::Emitter> {
         self.emitters
             .iter()
-            .filter(|e| {
-                let words: Vec<&str> = e.name.split(|c| c == '_' || c == '.').collect();
-                words.contains(&name)
-            })
-            .map(|e| e.clone())
+            .filter(|e| e.name.split(|c| c == '_' || c == '.').any(|x| x == name))
+            .cloned()
             .collect()
     }
 }
 
-fn build_graph_run_indices(roots_indices: &[usize], nodes: &Vec<node::Node>) -> Vec<(usize, Option<usize>)> {
+fn build_graph_run_indices(roots_indices: &[usize], nodes: &[node::Node]) -> Vec<(usize, Option<usize>)> {
     let mut indices = Vec::new();
     for root_index in roots_indices {
         build_graph_run_indices_rec(nodes, *root_index, None, &mut indices);
@@ -172,7 +167,7 @@ fn build_graph_run_indices_rec(
     }
 }
 
-fn build_collision_polygon(primitive: &gltf::Primitive, buffers: &Vec<gltf::buffer::Data>) -> Vec<collision::Polygon> {
+fn build_collision_polygon(primitive: &gltf::Primitive, buffers: &[gltf::buffer::Data]) -> Vec<collision::Polygon> {
     let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
 
     let positions: Vec<Vector2<f32>> = reader

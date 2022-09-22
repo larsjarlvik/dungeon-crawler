@@ -13,7 +13,7 @@ pub struct UiElementPipeline {
 
 impl UiElementPipeline {
     pub fn new(ctx: &Context) -> Self {
-        let builder = builders::PipelineBuilder::new(&ctx, "asset");
+        let builder = builders::PipelineBuilder::new(ctx, "asset");
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,
             "uniform_bind_group_layout",
@@ -104,8 +104,8 @@ impl UiElementPipeline {
         }
 
         builders::RenderTargetBuilder::new(ctx, "particle")
-            .with_color_attachment(&target, wgpu::LoadOp::Load)
-            .execute_bundles(bundles.iter().map(|b| b).collect());
+            .with_color_attachment(target, wgpu::LoadOp::Load)
+            .execute_bundles(bundles.iter().collect());
 
         ctx.images.queue.clear();
     }

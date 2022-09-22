@@ -3,7 +3,7 @@ use self::{
     mouse::{MouseButton, PressState},
 };
 use cgmath::*;
-use std::collections::HashMap;
+use fxhash::FxHashMap;
 use winit::event::VirtualKeyCode;
 pub mod joystick;
 pub mod mouse;
@@ -14,25 +14,13 @@ pub enum UiActionCode {
     Health,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Input {
-    pub keys: HashMap<VirtualKeyCode, PressState>,
-    pub ui: HashMap<UiActionCode, PressState>,
-    pub mouse: HashMap<u64, MouseButton>,
+    pub keys: FxHashMap<VirtualKeyCode, PressState>,
+    pub ui: FxHashMap<UiActionCode, PressState>,
+    pub mouse: FxHashMap<u64, MouseButton>,
     pub joystick: Option<Joystick>,
     pub blocked: bool,
-}
-
-impl Default for Input {
-    fn default() -> Self {
-        Self {
-            keys: HashMap::new(),
-            ui: HashMap::new(),
-            mouse: HashMap::new(),
-            joystick: None,
-            blocked: false,
-        }
-    }
 }
 
 impl Input {
@@ -45,8 +33,8 @@ impl Input {
         }
     }
 
-    pub fn mouse_button<'a>(&'a mut self, id: u64) -> &'a mut MouseButton {
-        self.mouse.entry(id).or_insert_with(|| MouseButton::new())
+    pub fn mouse_button(&mut self, id: u64) -> &mut MouseButton {
+        self.mouse.entry(id).or_insert_with(MouseButton::new)
     }
 
     pub fn key_state(&self, key: VirtualKeyCode) -> PressState {
@@ -90,7 +78,7 @@ impl Input {
         };
     }
 
-    pub fn pressed_buttons(&self) -> HashMap<u64, MouseButton> {
+    pub fn pressed_buttons(&self) -> FxHashMap<u64, MouseButton> {
         self.mouse
             .iter()
             .filter(|(_, button)| button.is_pressed())
@@ -99,22 +87,19 @@ impl Input {
     }
 
     pub fn set_joystick(&mut self, button_id: &u64, viewport_width: u32, viewport_height: u32) {
-        if let Some(mouse) = self.mouse.get(&button_id) {
-            match mouse.state {
-                PressState::Pressed(repeat) => {
-                    if !repeat {
-                        self.joystick = Some(Joystick {
-                            id: *button_id,
-                            area: point2(viewport_width as f32, viewport_height as f32),
-                            origin: if mouse.touch {
-                                JoystickOrigin::Relative
-                            } else {
-                                JoystickOrigin::Screen
-                            },
-                        });
-                    }
+        if let Some(mouse) = self.mouse.get(button_id) {
+            if let PressState::Pressed(repeat) = mouse.state {
+                if !repeat {
+                    self.joystick = Some(Joystick {
+                        id: *button_id,
+                        area: point2(viewport_width as f32, viewport_height as f32),
+                        origin: if mouse.touch {
+                            JoystickOrigin::Relative
+                        } else {
+                            JoystickOrigin::Screen
+                        },
+                    });
                 }
-                _ => {}
             }
         }
     }

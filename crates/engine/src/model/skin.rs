@@ -1,5 +1,5 @@
-use cgmath::*;
 use crate::config;
+use cgmath::*;
 
 #[derive(Clone)]
 pub struct Joint {
@@ -13,7 +13,7 @@ pub struct Skin {
 }
 
 impl Skin {
-    pub fn new(skin: &gltf::Skin, buffers: &Vec<gltf::buffer::Data>) -> Self {
+    pub fn new(skin: &gltf::Skin, buffers: &[gltf::buffer::Data]) -> Self {
         let joint_count = skin.joints().count();
         if joint_count > config::MAX_JOINT_COUNT {
             panic!("{} joints is more than {} allowed!", joint_count, config::MAX_JOINT_COUNT);

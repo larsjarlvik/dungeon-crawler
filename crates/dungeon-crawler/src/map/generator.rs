@@ -41,7 +41,7 @@ pub fn generate(rng: &mut StdRng, grid_size: usize, number_of_tiles: usize) -> V
     tiles
 }
 
-fn add_entrances(tiles: &mut Vec<Vec<Option<Tile>>>, grid_size: usize) {
+fn add_entrances(tiles: &mut [Vec<Option<Tile>>], grid_size: usize) {
     for x in 0..(grid_size * 2) {
         for z in 0..(grid_size * 2) {
             add_entrance(grid_size, tiles, x as i32, z as i32, 0, -1, 0);
@@ -52,14 +52,17 @@ fn add_entrances(tiles: &mut Vec<Vec<Option<Tile>>>, grid_size: usize) {
     }
 }
 
-fn add_entrance(grid_size: usize, tiles: &mut Vec<Vec<Option<Tile>>>, x: i32, z: i32, ox: i32, oz: i32, entrance: usize) {
-    let existing = tiles.clone();
+fn add_entrance(grid_size: usize, tiles: &mut [Vec<Option<Tile>>], x: i32, z: i32, ox: i32, oz: i32, entrance: usize) {
+    let existing = tiles.to_owned();
 
     if let Some(tile) = &mut tiles[x as usize][z as usize] {
-        if z + oz >= 0 && z + oz < grid_size as i32 * 2 && x + ox >= 0 && x + ox < grid_size as i32 * 2 {
-            if existing[(x + ox) as usize][(z + oz) as usize].is_some() {
-                tile.entrances[entrance] = true;
-            }
+        if z + oz >= 0
+            && z + oz < grid_size as i32 * 2
+            && x + ox >= 0
+            && x + ox < grid_size as i32 * 2
+            && existing[(x + ox) as usize][(z + oz) as usize].is_some()
+        {
+            tile.entrances[entrance] = true;
         }
     }
 }
@@ -85,12 +88,10 @@ fn selective_new_position(grid_size: usize, rng: &mut StdRng, taken_positions: &
             } else {
                 z -= 1;
             }
+        } else if positive {
+            x += 1;
         } else {
-            if positive {
-                x += 1;
-            } else {
-                x -= 1;
-            }
+            x -= 1;
         }
 
         check_pos = (x, z);
@@ -104,7 +105,7 @@ fn selective_new_position(grid_size: usize, rng: &mut StdRng, taken_positions: &
     check_pos
 }
 
-fn number_of_neighbors(pos: &(i32, i32), taken_positions: &Vec<(i32, i32)>) -> usize {
+fn number_of_neighbors(pos: &(i32, i32), taken_positions: &[(i32, i32)]) -> usize {
     let (x, z) = pos;
     taken_positions.iter().filter(|(tx, tz)| tx == &(x + 1) && tz == z).count()
         + taken_positions.iter().filter(|(tx, tz)| tx == &(x - 1) && tz == z).count()
@@ -128,12 +129,10 @@ fn new_position(grid_size: usize, rng: &mut StdRng, taken_positions: &Vec<(i32, 
             } else {
                 z -= 1;
             }
+        } else if positive {
+            x += 1;
         } else {
-            if positive {
-                x += 1;
-            } else {
-                x -= 1;
-            }
+            x -= 1;
         }
 
         checking_pos = (x as i32, z as i32);

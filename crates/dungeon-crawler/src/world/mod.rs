@@ -6,7 +6,7 @@ pub mod systems;
 use bevy_ecs::prelude::*;
 use cgmath::*;
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum GameState {
     Loading,
     Running,
@@ -28,7 +28,7 @@ pub struct World {
     pub resources: Option<Resources>,
 }
 
-impl<'a> World {
+impl World {
     pub fn new(engine: &engine::Engine) -> Self {
         let components = create_components(&engine.ctx);
 
@@ -96,7 +96,7 @@ impl<'a> World {
             ));
 
             if let Some(tile) = &map::edit_mode() {
-                resources.map.single_tile(engine, &mut self.components, &tile);
+                resources.map.single_tile(engine, &mut self.components, tile);
             } else {
                 resources.map.generate(&mut self.components, engine);
             }
@@ -122,22 +122,19 @@ impl<'a> World {
             fps.update();
         }
 
-        match self.game_state {
-            GameState::Running => {
-                while accumulator >= time_step {
-                    let mut time = self.components.get_resource_mut::<engine::ecs::resources::Time>().unwrap();
-                    time.frame += 1;
-                    accumulator -= time_step;
-
-                    self.schedule.run(&mut self.components);
-                }
-
+        if self.game_state == GameState::Running {
+            while accumulator >= time_step {
                 let mut time = self.components.get_resource_mut::<engine::ecs::resources::Time>().unwrap();
-                time.freeze(accumulator, time_step);
+                time.frame += 1;
+                accumulator -= time_step;
 
-                self.post_schedule.run(&mut self.components);
+                self.schedule.run(&mut self.components);
             }
-            _ => {}
+
+            let mut time = self.components.get_resource_mut::<engine::ecs::resources::Time>().unwrap();
+            time.freeze(accumulator, time_step);
+
+            self.post_schedule.run(&mut self.components);
         }
     }
 

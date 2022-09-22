@@ -34,6 +34,6 @@ impl base::BaseWidget for NodeWidget {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
-        self.children.iter().map(|c| c.get_nodes(taffy, &layout)).flat_map(|c| c).collect()
+        self.children.iter().flat_map(|c| c.get_nodes(taffy, &layout)).collect()
     }
 }

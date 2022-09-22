@@ -1,6 +1,6 @@
 use cgmath::*;
 use engine::{config, utils};
-use std::collections::HashMap;
+use fxhash::FxHashMap;
 
 #[derive(Clone, Copy)]
 pub struct MouseData {
@@ -14,19 +14,13 @@ pub enum Event {
     MouseDown(MouseData),
 }
 
+#[derive(Default)]
 pub struct State {
-    transitions: HashMap<String, Vector4<f32>>,
-    pub events: HashMap<String, Event>,
+    transitions: FxHashMap<String, Vector4<f32>>,
+    pub events: FxHashMap<String, Event>,
 }
 
 impl State {
-    pub fn new() -> Self {
-        Self {
-            transitions: HashMap::new(),
-            events: HashMap::new(),
-        }
-    }
-
     pub fn get_transition(&mut self, key: &Option<String>, to: Vector4<f32>, frame_time: f32) -> Vector4<f32> {
         if let Some(key) = &key {
             let prev_val = *self.transitions.get(key).unwrap_or(&to);
@@ -48,31 +42,21 @@ impl State {
     }
 
     pub fn clicked(&mut self, key: &String) -> Option<MouseData> {
-        if let Some(event) = self.events.get(key) {
-            match event {
-                Event::Click(data) => {
-                    let data = *data;
-                    self.events.remove(key);
-                    utils::vibrate(config::VIBRATION_LENGTH);
-                    return Some(data);
-                }
-                _ => {}
-            }
+        if let Some(Event::Click(data)) = self.events.get(key) {
+            let data = *data;
+            self.events.remove(key);
+            utils::vibrate(config::VIBRATION_LENGTH);
+            return Some(data);
         }
 
         None
     }
 
     pub fn mouse_down(&mut self, key: &String) -> Option<MouseData> {
-        if let Some(event) = self.events.get(key) {
-            match event {
-                Event::MouseDown(data) => {
-                    let data = *data;
-                    self.events.remove(key);
-                    return Some(data);
-                }
-                _ => {}
-            }
+        if let Some(Event::MouseDown(data)) = self.events.get(key) {
+            let data = *data;
+            self.events.remove(key);
+            return Some(data);
         }
 
         None

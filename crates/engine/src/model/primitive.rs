@@ -13,17 +13,13 @@ pub struct Primitive {
 }
 
 impl Primitive {
-    pub fn new(buffers: &Vec<gltf::buffer::Data>, primitive: &gltf::Primitive) -> Self {
+    pub fn new(buffers: &[gltf::buffer::Data], primitive: &gltf::Primitive) -> Self {
         let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
 
         let indices = reader.read_indices().expect("No indices found!").into_u32().collect::<Vec<u32>>();
         let positions = reader.read_positions().expect("No positions found!").collect::<Vec<[f32; 3]>>();
         let normals = reader.read_normals().expect("No normals found!").collect::<Vec<[f32; 3]>>();
-        let tangents = if let Some(tangents) = reader.read_tangents() {
-            Some(tangents.collect::<Vec<[f32; 4]>>())
-        } else {
-            None
-        };
+        let tangents = reader.read_tangents().map(|tangents| tangents.collect::<Vec<[f32; 4]>>());
 
         let tex_coords = reader
             .read_tex_coords(0)

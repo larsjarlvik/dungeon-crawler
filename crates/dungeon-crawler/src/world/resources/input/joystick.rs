@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use super::mouse;
 use crate::config;
 use cgmath::*;
 use engine::pipelines::joystick::JoystickProperties;
+use fxhash::FxHashMap;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum JoystickOrigin {
     Screen,
     Relative,
@@ -19,19 +18,19 @@ pub struct Joystick {
 }
 
 impl Joystick {
-    pub fn get_properties(&self, mouse: &HashMap<u64, mouse::MouseButton>) -> Option<JoystickProperties> {
+    pub fn get_properties(&self, mouse: &FxHashMap<u64, mouse::MouseButton>) -> Option<JoystickProperties> {
         if let Some((center, direction, _)) = self.get_center_direction_strength(mouse) {
-            return Some(JoystickProperties {
+            Some(JoystickProperties {
                 center,
                 current: Point2::new(direction.x, direction.y),
                 show_ui: self.origin == JoystickOrigin::Relative,
-            });
+            })
         } else {
             None
         }
     }
 
-    pub fn get_direction_strength(&self, mouse: &HashMap<u64, mouse::MouseButton>) -> Option<(Vector2<f32>, f32)> {
+    pub fn get_direction_strength(&self, mouse: &FxHashMap<u64, mouse::MouseButton>) -> Option<(Vector2<f32>, f32)> {
         if let Some((_, direction, strength)) = self.get_center_direction_strength(mouse) {
             Some((direction, strength))
         } else {
@@ -39,7 +38,7 @@ impl Joystick {
         }
     }
 
-    fn get_center_direction_strength(&self, mouse: &HashMap<u64, mouse::MouseButton>) -> Option<(Point2<f32>, Vector2<f32>, f32)> {
+    fn get_center_direction_strength(&self, mouse: &FxHashMap<u64, mouse::MouseButton>) -> Option<(Point2<f32>, Vector2<f32>, f32)> {
         if let Some(mouse) = mouse.get(&self.id) {
             if mouse.is_pressed() {
                 if let Some(position) = self.get_relative(mouse.position) {
@@ -60,13 +59,11 @@ impl Joystick {
     }
 
     fn get_relative(&self, position: Option<Point2<f32>>) -> Option<Point2<f32>> {
-        if let Some(position) = position {
-            Some(Point2::new(
+        position.map(|position| {
+            Point2::new(
                 position.x / self.area.x * 2.0 - 1.0,
                 (position.y / self.area.y * 2.0 - 1.0) * (self.area.y / self.area.x),
-            ))
-        } else {
-            None
-        }
+            )
+        })
     }
 }

@@ -41,7 +41,7 @@ impl base::BaseWidget for PanelWidget {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
-        let children: Vec<(NodeLayout, RenderWidget)> = self.children.iter().map(|c| c.get_nodes(taffy, &layout)).flat_map(|c| c).collect();
+        let children: Vec<(NodeLayout, RenderWidget)> = self.children.iter().flat_map(|c| c.get_nodes(taffy, &layout)).collect();
         let mut nodes = vec![(layout, RenderWidget::new(self.key.clone(), RenderWidgetType::Asset(&self.data)))];
         nodes.extend(children);
         nodes

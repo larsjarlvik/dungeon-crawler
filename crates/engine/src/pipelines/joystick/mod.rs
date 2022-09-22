@@ -19,7 +19,7 @@ pub struct JoystickPipeline {
 
 impl JoystickPipeline {
     pub fn new(ctx: &Context) -> Self {
-        let builder = builders::PipelineBuilder::new(&ctx, "joystick");
+        let builder = builders::PipelineBuilder::new(ctx, "joystick");
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,
@@ -83,7 +83,7 @@ impl JoystickPipeline {
     pub fn render(&self, ctx: &Context, target: &wgpu::TextureView) {
         if self.is_visible {
             builders::RenderTargetBuilder::new(ctx, "joystick")
-                .with_color_attachment(&target, wgpu::LoadOp::Load)
+                .with_color_attachment(target, wgpu::LoadOp::Load)
                 .execute_bundles(vec![&self.render_bundle]);
         }
     }

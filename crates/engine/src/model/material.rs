@@ -17,7 +17,7 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn new(ctx: &Context, material: &gltf::Material, images: &Vec<gltf::image::Data>) -> Self {
+    pub fn new(ctx: &Context, material: &gltf::Material, images: &[gltf::image::Data]) -> Self {
         let pbr = material.pbr_metallic_roughness();
 
         let textures = if pbr.base_color_texture().is_some() {
@@ -49,8 +49,8 @@ impl Material {
     }
 }
 
-fn load_image(ctx: &Context, texture: gltf::Texture, images: &Vec<gltf::image::Data>) -> texture::Texture {
-    let image = images.iter().nth(texture.source().index()).expect("Could not find normal texture!");
+fn load_image(ctx: &Context, texture: gltf::Texture, images: &[gltf::image::Data]) -> texture::Texture {
+    let image = images.get(texture.source().index()).expect("Could not find normal texture!");
     let channels = image.pixels.len() as usize / (image.height * image.width) as usize;
 
     let pixels = if channels < 4 {
@@ -68,5 +68,5 @@ fn load_image(ctx: &Context, texture: gltf::Texture, images: &Vec<gltf::image::D
         image.pixels.clone()
     };
 
-    texture::Texture::create_view(&ctx, pixels.as_slice(), image.width, image.height, true)
+    texture::Texture::create_view(ctx, pixels.as_slice(), image.width, image.height, true)
 }

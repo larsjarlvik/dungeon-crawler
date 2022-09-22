@@ -1,6 +1,7 @@
 use crate::config;
 use bevy_ecs::prelude::*;
-use std::{collections::HashMap, time::Instant};
+use fxhash::FxHashMap;
+use std::time::Instant;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum AnimationSpeed {
@@ -9,7 +10,7 @@ pub enum AnimationSpeed {
     Speed(f32),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AnimationStatus {
     Default,
     Repeat,
@@ -48,12 +49,12 @@ impl Channel {
 
 #[derive(Component)]
 pub struct Animations {
-    pub channels: HashMap<String, Channel>,
+    pub channels: FxHashMap<String, Channel>,
 }
 
 impl Animations {
     pub fn new(key: &str, animation: &str, status: AnimationStatus) -> Self {
-        let mut channels = HashMap::new();
+        let mut channels = FxHashMap::default();
 
         channels.insert(
             key.to_string(),

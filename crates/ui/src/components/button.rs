@@ -71,7 +71,7 @@ impl Button {
         }
 
         PanelWidget::new(
-            Some(self.key.clone().into()),
+            Some(self.key.clone()),
             AssetData {
                 background: props.background,
                 background_hover: Some(props.background.lerp(props.foreground, 0.2)),

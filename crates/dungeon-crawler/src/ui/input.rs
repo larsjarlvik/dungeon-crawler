@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-
 use cgmath::*;
+use fxhash::FxHashSet;
 use ui::{
     widgets::{NodeLayout, RenderWidget, RenderWidgetState},
     Event, MouseData, State,
@@ -12,15 +11,17 @@ use crate::world::{
 };
 
 pub struct Input {
-    pub locks: HashSet<u64>,
+    pub locks: FxHashSet<u64>,
 }
 
 impl Input {
     pub fn new() -> Self {
-        Self { locks: HashSet::new() }
+        Self {
+            locks: FxHashSet::default(),
+        }
     }
 
-    pub fn process(&mut self, nodes: &mut Vec<(NodeLayout, RenderWidget)>, ui_state: &mut State, world: &mut World, scale: Point2<f32>) {
+    pub fn process(&mut self, nodes: &mut [(NodeLayout, RenderWidget)], ui_state: &mut State, world: &mut World, scale: Point2<f32>) {
         let input = &world.components.get_resource::<resources::Input>().unwrap();
 
         for (layout, widget) in nodes.iter_mut() {
@@ -29,7 +30,7 @@ impl Input {
             }
 
             for (id, button) in input.mouse.iter() {
-                if let Some(press_position) = on_element(&button.press_position, &layout, scale) {
+                if let Some(press_position) = on_element(&button.press_position, layout, scale) {
                     match button.state {
                         mouse::PressState::Released(repeat) => {
                             self.locks.remove(id);
@@ -63,7 +64,7 @@ impl Input {
                     }
 
                     break;
-                } else if let Some(_) = on_element(&button.position, &layout, scale) {
+                } else if on_element(&button.position, layout, scale).is_some() {
                     widget.state = RenderWidgetState::Hover;
                     break;
                 } else {

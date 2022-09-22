@@ -32,7 +32,7 @@ pub fn user_control(
     let targets: Vec<(Vector3<f32>, Health, String)> = query
         .p1()
         .iter()
-        .map(|(n, _, t, s)| (t.translation.current.clone(), s.health.clone(), n.name.clone()))
+        .map(|(n, _, t, s)| (t.translation.current, s.health.clone(), n.name.clone()))
         .collect();
 
     for (entity, transform, mut movement, mut action, mut stats, weapon) in query.p0().iter_mut() {
@@ -97,14 +97,14 @@ pub fn user_control(
             }
         }
 
-        if input.is_pressed(VirtualKeyCode::H) || input.ui.contains_key(&resources::input::UiActionCode::Health) {
-            if stats.health.changes.len() == 0 {
-                // TODO: Health value
-                stats.health.changes.push(components::HealthChange::new(
-                    2.0,
-                    components::HealthChangeType::OverTime(Duration::from_secs(10)),
-                ));
-            }
+        if (input.is_pressed(VirtualKeyCode::H) || input.ui.contains_key(&resources::input::UiActionCode::Health))
+            && stats.health.changes.is_empty()
+        {
+            // TODO: Health value
+            stats.health.changes.push(components::HealthChange::new(
+                2.0,
+                components::HealthChangeType::OverTime(Duration::from_secs(10)),
+            ));
         }
     }
 }

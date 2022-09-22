@@ -2,6 +2,7 @@ use crate::widgets::*;
 use cgmath::*;
 use taffy::prelude::*;
 
+#[derive(Default)]
 pub struct Bar {}
 
 pub struct BarProps {
@@ -29,10 +30,6 @@ impl Default for BarProps {
 }
 
 impl Bar {
-    pub fn new() -> Self {
-        Self {}
-    }
-
     pub fn draw(&self, label: &str, props: BarProps) -> Box<PanelWidget> {
         PanelWidget::new(
             None,
