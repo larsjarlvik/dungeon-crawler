@@ -37,7 +37,7 @@ impl Default for Settings {
 impl Settings {
     pub fn load() -> Self {
         match file::read_file("settings.json") {
-            Ok(json) => serde_json::from_str(&json).unwrap_or(Self::default()),
+            Ok(json) => serde_json::from_str(&json).unwrap_or_default(),
             Err(_) => Self::default(),
         }
     }

@@ -1,12 +1,23 @@
+<<<<<<< HEAD
+use bevy_ecs::prelude::*;
+use std::collections::HashMap;
+
 use crate::{model::animation::SoundEffect, ModelInstance};
+=======
+use crate::ModelInstance;
 use bevy_ecs::prelude::*;
 use fxhash::FxHashMap;
+>>>>>>> origin/master
 
 #[derive(Component, Clone)]
 pub struct Model {
     pub key: String,
+<<<<<<< HEAD
+    pub animation_times: HashMap<String, f32>,
+    pub animation_sound_effects: HashMap<String, SoundEffect>,
+=======
     pub animation_times: FxHashMap<String, f32>,
-    pub animation_sound_effects: FxHashMap<String, SoundEffect>,
+>>>>>>> origin/master
     pub highlight: f32,
 }
 

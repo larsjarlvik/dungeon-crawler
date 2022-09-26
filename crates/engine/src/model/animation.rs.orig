@@ -109,6 +109,7 @@ impl Animation {
             .max_by(|c0, c1| c0.partial_cmp(c1).unwrap_or(Ordering::Equal))
             .unwrap_or(0.0);
 
+<<<<<<< HEAD
         let total_time = max_translation_time.max(max_rotation_time).max(max_scale_time);
 
         // TODO: This is not very safe, total keyframes can be more
@@ -127,6 +128,12 @@ impl Animation {
         } else {
             None
         };
+=======
+        let total_time = *[max_translation_time, max_rotation_time, max_scale_time]
+            .iter()
+            .max_by(|c0, c1| c0.partial_cmp(c1).unwrap_or(Ordering::Equal))
+            .unwrap_or(&0.0);
+>>>>>>> origin/master
 
         Self {
             translation_channels,

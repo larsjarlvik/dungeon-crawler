@@ -23,7 +23,7 @@ pub fn get_decor(tile: &str, rng: &mut StdRng) -> Vec<Decor> {
     let path = format!("tiles/{}.json", tile);
 
     match serde_json::from_str::<Vec<TileDecor>>(file::read_string(&path).as_str()) {
-        Ok(variants) if variants.len() > 0 => variants[rng.gen_range(0..variants.len())].decor.clone(),
+        Ok(variants) if !variants.is_empty() => variants[rng.gen_range(0..variants.len())].decor.clone(),
         Ok(_) => {
             vec![]
         }

@@ -7,7 +7,7 @@ pub struct PipelineShadow {
 
 impl PipelineShadow {
     pub fn new(ctx: &Context) -> Self {
-        let builder = builders::PipelineBuilder::new(&ctx, "model_shadows");
+        let builder = builders::PipelineBuilder::new(ctx, "model_shadows");
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,
@@ -32,7 +32,7 @@ impl PipelineShadow {
 
     pub fn execute_bundles(&self, ctx: &Context, bundles: Vec<&wgpu::RenderBundle>, depth_target: &wgpu::TextureView) {
         builders::RenderTargetBuilder::new(ctx, "model_shadows")
-            .with_depth_attachment(&depth_target, wgpu::LoadOp::Clear(1.0))
+            .with_depth_attachment(depth_target, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
     }
 }

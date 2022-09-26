@@ -1,6 +1,6 @@
 use crate::{texture, Context};
 use cgmath::*;
-use std::collections::HashMap;
+use fxhash::FxHashMap;
 
 #[derive(Debug)]
 pub enum AssetState {
@@ -24,19 +24,13 @@ pub struct Data {
     pub shadow_offset: Vector2<f32>,
 }
 
+#[derive(Default)]
 pub struct ImageContext {
-    pub textures: HashMap<String, texture::Texture>,
+    pub textures: FxHashMap<String, texture::Texture>,
     pub queue: Vec<(Option<String>, Data)>,
 }
 
 impl ImageContext {
-    pub fn new() -> Self {
-        Self {
-            textures: HashMap::new(),
-            queue: Vec::new(),
-        }
-    }
-
     pub fn add_texture(ctx: &mut Context, key: &str, data: Vec<u8>) {
         let img = image::load_from_memory(data.as_slice()).unwrap();
         let pixels = img.as_bytes();

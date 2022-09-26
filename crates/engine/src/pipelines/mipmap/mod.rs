@@ -3,7 +3,7 @@ use crate::Context;
 use std::num::NonZeroU32;
 
 pub fn generate_mipmaps(ctx: &Context, encoder: &mut wgpu::CommandEncoder, texture: &wgpu::Texture, mip_count: u32) {
-    let builder = builders::PipelineBuilder::new(&ctx, "mipmap");
+    let builder = builders::PipelineBuilder::new(ctx, "mipmap");
 
     let texture_bind_group_layout = builder.create_bindgroup_layout(
         0,

@@ -1,5 +1,5 @@
 use cgmath::*;
-use std::collections::HashMap;
+use fxhash::FxHashMap;
 
 #[derive(Debug, Clone)]
 pub struct Light {
@@ -12,23 +12,19 @@ pub struct Light {
 }
 
 impl Light {
-    pub fn new(light: &gltf::khr_lights_punctual::Light, nodes: &Vec<gltf::Node>) -> Self {
+    pub fn new(light: &gltf::khr_lights_punctual::Light, nodes: &[gltf::Node]) -> Self {
         let mut translation = Vector3::zero();
         for n in nodes.iter() {
             let (t, _, _) = n.transform().decomposed();
             translation += Vector3::from(t);
         }
 
-        let mut extras: HashMap<String, f32> = HashMap::new();
+        let mut extras: FxHashMap<String, f32> = FxHashMap::default();
         if let Some(json) = light.extras() {
             extras = serde_json::from_str(json.get()).unwrap();
         }
 
-        let flicker = if let Some(flicker) = extras.get("flicker") {
-            Some(*flicker)
-        } else {
-            None
-        };
+        let flicker = extras.get("flicker").copied();
 
         Self {
             name: light.name().unwrap().to_string(),
@@ -36,7 +32,7 @@ impl Light {
             intensity: light.intensity() / 20.0,
             flicker,
             color: Vector3::from(light.color()),
-            translation: Vector3::from(translation),
+            translation,
         }
     }
 }

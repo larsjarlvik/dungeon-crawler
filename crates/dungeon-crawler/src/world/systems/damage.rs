@@ -49,7 +49,7 @@ fn did_hit(collider: &Polygon, collision: &components::Collision, transform: &en
         .flat_map(move |p| p.transform(transform.translation.current, transform.rotation.current))
         .collect();
 
-    let result = engine::collision::check_collision(&collider, &c, Vector2::zero());
+    let result = engine::collision::check_collision(collider, &c, Vector2::zero());
     match result {
         Intersection::None => {}
         _ => {
@@ -57,5 +57,5 @@ fn did_hit(collider: &Polygon, collision: &components::Collision, transform: &en
         }
     };
 
-    return false;
+    false
 }

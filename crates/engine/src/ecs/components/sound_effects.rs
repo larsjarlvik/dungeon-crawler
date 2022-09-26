@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use bevy_ecs::prelude::Component;
+use fxhash::FxHashMap;
 
 #[derive(Clone)]
 pub struct Sound {
@@ -19,16 +18,12 @@ impl Sound {
     }
 }
 
-#[derive(Component)]
+#[derive(Default, Component)]
 pub struct SoundEffects {
-    pub sounds: HashMap<String, Sound>,
+    pub sounds: FxHashMap<String, Sound>,
 }
 
 impl SoundEffects {
-    pub fn new() -> Self {
-        Self { sounds: HashMap::new() }
-    }
-
     pub fn set(&mut self, key: String, sound: Sound) {
         self.sounds.insert(key, sound);
     }

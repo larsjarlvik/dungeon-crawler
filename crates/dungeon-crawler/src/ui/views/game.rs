@@ -11,7 +11,7 @@ use cgmath::*;
 use ui::{components::*, prelude::*, widgets::*};
 
 fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> Box<PanelWidget> {
-    Bar::new().draw(
+    Bar::default().draw(
         label,
         BarProps {
             width: Dimension::Percent(1.0),
@@ -24,7 +24,6 @@ fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> B
                 background_end: color.extend(1.0),
                 angle: 180.0,
             }),
-            ..Default::default()
         },
     )
 }

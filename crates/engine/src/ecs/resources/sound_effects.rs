@@ -1,24 +1,25 @@
 use crate::file;
 use crate::{config, ecs::resources};
 use cgmath::*;
+use fxhash::FxHashMap;
 use rand::seq::SliceRandom;
-use std::{collections::HashMap, io::Cursor};
+use std::io::Cursor;
 
 pub struct SoundEffects {
-    sounds: HashMap<String, Vec<Vec<u8>>>,
-    sinks: HashMap<String, rodio::SpatialSink>,
+    sounds: FxHashMap<String, Vec<Vec<u8>>>,
+    sinks: FxHashMap<String, rodio::SpatialSink>,
     handle: rodio::OutputStreamHandle,
     _stream: rodio::OutputStream,
 }
 
 impl Default for SoundEffects {
     fn default() -> Self {
-        let sounds = HashMap::new();
+        let sounds = FxHashMap::default();
         let (stream, handle) = rodio::OutputStream::try_default().unwrap();
 
         Self {
             sounds,
-            sinks: HashMap::new(),
+            sinks: FxHashMap::default(),
             handle,
             _stream: stream,
         }
@@ -26,7 +27,7 @@ impl Default for SoundEffects {
 }
 
 impl SoundEffects {
-    pub fn load(&mut self, sounds: &Vec<String>) {
+    pub fn load(&mut self, sounds: &[String]) {
         for key in sounds.iter() {
             let mut sounds = vec![];
 
@@ -43,7 +44,7 @@ impl SoundEffects {
         }
     }
 
-    pub fn play(&mut self, sink: &String, sound: &String, camera: &resources::Camera, position: Option<Vector3<f32>>) {
+    pub fn play(&mut self, sink: &str, sound: &String, camera: &resources::Camera, position: Option<Vector3<f32>>) {
         let position = match position {
             Some(position) => position.into(),
             None => [0.0, 0.0, 0.0],
@@ -54,13 +55,10 @@ impl SoundEffects {
 
         let sink = self
             .sinks
-            .entry(sink.clone())
-            .or_insert(rodio::SpatialSink::try_new(&self.handle, position, left.into(), right.into()).unwrap());
+            .entry(sink.into())
+            .or_insert_with(|| rodio::SpatialSink::try_new(&self.handle, position, left.into(), right.into()).unwrap());
 
-        let sound = self
-            .sounds
-            .get(sound.into())
-            .expect(format!("Could not find sound {}!", sound).as_str());
+        let sound = self.sounds.get(sound).unwrap_or_else(|| panic!("Could not find sound {}!", sound));
 
         let file = Cursor::new(sound.choose(&mut rand::thread_rng()).unwrap().clone());
         sink.append(rodio::Decoder::new(file).unwrap());

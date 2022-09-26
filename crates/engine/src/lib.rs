@@ -1,6 +1,6 @@
 use cgmath::*;
+use fxhash::FxHashMap;
 use pipelines::ui_element::context::ImageContext;
-use std::collections::HashMap;
 use wgpu_glyph::{ab_glyph::FontArc, GlyphBrush, GlyphBrushBuilder};
 pub mod bounding_box;
 pub mod bounding_sphere;
@@ -33,8 +33,8 @@ pub struct Context {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub settings: settings::Settings,
-    pub model_instances: HashMap<String, ModelInstance>,
-    pub emitter_instances: HashMap<String, pipelines::ParticleEmitter>,
+    pub model_instances: FxHashMap<String, ModelInstance>,
+    pub emitter_instances: FxHashMap<String, pipelines::ParticleEmitter>,
     pub glyph_brush: GlyphBrush<()>,
     pub images: ImageContext,
     pub color_format: wgpu::TextureFormat,
@@ -96,7 +96,7 @@ impl Engine {
         supported_formats.sort_by(|a, b| {
             preferred_formats
                 .iter()
-                .position(|&f| f == a.clone())
+                .position(|&f| f == *a)
                 .unwrap_or(1000)
                 .cmp(&preferred_formats.iter().position(|f| f == b).unwrap_or(1000))
         });
@@ -106,7 +106,7 @@ impl Engine {
         configure_surface(&surface, &device, color_format, size);
 
         let font = FontArc::try_from_vec(font_data).expect("Failed to load font!");
-        let glyph_brush = GlyphBrushBuilder::using_font(font.clone()).build(&device, color_format);
+        let glyph_brush = GlyphBrushBuilder::using_font(font).build(&device, color_format);
 
         let ctx = Context {
             instance,
@@ -115,10 +115,10 @@ impl Engine {
             surface: Some(surface),
             queue,
             settings,
-            model_instances: HashMap::new(),
-            emitter_instances: HashMap::new(),
+            model_instances: FxHashMap::default(),
+            emitter_instances: FxHashMap::default(),
             glyph_brush,
-            images: ImageContext::new(),
+            images: ImageContext::default(),
             color_format,
         };
 
@@ -127,7 +127,7 @@ impl Engine {
         let particle_pipeline = pipelines::ParticlePipeline::new(&ctx);
         let scaling_pipeline = pipelines::ScalingPipeline::new(&ctx);
         let joystick_pipeline = pipelines::JoystickPipeline::new(&ctx);
-        let glyph_pipeline = pipelines::GlyphPipeline::new();
+        let glyph_pipeline = pipelines::GlyphPipeline::default();
         let image_pipeline = pipelines::UiElementPipeline::new(&ctx);
         let smaa_target = SmaaTarget::new(
             &ctx.device,
@@ -157,7 +157,7 @@ impl Engine {
         self.particle_pipeline = pipelines::ParticlePipeline::new(&self.ctx);
         self.scaling_pipeline = pipelines::ScalingPipeline::new(&self.ctx);
         self.joystick_pipeline = pipelines::JoystickPipeline::new(&self.ctx);
-        self.glyph_pipeline = pipelines::GlyphPipeline::new();
+        self.glyph_pipeline = pipelines::GlyphPipeline::default();
         self.smaa_target = SmaaTarget::new(
             &self.ctx.device,
             &self.ctx.queue,
@@ -174,7 +174,7 @@ impl Engine {
 
     pub fn set_viewport<W: raw_window_handle::HasRawWindowHandle>(&mut self, window: &W, size: Point2<u32>, scale_factor: f32) {
         self.ctx.viewport = viewport::Viewport::new(size.x, size.y, scale_factor, self.ctx.settings.render_scale);
-        self.scaling_pipeline.resize(&mut self.ctx);
+        self.scaling_pipeline.resize(&self.ctx);
 
         if self.ctx.surface.is_none() {
             self.ctx.surface = Some(unsafe { self.ctx.instance.create_surface(window) });
@@ -230,7 +230,7 @@ impl Engine {
         );
 
         ecs::components::Model {
-            key: key.to_string(),
+            key,
             animation_times,
             animation_sound_effects,
             highlight,
@@ -238,13 +238,13 @@ impl Engine {
     }
 
     pub fn initialize_particle(&mut self, emitter: pipelines::ParticleEmitter, key: String) {
-        self.ctx.emitter_instances.insert(key.to_string(), emitter);
+        self.ctx.emitter_instances.insert(key, emitter);
     }
 }
 
 pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, color_format: wgpu::TextureFormat, size: Point2<u32>) {
     surface.configure(
-        &device,
+        device,
         &wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: color_format,

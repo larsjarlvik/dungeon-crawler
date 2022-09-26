@@ -16,7 +16,7 @@ pub struct ScalingPipeline {
 
 impl ScalingPipeline {
     pub fn new(ctx: &Context) -> Self {
-        let builder = builders::PipelineBuilder::new(&ctx, "scaling");
+        let builder = builders::PipelineBuilder::new(ctx, "scaling");
         let sampler = texture::Texture::create_sampler(ctx, wgpu::AddressMode::Repeat, wgpu::FilterMode::Linear, None);
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
@@ -45,7 +45,7 @@ impl ScalingPipeline {
 
         let (width, height) = ctx.viewport.get_render_size();
         let texture = texture::Texture::create_texture(ctx, ctx.color_format, width, height, "scaling_texture");
-        let depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "scaling_depth_texture");
+        let depth_texture = texture::Texture::create_depth_texture(ctx, width, height, "scaling_depth_texture");
 
         let uniform_buffer = render_bundle_builder.create_uniform_buffer_init(bytemuck::cast_slice(&[Uniforms {
             viewport: [ctx.viewport.width as f32, ctx.viewport.height as f32],
@@ -118,7 +118,7 @@ impl ScalingPipeline {
 
     pub fn render(&self, ctx: &Context, target: &wgpu::TextureView) {
         builders::RenderTargetBuilder::new(ctx, "scaling")
-            .with_color_attachment(&target, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
+            .with_color_attachment(target, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
             .execute_bundles(vec![&self.render_bundle]);
     }
 }

@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use crate::ui::Views;
 use cgmath::Point2;
 use engine::Settings;

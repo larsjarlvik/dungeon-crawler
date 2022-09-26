@@ -6,13 +6,10 @@ pub mod widgets;
 pub use state::*;
 pub use taffy::prelude;
 
+#[derive(Default)]
 pub struct Ui {}
 
 impl Ui {
-    pub fn new() -> Self {
-        Self {}
-    }
-
     pub fn render<'a>(
         &'a self,
         ctx: &mut engine::Context,
@@ -41,7 +38,7 @@ impl Ui {
 
         let result = {
             let nodes = root.get_nodes(&taffy, &root_layout);
-            nodes.into_iter().map(|(node, widget)| (node.clone(), widget.clone())).collect()
+            nodes.into_iter().map(|(node, widget)| (node, widget.clone())).collect()
         };
 
         result

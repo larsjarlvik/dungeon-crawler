@@ -1,9 +1,14 @@
 mod assets;
 mod io;
 
-pub use io::exists;
+<<<<<<< HEAD
+pub use file::exists;
+pub use file::read_file;
+pub use file::write_file;
+=======
 pub use io::read_file;
 pub use io::write_file;
+>>>>>>> origin/master
 
 pub use assets::read_bytes;
 pub use assets::read_string;

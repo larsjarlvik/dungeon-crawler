@@ -10,10 +10,7 @@ pub fn player(
 ) {
     for (mut effects, transform) in query.iter_mut() {
         effects.sounds.retain(|sink, sound| {
-            let position = match transform {
-                Some(transform) => Some(transform.translation.get(time.alpha)),
-                None => None,
-            };
+            let position = transform.map(|transform| transform.translation.get(time.alpha));
 
             if !sound.started {
                 player.play(sink, &sound.name, &camera, position);

@@ -39,11 +39,11 @@ impl Views {
 
         Self {
             ui_scale: 2000.0 / scale / ctx.settings.ui_scale,
-            ui: ui::Ui::new(),
+            ui: ui::Ui::default(),
             input: input::Input::new(),
-            state: ui::State::new(),
+            state: ui::State::default(),
             view: Transition::new(ViewState::Splash),
-            main_menu: views::MainMenu::new(&ctx),
+            main_menu: views::MainMenu::new(ctx),
         }
     }
 

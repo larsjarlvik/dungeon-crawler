@@ -27,11 +27,6 @@ impl Default for GlyphProps {
 }
 
 impl GlyphPipeline {
-    pub fn new() -> Self {
-        let staging_belt = wgpu::util::StagingBelt::new(1024);
-        Self { staging_belt }
-    }
-
     pub fn queue(ctx: &mut Context, props: GlyphProps) {
         ctx.glyph_brush.queue(Section {
             screen_position: props.position.into(),
@@ -61,6 +56,13 @@ impl GlyphPipeline {
 
         self.staging_belt.finish();
         ctx.queue.submit(Some(encoder.finish()));
+    }
+}
+
+impl Default for GlyphPipeline {
+    fn default() -> Self {
+        let staging_belt = wgpu::util::StagingBelt::new(1024);
+        Self { staging_belt }
     }
 }
 

@@ -62,5 +62,5 @@ impl NodeLayout {
 
 pub trait BaseWidget {
     fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node;
-    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)>;
+    fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)>;
 }

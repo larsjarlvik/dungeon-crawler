@@ -25,7 +25,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                     ));
                     let tile_id = tile_entity.id();
 
-                    if tile.collisions.len() > 0 {
+                    if !tile.collisions.is_empty() {
                         tile_entity.insert(components::Collision::new(tile.collisions.clone()));
                     }
 
@@ -37,7 +37,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                             engine::ecs::components::Shadow,
                         ));
 
-                        if decor.collisions.len() > 0 {
+                        if !decor.collisions.is_empty() {
                             decor_entity.insert(components::Collision::new(decor.collisions.clone()));
                         }
 
@@ -84,7 +84,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                             engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationStatus::Repeat),
                             engine::ecs::components::Transform::from_translation_scale(hostile.position, 0.8),
                             engine::ecs::components::Render { cull_frustum: true },
-                            engine::ecs::components::SoundEffects::new(),
+                            engine::ecs::components::SoundEffects::default(),
                             components::Stats::new(10, 10, 12, components::stats::get_level_experience(3)),
                             components::Weapon {
                                 damage: 2.0..5.0,
@@ -105,9 +105,5 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
 }
 
 fn get_flicker(flicker: Option<f32>, speed: f32) -> Option<components::Flicker> {
-    if let Some(flicker) = flicker {
-        Some(components::Flicker::new(flicker, speed))
-    } else {
-        None
-    }
+    flicker.map(|flicker| components::Flicker::new(flicker, speed))
 }

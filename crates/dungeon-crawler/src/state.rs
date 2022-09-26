@@ -104,7 +104,7 @@ impl State {
 
         let joystick = {
             if input.joystick.is_none() {
-                let first = pressed_buttons.iter().filter(|(id, _)| !views.is_click_through(id)).nth(0);
+                let first = pressed_buttons.iter().find(|(id, _)| !views.is_click_through(id));
 
                 if let Some((id, _)) = first {
                     input.set_joystick(id, self.engine.ctx.viewport.width, self.engine.ctx.viewport.height);

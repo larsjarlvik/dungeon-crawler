@@ -1,4 +1,4 @@
-mod model;
+mod initializer;
 mod pipeline_display;
 mod pipeline_shadow;
 mod uniforms;
@@ -11,7 +11,7 @@ use crate::{
 };
 use bevy_ecs::prelude::World;
 use cgmath::*;
-pub use model::Model;
+pub use initializer::Model;
 use std::convert::TryInto;
 pub use uniforms::Uniforms;
 
@@ -66,10 +66,10 @@ impl ModelPipeline {
             .iter(components)
         {
             let model_matrix = transform.to_matrix(alpha);
-            let model = model_instance.get_model(&ctx);
+            let model = model_instance.get_model(ctx);
 
             if render.cull_frustum {
-                let transformed_bb = model.model.bounding_box.transform(model_matrix.into());
+                let transformed_bb = model.model.bounding_box.transform(model_matrix);
                 if !frustum.test_bounding_box(&transformed_bb) {
                     continue;
                 }
@@ -140,10 +140,10 @@ impl ModelPipeline {
 
         let mut visible_lights: Vec<(&components::Light, &components::Transform)> = components
             .query::<(&components::Light, &components::Transform)>()
-            .iter(&components)
+            .iter(components)
             .filter(|(light, transform)| {
                 if let Some(bounding_sphere) = &light.bounding_sphere {
-                    frustum.test_bounding_sphere(&bounding_sphere.transform(transform.to_matrix(alpha).into()))
+                    frustum.test_bounding_sphere(&bounding_sphere.transform(transform.to_matrix(alpha)))
                 } else {
                     true
                 }
@@ -192,7 +192,7 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
                         let parent = &nodes.nodes[id];
                         parent.global_transform_matrix
                     })
-                    .or(Matrix4::identity().into());
+                    .or_else(|| Some(Matrix4::identity()));
 
                 let node = &mut nodes.nodes[*index];
                 node.apply_transform(parent_transform);
@@ -213,7 +213,7 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
             }
         });
 
-        joint_transforms.iter().map(|jm| jm.clone().into()).collect()
+        joint_transforms.iter().map(|jm| (*jm).into()).collect()
     } else {
         vec![[[0.0; 4]; 4]; config::MAX_JOINT_COUNT]
     }
@@ -227,7 +227,7 @@ fn animate(nodes: &mut GltfModelNodes, animation: &components::Animation, blend_
     let cur_model_animation = nodes
         .animations
         .get(&animation.name)
-        .expect(format!("Could not find animation: {}", &animation.name).as_str());
+        .unwrap_or_else(|| panic!("Could not find animation: {}", &animation.name));
 
     cur_model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed, blend_factor);
 }

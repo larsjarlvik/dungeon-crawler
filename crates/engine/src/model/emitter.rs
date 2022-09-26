@@ -1,6 +1,6 @@
 use super::{material, primitive};
 use cgmath::*;
-use std::collections::HashMap;
+use fxhash::FxHashMap;
 
 #[derive(Debug, Clone)]
 pub struct Emitter {
@@ -18,8 +18,8 @@ pub struct Emitter {
 }
 
 impl Emitter {
-    pub fn new(gltf_mesh: &gltf::Mesh, primitive: &primitive::Primitive, materials: &Vec<material::Material>) -> Self {
-        let extras: HashMap<String, f32>;
+    pub fn new(gltf_mesh: &gltf::Mesh, primitive: &primitive::Primitive, materials: &[material::Material]) -> Self {
+        let extras: FxHashMap<String, f32>;
 
         let position = primitive.get_center();
         let material = materials
@@ -29,11 +29,7 @@ impl Emitter {
         return if let Some(json) = gltf_mesh.extras() {
             extras = serde_json::from_str(json.get()).unwrap();
 
-            let flicker = if let Some(flicker) = extras.get("flicker") {
-                Some(*flicker)
-            } else {
-                None
-            };
+            let flicker = extras.get("flicker").copied();
 
             Self {
                 name: gltf_mesh.name().expect("Missing name!").to_string(),

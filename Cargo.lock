@@ -886,6 +886,7 @@ dependencies = [
  "cgmath",
  "engine",
  "env_logger",
+ "fxhash",
  "jni",
  "log",
  "ndk 0.7.0",
@@ -930,6 +931,7 @@ dependencies = [
  "bevy_transform",
  "bytemuck",
  "cgmath",
+ "fxhash",
  "gltf",
  "image 0.24.2",
  "jni",
@@ -2542,6 +2544,7 @@ version = "0.1.0"
 dependencies = [
  "cgmath",
  "engine",
+ "fxhash",
  "image 0.24.2",
  "taffy",
 ]

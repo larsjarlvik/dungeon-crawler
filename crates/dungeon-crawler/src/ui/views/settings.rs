@@ -11,9 +11,7 @@ pub struct Settings {
 
 impl Settings {
     pub fn new(ctx: &engine::Context) -> Settings {
-        Self {
-            settings: ctx.settings.clone(),
-        }
+        Self { settings: ctx.settings }
     }
 
     pub fn draw(&mut self, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {

@@ -23,8 +23,11 @@ bevy_tasks = "0.8.0"
 rand = "0.8.4"
 raw-window-handle = "0.4.3"
 uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
+<<<<<<< HEAD
 rodio = { git = "https://github.com/RustAudio/rodio", default-features = false, features = ["vorbis"] }
+=======
 fxhash = "0.2.1"
+>>>>>>> origin/master
 
 [target.'cfg(target_os = "android")'.dependencies]
 oboe = { version = "0.4", features = ["java-interface", "shared-stdcxx"] }
