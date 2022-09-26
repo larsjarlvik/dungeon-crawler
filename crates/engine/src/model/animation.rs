@@ -75,30 +75,30 @@ pub struct Animation {
 }
 
 impl Animation {
-    pub fn new(animation: gltf::Animation, buffers: &Vec<gltf::buffer::Data>) -> Self {
+    pub fn new(animation: gltf::Animation, buffers: &[gltf::buffer::Data]) -> Self {
         let translation_channels = map_translation_channels(animation.channels(), buffers);
         let rotation_channels = map_rotation_channels(animation.channels(), buffers);
         let scale_channels = map_scale_channels(animation.channels(), buffers);
 
         let max_translation_time = translation_channels
             .iter()
-            .map(|c| c.sampler.times.last().unwrap_or(&0.0).clone())
-            .max_by(|c0, c1| c0.partial_cmp(&c1).unwrap_or(Ordering::Equal))
+            .map(|c| *c.sampler.times.last().unwrap_or(&0.0))
+            .max_by(|c0, c1| c0.partial_cmp(c1).unwrap_or(Ordering::Equal))
             .unwrap_or(0.0);
         let max_rotation_time = rotation_channels
             .iter()
-            .map(|c| c.sampler.times.last().unwrap_or(&0.0).clone())
-            .max_by(|c0, c1| c0.partial_cmp(&c1).unwrap_or(Ordering::Equal))
+            .map(|c| *c.sampler.times.last().unwrap_or(&0.0))
+            .max_by(|c0, c1| c0.partial_cmp(c1).unwrap_or(Ordering::Equal))
             .unwrap_or(0.0);
         let max_scale_time = scale_channels
             .iter()
-            .map(|c| c.sampler.times.last().unwrap_or(&0.0).clone())
-            .max_by(|c0, c1| c0.partial_cmp(&c1).unwrap_or(Ordering::Equal))
+            .map(|c| *c.sampler.times.last().unwrap_or(&0.0))
+            .max_by(|c0, c1| c0.partial_cmp(c1).unwrap_or(Ordering::Equal))
             .unwrap_or(0.0);
 
         let total_time = *[max_translation_time, max_rotation_time, max_scale_time]
             .iter()
-            .max_by(|c0, c1| c0.partial_cmp(&c1).unwrap_or(Ordering::Equal))
+            .max_by(|c0, c1| c0.partial_cmp(c1).unwrap_or(Ordering::Equal))
             .unwrap_or(&0.0);
 
         Self {
@@ -109,7 +109,7 @@ impl Animation {
         }
     }
 
-    pub fn animate_nodes(&self, nodes: &mut Vec<node::Node>, time: f32, blend_factor: f32) -> bool {
+    pub fn animate_nodes(&self, nodes: &mut [node::Node], time: f32, blend_factor: f32) -> bool {
         let NodesKeyFrame(translations, rotations, scale) = self.sample(time);
 
         translations.iter().for_each(|(node_index, translation)| {

@@ -8,7 +8,7 @@ pub fn animation(time: Res<resources::Time>, mut query: Query<(&mut components::
     for (mut animation, model) in query.iter_mut() {
         for (_, channel) in animation.channels.iter_mut() {
             for animation in channel.queue.iter_mut() {
-                animate_channel(&model, animation, time.last_frame);
+                animate_channel(model, animation, time.last_frame);
             }
 
             cleanup_channel(channel);
@@ -20,7 +20,7 @@ fn animate_channel(model: &components::Model, animation: &mut components::Animat
     let total_time = *model
         .animation_times
         .get(&animation.name.to_string())
-        .expect(format!("Could not find animation: {}", &animation.name).as_str());
+        .unwrap_or_else(|| panic!("Could not find animation: {}", &animation.name));
 
     let speed = match animation.speed {
         components::AnimationSpeed::Original => 1.0,

@@ -94,10 +94,10 @@ impl<'a> RenderBundleBuilder<'a> {
             multiview: None,
         });
 
-        encoder.set_pipeline(&self.pipeline.expect("No pipeline set!"));
+        encoder.set_pipeline(self.pipeline.expect("No pipeline set!"));
 
         for (index, bind_group) in self.bind_groups.iter() {
-            encoder.set_bind_group(*index as u32, &bind_group, &[]);
+            encoder.set_bind_group(*index as u32, bind_group, &[]);
         }
 
         for primitive in &self.primitives {

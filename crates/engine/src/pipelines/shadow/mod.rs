@@ -25,12 +25,12 @@ impl ShadowPipeline {
         let pipeline_builder = builders::PipelineBuilder::new(ctx, "shadow");
 
         let (width, height) = ctx.viewport.get_render_size();
-        let depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "shadow_depth_texture");
+        let depth_texture = texture::Texture::create_depth_texture(ctx, width, height, "shadow_depth_texture");
         let color_texture = texture::Texture::create_texture(ctx, ctx.color_format, width, height, "shadow_color_texture");
         let base_shadow_size = ctx.device.limits().max_texture_dimension_2d as f32 / 4.0;
 
         let shadow_texture = texture::Texture::create_depth_texture(
-            &ctx,
+            ctx,
             (base_shadow_size * ctx.settings.shadow_map_scale) as u32,
             (base_shadow_size * ctx.settings.shadow_map_scale) as u32,
             "shadow_texture",
@@ -87,11 +87,11 @@ impl ShadowPipeline {
 
     pub fn resize(&mut self, ctx: &Context) {
         let (width, height) = ctx.viewport.get_render_size();
-        self.depth_texture = texture::Texture::create_depth_texture(&ctx, width, height, "shadow_depth_texture");
+        self.depth_texture = texture::Texture::create_depth_texture(ctx, width, height, "shadow_depth_texture");
         self.texture = texture::Texture::create_texture(ctx, ctx.color_format, width, height, "shadow_color_texture");
 
         self.shadow_texture = texture::Texture::create_depth_texture(
-            &ctx,
+            ctx,
             (self.base_shadow_size * ctx.settings.shadow_map_scale) as u32,
             (self.base_shadow_size * ctx.settings.shadow_map_scale) as u32,
             "shadow_texture",
@@ -137,7 +137,7 @@ impl ShadowPipeline {
         if let Some(render_bundle) = &self.render_bundle {
             builders::RenderTargetBuilder::new(ctx, "shadow")
                 .with_color_attachment(view, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-                .execute_bundles(vec![&render_bundle]);
+                .execute_bundles(vec![render_bundle]);
         }
     }
 }

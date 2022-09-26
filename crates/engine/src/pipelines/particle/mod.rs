@@ -25,7 +25,7 @@ pub struct ParticlePipeline {
 
 impl ParticlePipeline {
     pub fn new(ctx: &Context) -> Self {
-        let builder = builders::PipelineBuilder::new(&ctx, "particle");
+        let builder = builders::PipelineBuilder::new(ctx, "particle");
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,
             "uniform_bind_group_layout",
@@ -77,10 +77,10 @@ impl ParticlePipeline {
 
         for (particle, transform, render) in components
             .query::<(&components::Particle, &components::Transform, &components::Render)>()
-            .iter(&components)
+            .iter(components)
         {
             if render.cull_frustum {
-                let transformed_bb = particle.bounding_box.transform(transform.to_matrix(alpha).into());
+                let transformed_bb = particle.bounding_box.transform(transform.to_matrix(alpha));
                 if !frustum.test_bounding_box(&transformed_bb) {
                     continue;
                 }
@@ -112,8 +112,8 @@ impl ParticlePipeline {
         }
 
         builders::RenderTargetBuilder::new(ctx, "particle")
-            .with_color_attachment(&target, wgpu::LoadOp::Load)
-            .with_depth_attachment(&depth_target, wgpu::LoadOp::Load)
+            .with_color_attachment(target, wgpu::LoadOp::Load)
+            .with_depth_attachment(depth_target, wgpu::LoadOp::Load)
             .execute_bundles(bundles);
     }
 

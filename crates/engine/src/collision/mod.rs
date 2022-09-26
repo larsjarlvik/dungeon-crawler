@@ -69,9 +69,9 @@ pub fn check_collision(a: &Polygon, b: &Polygon, velocity: Vector2<f32>) -> Inte
     Intersection::None
 }
 
-pub fn check_collision_array(position: Vector3<f32>, collider: &Polygon, collisions: &Vec<Polygon>) -> bool {
+pub fn check_collision_array(position: Vector3<f32>, collider: &Polygon, collisions: &[Polygon]) -> bool {
     for collision in collisions.iter() {
-        let result = check_collision(&collider, &collision, vec2(position.x, position.z));
+        let result = check_collision(collider, collision, vec2(position.x, position.z));
 
         match result {
             Intersection::None => {}
@@ -79,10 +79,10 @@ pub fn check_collision_array(position: Vector3<f32>, collider: &Polygon, collisi
         }
     }
 
-    return false;
+    false
 }
 
-pub fn get_collision_offset(position: Vector3<f32>, collider: &Polygon, collisions: &Vec<Polygon>) -> Vector3<f32> {
+pub fn get_collision_offset(position: Vector3<f32>, collider: &Polygon, collisions: &[Polygon]) -> Vector3<f32> {
     let mut offset = position;
     let mut hits = 0;
 
@@ -93,7 +93,7 @@ pub fn get_collision_offset(position: Vector3<f32>, collider: &Polygon, collisio
             continue;
         }
 
-        let result = check_collision(&collider, &collision, vec2(position.x, position.z));
+        let result = check_collision(collider, collision, vec2(position.x, position.z));
         offset = match result {
             Intersection::WillIntersect(mtv) => {
                 hits += 1;

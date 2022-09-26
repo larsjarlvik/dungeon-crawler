@@ -14,7 +14,7 @@ pub fn aggression(
         )>,
     )>,
 ) {
-    let targets: Vec<Vector3<f32>> = query.p0().iter().map(|t| t.1.translation.current.clone()).collect();
+    let targets: Vec<Vector3<f32>> = query.p0().iter().map(|t| t.1.translation.current).collect();
 
     for (mut agressor, mut movement, mut action, stats, weapon, transform) in query.p1().iter_mut() {
         for target_transform in targets.iter() {

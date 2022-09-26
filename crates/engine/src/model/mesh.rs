@@ -9,10 +9,10 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new<'a>(mesh: &gltf::Mesh, buffers: &Vec<gltf::buffer::Data>) -> Self {
+    pub fn new(mesh: &gltf::Mesh, buffers: &[gltf::buffer::Data]) -> Self {
         let mut primitives = vec![];
         let name = String::from(mesh.name().unwrap());
-        let mut bounding_box = bounding_box::BoundingBox::new();
+        let mut bounding_box = bounding_box::BoundingBox::default();
 
         for gltf_primitive in mesh.primitives() {
             let primitive = primitive::Primitive::new(buffers, &gltf_primitive);

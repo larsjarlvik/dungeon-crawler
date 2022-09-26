@@ -46,8 +46,8 @@ impl Map {
         let mut tiles = generator::generate(&mut rng, self.grid_size, self.number_of_tiles);
         let gs_2 = self.grid_size * 2;
 
-        for x in 0..(gs_2 + 1) {
-            for z in 0..(gs_2 + 1) {
+        (0..(gs_2 + 1)).for_each(|x| {
+            (0..(gs_2 + 1)).for_each(|z| {
                 let tx = x as i32 - self.grid_size as i32;
                 let tz = z as i32 - self.grid_size as i32;
                 let mut entity = world.spawn();
@@ -60,8 +60,8 @@ impl Map {
                 } else {
                     self.empty_tile(engine, &mut entity, center);
                 };
-            }
-        }
+            });
+        });
     }
 
     pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str) {
@@ -69,7 +69,7 @@ impl Map {
         let mut entity = world.spawn();
 
         let collisions = self.tiles.collisions.get(tile_name).unwrap_or(&vec![]).clone();
-        let decor = decor::get_decor(&format!("catacombs/{}", tile_name).as_str(), &mut rng)
+        let decor = decor::get_decor(format!("catacombs/{}", tile_name).as_str(), &mut rng)
             .iter()
             .map(|d| self.add_decor(engine, d, Vector3::zero(), 0.0))
             .collect();
@@ -94,16 +94,16 @@ impl Map {
     }
 
     fn tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, rng: &mut StdRng, tile: &mut generator::Tile, pos: Vector3<f32>) {
-        let entrances = tile.entrances.clone();
+        let entrances = tile.entrances;
         let (t, rot) = determine_tile(&entrances);
         let name = t.split('-').last().expect("Could not get map name!");
 
-        let decor: Vec<components::Decor> = decor::get_decor(&format!("catacombs/{}", name).as_str(), rng)
+        let decor: Vec<components::Decor> = decor::get_decor(format!("catacombs/{}", name).as_str(), rng)
             .iter()
             .map(|d| self.add_decor(engine, d, pos, rot))
             .collect();
 
-        let decor_collisions = decor
+        let decor_collisions: Vec<Polygon> = decor
             .iter()
             .flat_map(|d| {
                 d.collisions
@@ -126,7 +126,7 @@ impl Map {
             .tiles
             .collisions
             .get(t)
-            .expect(format!("Could not find collision for: {}!", name).as_str())
+            .unwrap_or_else(|| panic!("Could not find collision for: {}!", name))
             .clone();
 
         let model = engine.initialize_model(&self.tiles, t, 1.0);
@@ -209,7 +209,7 @@ impl Map {
         rng: &mut StdRng,
         engine: &mut engine::Engine,
         tile_center: Vector3<f32>,
-        collisions: &Vec<Polygon>,
+        collisions: &[Polygon],
     ) -> components::Hostile {
         let model = engine.initialize_model(&self.hostiles, "skeleton", 1.3);
         let mut position;
@@ -232,7 +232,7 @@ impl Map {
 
             for polygon in collider.iter() {
                 let p = polygon.transform(position, Quaternion::zero());
-                if engine::collision::check_collision_array(Vector3::zero(), &p, &collisions) {
+                if engine::collision::check_collision_array(Vector3::zero(), &p, collisions) {
                     is_colliding = true;
                     break;
                 }
@@ -270,11 +270,7 @@ pub fn edit_mode() -> Option<String> {
     let args: Vec<String> = env::args().collect();
 
     if let Some(pos) = args.iter().position(|a| a == "--edit") {
-        if let Some(tile) = args.get(pos + 1) {
-            Some(tile.clone())
-        } else {
-            None
-        }
+        args.get(pos + 1).cloned()
     } else {
         None
     }

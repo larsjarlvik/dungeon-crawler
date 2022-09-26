@@ -205,7 +205,7 @@ impl<'a> PipelineBuilder<'a> {
             None
         };
 
-        let fragment = if self.color_targets.len() > 0 {
+        let fragment = if !self.color_targets.is_empty() {
             Some(wgpu::FragmentState {
                 module: &shader,
                 entry_point: "frag_main",
@@ -240,7 +240,7 @@ impl<'a> PipelineBuilder<'a> {
 
         Pipeline {
             render_pipeline,
-            color_targets: self.color_targets.into_iter().map(|ct| Some(ct)).collect(),
+            color_targets: self.color_targets.into_iter().map(Some).collect(),
             depth_target: self.depth_target,
         }
     }

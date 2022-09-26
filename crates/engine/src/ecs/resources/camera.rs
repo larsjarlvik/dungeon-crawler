@@ -28,7 +28,7 @@ impl Default for Camera {
             view: Matrix4::identity(),
             proj: Matrix4::identity(),
             view_proj: Matrix4::identity(),
-            frustum: frustum::Frustum::new(),
+            frustum: frustum::Frustum::default(),
         }
     }
 }

@@ -11,7 +11,7 @@ pub struct PipelineDisplay {
 
 impl PipelineDisplay {
     pub fn new(ctx: &Context) -> Self {
-        let builder = builders::PipelineBuilder::new(&ctx, "model");
+        let builder = builders::PipelineBuilder::new(ctx, "model");
         let sampler = texture::Texture::create_sampler(ctx, wgpu::AddressMode::Repeat, wgpu::FilterMode::Linear, None);
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
@@ -72,8 +72,8 @@ impl PipelineDisplay {
         depth_target: &wgpu::TextureView,
     ) {
         builders::RenderTargetBuilder::new(ctx, "model")
-            .with_color_attachment(&target, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
-            .with_depth_attachment(&depth_target, wgpu::LoadOp::Clear(1.0))
+            .with_color_attachment(target, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
+            .with_depth_attachment(depth_target, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
     }
 }

@@ -31,7 +31,7 @@ impl Stats {
             strength_damage: 0.05,
             vitality,
             vitality_health: 2.0,
-            dexterity: dexterity + level * 1,
+            dexterity: dexterity + level,
             dexterity_speed: 0.02,
             speed_base: 0.4,
             damage_base: 0.5..1.2,

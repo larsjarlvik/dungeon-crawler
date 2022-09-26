@@ -6,12 +6,12 @@ use std::str;
 
 #[cfg(not(target_os = "android"))]
 pub fn read_string(path: &str) -> String {
-    fs::read_to_string(format!("./assets/{}", path)).expect(format!("Could not find file: {}!", path).as_str())
+    fs::read_to_string(format!("./assets/{}", path)).unwrap_or_else(|_| panic!("Could not find file: {}!", path))
 }
 
 #[cfg(not(target_os = "android"))]
 pub fn read_bytes(path: &str) -> Vec<u8> {
-    fs::read(format!("./assets/{}", path)).expect(format!("Could not find file: {}!", path).as_str())
+    fs::read(format!("./assets/{}", path)).unwrap_or_else(|_| panic!("Could not find file: {}!", path))
 }
 
 #[cfg(target_os = "android")]
