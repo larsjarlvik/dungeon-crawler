@@ -27,7 +27,6 @@ impl HealthChange {
 
 #[derive(Clone, Debug)]
 pub struct Health {
-    pub max: f32,
     pub current: f32,
     pub changes: Vec<HealthChange>,
 }
@@ -35,7 +34,6 @@ pub struct Health {
 impl Health {
     pub fn new(amount: f32) -> Self {
         Self {
-            max: amount,
             current: amount,
             changes: vec![],
         }

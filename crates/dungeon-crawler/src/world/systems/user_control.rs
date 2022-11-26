@@ -83,7 +83,7 @@ pub fn user_control(
             commands.entity(entity).insert(components::DisplayTarget {
                 name: name.clone(),
                 current_health: health.current,
-                max_health: health.max,
+                max_health: stats.get_base_health(),
             });
         }
 
