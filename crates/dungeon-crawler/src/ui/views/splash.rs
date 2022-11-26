@@ -9,7 +9,7 @@ pub fn splash() -> Box<dyn BaseWidget> {
             background: Vector4::new(0.0, 0.0, 0.0, 1.0),
             ..Default::default()
         },
-        FlexboxLayout {
+        Style {
             flex_direction: FlexDirection::Column,
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
@@ -26,7 +26,7 @@ pub fn splash() -> Box<dyn BaseWidget> {
             asset_id: Some("logo".into()),
             ..Default::default()
         },
-        FlexboxLayout {
+        Style {
             aspect_ratio: Some(1.0),
             size: Size {
                 width: Dimension::Percent(0.5),

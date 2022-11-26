@@ -1151,26 +1151,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hash32"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0c35f58762feb77d74ebe43bdbc3210f09be9fe6742234d573bacc26ed92b67"
-dependencies = [
- "byteorder",
-]
-
-[[package]]
-name = "hash32-derive"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59d2aba832b60be25c1b169146b27c64115470981b128ed84c8db18c1b03c6ff"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2142,14 +2122,12 @@ dependencies = [
 [[package]]
 name = "taffy"
 version = "0.2.0"
-source = "git+https://github.com/DioxusLabs/taffy#b553bbd577c16ec7c7eb4543f3d2f6b3a80c76e7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "776e2242305d6fc8a54f1571b76af293e1f1d2b6ee547ed5863d9638258bb58a"
 dependencies = [
  "arrayvec 0.7.2",
- "hash32",
- "hash32-derive",
  "num-traits",
  "slotmap",
- "typenum",
 ]
 
 [[package]]
@@ -2260,12 +2238,6 @@ dependencies = [
  "rand",
  "static_assertions",
 ]
-
-[[package]]
-name = "typenum"
-version = "1.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcf81ac59edc17cc8697ff311e8f5ef2d99fcbd9817b34cec66f90b6c3dfd987"
 
 [[package]]
 name = "ui"

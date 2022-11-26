@@ -9,15 +9,15 @@ pub struct PanelWidget {
     pub data: AssetData,
     pub children: Vec<Box<dyn base::BaseWidget>>,
     pub node: Option<Node>,
-    layout: FlexboxLayout,
+    style: Style,
 }
 
 impl PanelWidget {
-    pub fn new(key: Option<String>, data: AssetData, layout: FlexboxLayout) -> Box<Self> {
+    pub fn new(key: Option<String>, data: AssetData, style: Style) -> Box<Self> {
         Box::new(Self {
             key,
             data,
-            layout,
+            style,
             children: vec![],
             node: None,
         })
@@ -32,7 +32,7 @@ impl PanelWidget {
 impl base::BaseWidget for PanelWidget {
     fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
         let children: Vec<Node> = self.children.iter_mut().map(|c| c.render(ctx, taffy)).collect();
-        let node = taffy.new_with_children(self.layout, &children).unwrap();
+        let node = taffy.new_with_children(self.style, &children).unwrap();
         self.node = Some(node);
         node
     }

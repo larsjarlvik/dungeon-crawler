@@ -8,15 +8,15 @@ pub struct AssetWidget {
     pub key: Option<String>,
     pub data: AssetData,
     node: Option<Node>,
-    layout: FlexboxLayout,
+    style: Style,
 }
 
 impl AssetWidget {
-    pub fn new(key: Option<String>, data: AssetData, layout: FlexboxLayout) -> Box<Self> {
+    pub fn new(key: Option<String>, data: AssetData, style: Style) -> Box<Self> {
         Box::new(Self {
             key,
             data,
-            layout,
+            style,
             node: None,
         })
     }
@@ -24,7 +24,7 @@ impl AssetWidget {
 
 impl base::BaseWidget for AssetWidget {
     fn render(&mut self, _ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
-        let node = taffy.new_leaf(self.layout).unwrap();
+        let node = taffy.new_leaf(self.style).unwrap();
         self.node = Some(node);
         node
     }

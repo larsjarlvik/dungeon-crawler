@@ -13,7 +13,7 @@ pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseW
             background: style::PALETTE_BROWN.extend(0.5),
             ..Default::default()
         },
-        FlexboxLayout {
+        Style {
             flex_direction: FlexDirection::Column,
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,

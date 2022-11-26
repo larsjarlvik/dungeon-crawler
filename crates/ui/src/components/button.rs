@@ -52,7 +52,7 @@ impl Button {
                     foreground: props.foreground,
                     ..Default::default()
                 },
-                FlexboxLayout {
+                Style {
                     size: Size {
                         width: Dimension::Points(size),
                         height: Dimension::Points(size),
@@ -82,7 +82,7 @@ impl Button {
                 gradient: props.gradient,
                 ..Default::default()
             },
-            FlexboxLayout {
+            Style {
                 align_items: AlignItems::Center,
                 size: Size {
                     width: Dimension::Auto,

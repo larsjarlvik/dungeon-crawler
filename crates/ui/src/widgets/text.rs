@@ -33,7 +33,7 @@ impl base::BaseWidget for TextWidget {
         let size = engine::pipelines::glyph::get_bounds(ctx, &self.data.text, self.data.size);
 
         let node = taffy
-            .new_leaf(FlexboxLayout {
+            .new_leaf(Style {
                 size: Size {
                     width: Dimension::Points(size.width()),
                     height: Dimension::Points(size.height()),

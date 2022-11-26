@@ -2,15 +2,15 @@ use super::{base, NodeLayout, RenderWidget};
 use taffy::prelude::*;
 
 pub struct NodeWidget {
-    layout: FlexboxLayout,
+    style: Style,
     pub children: Vec<Box<dyn base::BaseWidget>>,
     pub node: Option<Node>,
 }
 
 impl NodeWidget {
-    pub fn new(layout: FlexboxLayout) -> Box<Self> {
+    pub fn new(style: Style) -> Box<Self> {
         Box::new(Self {
-            layout,
+            style,
             children: vec![],
             node: None,
         })
@@ -25,7 +25,7 @@ impl NodeWidget {
 impl base::BaseWidget for NodeWidget {
     fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
         let children: Vec<Node> = self.children.iter_mut().map(|c| c.render(ctx, taffy)).collect();
-        let node = taffy.new_with_children(self.layout, &children).unwrap();
+        let node = taffy.new_with_children(self.style, &children).unwrap();
         self.node = Some(node);
         node
     }

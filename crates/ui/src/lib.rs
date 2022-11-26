@@ -13,7 +13,7 @@ impl Ui {
     pub fn render<'a>(
         &'a self,
         ctx: &mut engine::Context,
-        root: &'a mut Box<dyn widgets::BaseWidget>,
+        root: &'a mut widgets::NodeWidget,
         width: f32,
         height: f32,
     ) -> Vec<(NodeLayout, RenderWidget)> {
@@ -27,11 +27,24 @@ impl Ui {
         };
 
         taffy
+            .set_style(
+                root_node,
+                Style {
+                    size: Size {
+                        width: Dimension::Points(width),
+                        height: Dimension::Points(height),
+                    },
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+
+        taffy
             .compute_layout(
                 root_node,
                 Size {
-                    width: Some(width),
-                    height: Some(height),
+                    width: AvailableSpace::Definite(width),
+                    height: AvailableSpace::Definite(height),
                 },
             )
             .unwrap();
