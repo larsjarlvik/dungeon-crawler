@@ -18,7 +18,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
 
             components::TileState::Destroyed => {
                 if camera.frustum.test_bounding_box(&tile.bounding_box) {
-                    let mut tile_entity = commands.spawn_bundle((
+                    let mut tile_entity = commands.spawn((
                         tile.model.clone(),
                         engine::ecs::components::Render { cull_frustum: true },
                         engine::ecs::components::Transform::from_translation_angle(tile.center, tile.rotation),
@@ -30,7 +30,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                     }
 
                     for decor in tile.decor.iter() {
-                        let mut decor_entity = commands.spawn_bundle((
+                        let mut decor_entity = commands.spawn((
                             decor.model.clone(),
                             engine::ecs::components::Transform::from_translation_angle(decor.position, decor.rotation),
                             engine::ecs::components::Render { cull_frustum: true },
@@ -45,7 +45,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                         commands.entity(tile_id).push_children(&[decor_id]);
 
                         for l in decor.lights.iter() {
-                            let mut light_entity = commands.spawn_bundle((
+                            let mut light_entity = commands.spawn((
                                 engine::ecs::components::Light::new(l.color, l.intensity, l.radius, l.offset, l.bloom),
                                 engine::ecs::components::Render { cull_frustum: true },
                                 engine::ecs::components::Transform::from_translation_angle(l.position, l.rotation),
@@ -61,7 +61,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
 
                         for e in decor.emitters.iter() {
                             let id = e.emitter_id.clone();
-                            let mut emitter_entity = commands.spawn_bundle((
+                            let mut emitter_entity = commands.spawn((
                                 engine::ecs::components::Particle::new(id, e.start_color, e.end_color, e.size, e.strength),
                                 engine::ecs::components::Render { cull_frustum: true },
                                 engine::ecs::components::Transform::from_translation_angle(e.position, e.rotation),
@@ -77,7 +77,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                     }
 
                     for hostile in tile.hostiles.iter() {
-                        commands.spawn_bundle((
+                        commands.spawn((
                             components::Name::new("Skeleton Warrior"),
                             hostile.model.clone(),
                             components::Collision::new(hostile.collider.clone()),

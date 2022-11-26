@@ -50,7 +50,7 @@ impl Map {
             (0..(gs_2 + 1)).for_each(|z| {
                 let tx = x as i32 - self.grid_size as i32;
                 let tz = z as i32 - self.grid_size as i32;
-                let mut entity = world.spawn();
+                let mut entity = world.spawn_empty();
                 let center = vec3(tx as f32 * self.tile_size, 0.0, tz as f32 * self.tile_size);
 
                 if x == gs_2 || z == gs_2 {
@@ -66,7 +66,7 @@ impl Map {
 
     pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str) {
         let mut rng = StdRng::seed_from_u64(self.seed);
-        let mut entity = world.spawn();
+        let mut entity = world.spawn_empty();
 
         let collisions = self.tiles.collisions.get(tile_name).unwrap_or(&vec![]).clone();
         let decor = decor::get_decor(format!("catacombs/{}", tile_name).as_str(), &mut rng)
@@ -257,10 +257,10 @@ impl Map {
                 let off = vec3(x as f32 * config::GRID_DIST, 0.0, z as f32 * config::GRID_DIST);
                 let text = format!("{},{}", x, z);
 
-                world
-                    .spawn()
-                    .insert(engine::ecs::components::Text::new(&text))
-                    .insert(engine::ecs::components::Transform::from_translation_scale(center + off, 16.0));
+                world.spawn((
+                    engine::ecs::components::Text::new(&text),
+                    engine::ecs::components::Transform::from_translation_scale(center + off, 16.0),
+                ));
             }
         }
     }

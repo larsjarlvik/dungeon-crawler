@@ -46,7 +46,7 @@ pub fn actions(
                             let damage_base = stats.get_attack_damage();
                             let damage_weapon = weapon.damage.clone();
 
-                            commands.spawn().insert_bundle((
+                            commands.spawn((
                                 components::Attack {
                                     collision_key: collision.key.clone(),
                                     damage: (damage_base.start * damage_weapon.start)..(damage_base.end * damage_weapon.end),

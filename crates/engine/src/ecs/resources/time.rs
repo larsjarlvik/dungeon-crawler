@@ -1,5 +1,7 @@
+use bevy_ecs::system::Resource;
 use std::time::Instant;
 
+#[derive(Resource)]
 pub struct Time {
     pub total_time: Instant,
     pub time: Instant,

@@ -55,7 +55,7 @@ pub fn health(
 
                     commands
                         .entity(entity)
-                        .remove_bundle::<(components::Agressor, components::Target, components::Collision)>();
+                        .remove::<(components::Agressor, components::Target, components::Collision)>();
                 } else {
                     action.set_action(components::Action::Hit, stats.get_recovery_time(), 0.0);
                 }
