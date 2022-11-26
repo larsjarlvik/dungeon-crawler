@@ -53,7 +53,7 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub async fn new<W: raw_window_handle::HasRawWindowHandle>(
+    pub async fn new<W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRawDisplayHandle>(
         window: &W,
         size: Point2<u32>,
         scale_factor: f32,
@@ -172,7 +172,12 @@ impl Engine {
         );
     }
 
-    pub fn set_viewport<W: raw_window_handle::HasRawWindowHandle>(&mut self, window: &W, size: Point2<u32>, scale_factor: f32) {
+    pub fn set_viewport<W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRawDisplayHandle>(
+        &mut self,
+        window: &W,
+        size: Point2<u32>,
+        scale_factor: f32,
+    ) {
         self.ctx.viewport = viewport::Viewport::new(size.x, size.y, scale_factor, self.ctx.settings.render_scale);
         self.scaling_pipeline.resize(&self.ctx);
 
@@ -189,6 +194,7 @@ impl Engine {
                     width: self.ctx.viewport.width,
                     height: self.ctx.viewport.height,
                     present_mode: wgpu::PresentMode::AutoNoVsync,
+                    alpha_mode: wgpu::CompositeAlphaMode::Auto,
                 },
             );
         }
@@ -243,6 +249,7 @@ pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, color_f
             width: size.x,
             height: size.y,
             present_mode: wgpu::PresentMode::AutoNoVsync,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
         },
     );
 }
