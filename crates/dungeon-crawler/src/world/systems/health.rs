@@ -34,7 +34,7 @@ pub fn health(
                         }
                     }
                     components::HealthChangeType::OverTime(length) => {
-                        if stats.health.current > 0.0 && stats.health.current < stats.health.max {
+                        if stats.health.current > 0.0 && stats.health.current < stats.get_base_health() {
                             stats.health.current += change.amount / config::UPDATES_PER_SECOND;
                             change.start.elapsed() < length
                         } else {
@@ -55,7 +55,7 @@ pub fn health(
 
                     commands
                         .entity(entity)
-                        .remove_bundle::<(components::Agressor, components::Target, components::Collision)>();
+                        .remove::<(components::Agressor, components::Target, components::Collision)>();
                 } else {
                     action.set_action(components::Action::Hit, stats.get_recovery_time(), 0.0);
                 }

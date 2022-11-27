@@ -7,16 +7,16 @@ resolver = "2"
 
 [lib]
 name = "dungeon_crawler"
-crate-type = ["lib"]
+crate-type = ["lib", "cdylib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 cgmath = "0.18.0"
-winit = "0.27.0"
-bevy_ecs = "0.8.0"
-bevy_hierarchy = "0.8.0"
-bevy_tasks = "0.8.0"
+winit = "0.27.2"
+bevy_ecs = "0.9.0"
+bevy_hierarchy = "0.9.0"
+bevy_tasks = "0.9.0"
 engine = { path = "../engine" }
 env_logger = "0.9"
 pollster = "0.2"
@@ -55,4 +55,5 @@ orientation = "landscape"
 name = "android.permission.VIBRATE"
 
 [package.metadata.android.sdk]
-target_sdk_version = 30
+min_sdk_version = 17
+target_sdk_version = 33

@@ -1,5 +1,7 @@
+use bevy_ecs::system::Resource;
 use std::time::{self, Instant};
 
+#[derive(Resource)]
 pub struct Fps {
     last_update: time::Instant,
     fps_counter: u32,

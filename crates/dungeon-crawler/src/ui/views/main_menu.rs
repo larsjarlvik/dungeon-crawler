@@ -50,7 +50,7 @@ impl MainMenu {
         let mut menu_panel = PanelWidget::new(
             None,
             AssetData { ..Default::default() },
-            FlexboxLayout {
+            Style {
                 flex_direction: FlexDirection::Column,
                 padding: Rect::<Dimension>::from_points(style::SM, style::SL, 0.0, 0.0),
                 max_size: Size {
@@ -102,7 +102,7 @@ impl MainMenu {
                 }),
                 ..Default::default()
             },
-            FlexboxLayout {
+            Style {
                 padding: Rect::<Dimension>::from_points(style::SL, style::SM, style::SL, style::SM),
                 size: Size {
                     width: Dimension::Percent(1.0),

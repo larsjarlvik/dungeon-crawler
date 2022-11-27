@@ -70,7 +70,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
 
     if ctx.settings.show_fps {
         let fps = world.components.get_resource::<resources::Fps>().unwrap();
-        top_left.push(NodeWidget::new(FlexboxLayout::default()).with_children(vec![TextWidget::new(
+        top_left.push(NodeWidget::new(Style::default()).with_children(vec![TextWidget::new(
             TextData {
                 text: format!("FPS: {}", fps.fps),
                 size: style::BODY2,
@@ -96,7 +96,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
         ));
     }
 
-    NodeWidget::new(FlexboxLayout {
+    NodeWidget::new(Style {
         justify_content: JustifyContent::SpaceBetween,
         size: Size {
             width: Dimension::Percent(1.0),
@@ -105,7 +105,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
         ..Default::default()
     })
     .with_children(vec![
-        NodeWidget::new(FlexboxLayout {
+        NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
             size: Size {
                 width: Dimension::Percent(0.25),
@@ -118,7 +118,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
             ..Default::default()
         })
         .with_children(top_left),
-        NodeWidget::new(FlexboxLayout {
+        NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
             size: Size {
                 width: Dimension::Percent(0.25),
@@ -147,7 +147,7 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
     let health_button = Button::new("health_button");
     input.set_from_ui(UiActionCode::Health, ui_state.mouse_down(&health_button.key).is_some());
 
-    NodeWidget::new(FlexboxLayout {
+    NodeWidget::new(Style {
         flex_direction: FlexDirection::Column,
         justify_content: JustifyContent::SpaceBetween,
         padding: Rect::<Dimension>::from_points(style::SM, style::SM, style::SM, style::SM),
@@ -159,7 +159,7 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
     })
     .with_children(vec![
         top_bar(ctx, world),
-        NodeWidget::new(FlexboxLayout {
+        NodeWidget::new(Style {
             justify_content: JustifyContent::FlexEnd,
             align_items: AlignItems::FlexEnd,
             size: Size {

@@ -19,9 +19,22 @@ cargo run --release
 ```
 
 #### Android
-* Install Android SDK
-* Set `$ANDROID_SDK_ROOT` environment variable
 
+**Setup**
+Install Android SDK, NDK and SDK platform
+
+```
+export ANDROID_HOME=$HOME/Android/Sdk
+export ANDROID_NDK_ROOT=$HOME/Android/Sdk/ndk/<version>
+cargo install cargo-apk
+rustup target add \
+    aarch64-linux-android \
+    armv7-linux-androideabi \
+    x86_64-linux-android \
+    i686-linux-android
+```
+
+**Run**
 ```
 cargo apk run -p dungeon-crawler
 cargo apk run --release -p dungeon-crawler

@@ -23,8 +23,7 @@ pub fn actions(
         match &action.get() {
             Action::None => {
                 movement.velocity = vec1(movement.velocity).lerp(vec1(movement.target_velocity), 0.1).x;
-
-                if movement.velocity.abs() <= 0.01 {
+                if movement.velocity.abs() <= 0.004 {
                     movement.velocity = 0.0;
                     animation.set_animation("base", "idle", AnimationSpeed::Original, AnimationStatus::Repeat);
                 } else if movement.velocity > 0.08 {
@@ -47,7 +46,7 @@ pub fn actions(
                             let damage_base = stats.get_attack_damage();
                             let damage_weapon = weapon.damage.clone();
 
-                            commands.spawn().insert_bundle((
+                            commands.spawn((
                                 components::Attack {
                                     collision_key: collision.key.clone(),
                                     damage: (damage_base.start * damage_weapon.start)..(damage_base.end * damage_weapon.end),

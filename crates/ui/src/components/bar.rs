@@ -39,7 +39,7 @@ impl Bar {
                 shadow_color: Vector4::new(1.0, 0.8, 0.0, 1.0),
                 ..Default::default()
             },
-            FlexboxLayout {
+            Style {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Stretch,
                 justify_content: JustifyContent::FlexStart,
@@ -59,7 +59,7 @@ impl Bar {
                     gradient: props.gradient,
                     ..Default::default()
                 },
-                FlexboxLayout {
+                Style {
                     position_type: taffy::style::PositionType::Absolute,
                     justify_content: JustifyContent::Center,
                     size: Size {

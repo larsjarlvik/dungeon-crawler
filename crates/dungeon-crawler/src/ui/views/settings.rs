@@ -54,7 +54,7 @@ impl Settings {
             self.settings = engine::Settings::load();
         }
 
-        NodeWidget::new(FlexboxLayout {
+        NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
             margin: Rect::from_points(0.0, 0.0, style::SM, 0.0),
             size: Size {
@@ -79,7 +79,7 @@ impl Settings {
             setting("Anti aliasing:", anti_aliasing.draw(), None),
             setting("Sharpen:", sharpen.draw(), None),
             setting("Show FPS:", show_fps.draw(), None),
-            NodeWidget::new(FlexboxLayout {
+            NodeWidget::new(Style {
                 margin: Rect::from_points(0.0, 0.0, style::SM, 0.0),
                 ..Default::default()
             })
@@ -105,13 +105,13 @@ impl Settings {
 }
 
 fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> Box<NodeWidget> {
-    NodeWidget::new(FlexboxLayout {
+    NodeWidget::new(Style {
         align_items: AlignItems::Center,
         margin: Rect::from_points(0.0, 0.0, 0.0, style::SM),
         ..Default::default()
     })
     .with_children(vec![
-        NodeWidget::new(FlexboxLayout {
+        NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
             size: Size {
                 width: Dimension::Points(300.0),
@@ -128,7 +128,7 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> 
             AlignSelf::FlexStart,
         )]),
         control,
-        NodeWidget::new(FlexboxLayout {
+        NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
             margin: Rect::from_points(style::SL, 0.0, 0.0, 0.0),
             ..Default::default()

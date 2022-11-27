@@ -176,29 +176,37 @@ impl ModelPipeline {
     }
 }
 
-fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::Animations>) -> Vec<[[f32; 4]; 4]> {
+fn get_joint_transforms(model_nodes: &GltfModelNodes, animation: &Option<&components::Animations>) -> Vec<[[f32; 4]; 4]> {
     if let Some(animation) = animation {
         let mut joint_transforms = vec![Matrix4::identity(); config::MAX_JOINT_COUNT];
-        let mut nodes = nodes.clone();
+        let mut nodes = model_nodes.nodes.clone();
 
         animation.channels.iter().for_each(|(_, channel)| {
             for (index, animation) in channel.queue.iter().enumerate() {
-                animate(&mut nodes, animation, channel.get_blend_factor(index));
+                let blend_factor = channel.get_blend_factor(index);
+                if blend_factor > 0.01 {
+                    let cur_model_animation = model_nodes
+                        .animations
+                        .get(&animation.name)
+                        .unwrap_or_else(|| panic!("Could not find animation: {}", &animation.name));
+
+                    cur_model_animation.animate_nodes(&mut nodes, animation.elapsed, blend_factor);
+                }
             }
 
-            for (index, parent_index) in &nodes.depth_first_taversal_indices {
+            for (index, parent_index) in &model_nodes.depth_first_taversal_indices {
                 let parent_transform = parent_index
                     .map(|id| {
-                        let parent = &nodes.nodes[id];
+                        let parent = &nodes[id];
                         parent.global_transform_matrix
                     })
                     .or_else(|| Some(Matrix4::identity()));
 
-                let node = &mut nodes.nodes[*index];
+                let node = &mut nodes[*index];
                 node.apply_transform(parent_transform);
             }
 
-            for node in nodes.nodes.iter() {
+            for node in nodes.iter() {
                 let inverse_transform = node
                     .global_transform_matrix
                     .invert()
@@ -206,10 +214,14 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
 
                 let skin_index = if let Some(skin_index) = node.skin_index { skin_index } else { 0 };
 
-                nodes.skins[skin_index].joints.iter().enumerate().for_each(|(j_index, joint)| {
-                    joint_transforms[j_index] =
-                        inverse_transform * nodes.nodes[joint.node_id].global_transform_matrix * joint.inverse_bind_matrix;
-                });
+                model_nodes.skins[skin_index]
+                    .joints
+                    .iter()
+                    .enumerate()
+                    .for_each(|(j_index, joint)| {
+                        joint_transforms[j_index] =
+                            inverse_transform * nodes[joint.node_id].global_transform_matrix * joint.inverse_bind_matrix;
+                    });
             }
         });
 
@@ -217,17 +229,4 @@ fn get_joint_transforms(nodes: &GltfModelNodes, animation: &Option<&components::
     } else {
         vec![[[0.0; 4]; 4]; config::MAX_JOINT_COUNT]
     }
-}
-
-fn animate(nodes: &mut GltfModelNodes, animation: &components::Animation, blend_factor: f32) {
-    if blend_factor < 0.01 {
-        return;
-    }
-
-    let cur_model_animation = nodes
-        .animations
-        .get(&animation.name)
-        .unwrap_or_else(|| panic!("Could not find animation: {}", &animation.name));
-
-    cur_model_animation.animate_nodes(&mut nodes.nodes, animation.elapsed, blend_factor);
 }

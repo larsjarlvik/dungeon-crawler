@@ -20,7 +20,7 @@ impl Checkbox {
                 border_radius: Dimension::Points(4.0),
                 ..Default::default()
             },
-            FlexboxLayout {
+            Style {
                 padding: Rect::from_points(4.0, 4.0, 4.0, 4.0),
                 ..Default::default()
             },
@@ -32,7 +32,7 @@ impl Checkbox {
                 visible: self.checked,
                 ..Default::default()
             },
-            FlexboxLayout {
+            Style {
                 size: Size {
                     width: Dimension::Points(32.0),
                     height: Dimension::Points(32.0),

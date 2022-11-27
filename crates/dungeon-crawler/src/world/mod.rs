@@ -77,7 +77,7 @@ impl World {
                 .get("character")
                 .expect("Could not find character collider!");
 
-            self.components.spawn().insert_bundle((
+            self.components.spawn((
                 engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationStatus::Repeat),
                 character_model,
                 components::Collision::new(collider.clone()),

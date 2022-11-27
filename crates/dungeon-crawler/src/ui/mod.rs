@@ -7,7 +7,7 @@ use engine::pipelines::{
 };
 mod transition;
 mod views;
-use ui::widgets::*;
+use ui::{prelude::*, widgets::*};
 mod input;
 mod style;
 use self::transition::Transition;
@@ -56,12 +56,19 @@ impl Views {
             engine.ctx.viewport.height as f32 / self.ui_scale,
         );
 
-        let mut root = match self.view.state {
+        let mut root = NodeWidget::new(Style {
+            size: Size {
+                width: Dimension::Points(ui_scale_x),
+                height: Dimension::Percent(self.ui_scale),
+            },
+            ..Default::default()
+        })
+        .with_children(vec![match self.view.state {
             ViewState::Splash => views::splash(),
             ViewState::InGame => views::game(&mut engine.ctx, &mut self.state, world),
             ViewState::Dead => views::dead(&mut self.state, world),
             ViewState::MainMenu => self.main_menu.draw(engine, &mut self.state, world),
-        };
+        }]);
 
         let mut nodes = self.ui.render(&mut engine.ctx, &mut root, ui_scale_x, self.ui_scale);
 

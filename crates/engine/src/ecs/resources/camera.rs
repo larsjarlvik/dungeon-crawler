@@ -1,6 +1,8 @@
 use crate::{config, frustum};
+use bevy_ecs::system::Resource;
 use cgmath::*;
 
+#[derive(Resource)]
 pub struct Camera {
     pub target: Vector3<f32>,
     pub eye: Point3<f32>,

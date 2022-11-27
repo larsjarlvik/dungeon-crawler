@@ -2,6 +2,7 @@ use self::{
     joystick::{Joystick, JoystickOrigin},
     mouse::{MouseButton, PressState},
 };
+use bevy_ecs::system::Resource;
 use cgmath::*;
 use fxhash::FxHashMap;
 use winit::event::VirtualKeyCode;
@@ -14,7 +15,7 @@ pub enum UiActionCode {
     Health,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Resource)]
 pub struct Input {
     pub keys: FxHashMap<VirtualKeyCode, PressState>,
     pub ui: FxHashMap<UiActionCode, PressState>,
