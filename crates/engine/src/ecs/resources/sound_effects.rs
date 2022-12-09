@@ -56,8 +56,14 @@ impl SoundEffects {
             None => [0.0, 0.0, 0.0],
         };
 
-        let left = camera.target * config::SOUND_DISTANCE_SCALE + Vector3::new(-config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0);
-        let right = camera.target * config::SOUND_DISTANCE_SCALE + Vector3::new(config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0);
+        let left = camera.target * config::SOUND_DISTANCE_SCALE
+            + camera
+                .rotation
+                .rotate_vector(Vector3::new(-config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0));
+        let right = camera.target * config::SOUND_DISTANCE_SCALE
+            + camera
+                .rotation
+                .rotate_vector(Vector3::new(config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0));
 
         Positions {
             left: left.into(),

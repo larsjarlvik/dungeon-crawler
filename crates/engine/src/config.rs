@@ -10,8 +10,8 @@ pub const CAMERA_ROTATION: f32 = 45.0;
 pub const Z_FAR: f32 = 25.0;
 pub const VIBRATION_LENGTH: f32 = 15.0;
 
-pub const EAR_DISTANCE: f32 = 0.15;
-pub const EAR_HEIGHT: f32 = 1.5;
+pub const EAR_DISTANCE: f32 = 1.0;
+pub const EAR_HEIGHT: f32 = 1.7;
 pub const SOUND_DISTANCE_SCALE: f32 = 0.3;
 
 #[cfg(not(target_os = "android"))]
