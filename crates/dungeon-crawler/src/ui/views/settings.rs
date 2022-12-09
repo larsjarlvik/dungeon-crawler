@@ -43,6 +43,14 @@ impl Settings {
             self.settings.show_fps = !self.settings.show_fps;
         });
 
+        let audio_effects = create_slider(ui_state, "audio_effects", self.settings.audio_effects, 1.0, |val| {
+            self.settings.audio_effects = (val * 20.0).round() / 20.0;
+        });
+
+        let audio_ambient = create_slider(ui_state, "audio_ambient", self.settings.audio_ambient, 1.0, |val| {
+            self.settings.audio_ambient = (val * 20.0).round() / 20.0;
+        });
+
         let apply_settings = Button::new("apply_settings");
         if ui_state.clicked(&apply_settings.key).is_some() {
             self.settings.store();
@@ -79,6 +87,16 @@ impl Settings {
             setting("Anti aliasing:", anti_aliasing.draw(), None),
             setting("Sharpen:", sharpen.draw(), None),
             setting("Show FPS:", show_fps.draw(), None),
+            setting(
+                "Effects:",
+                audio_effects.draw(),
+                Some(format!("{:.0}%", audio_effects.value * 100.0)),
+            ),
+            setting(
+                "Ambient:",
+                audio_ambient.draw(),
+                Some(format!("{:.0}%", audio_ambient.value * 100.0)),
+            ),
             NodeWidget::new(Style {
                 margin: Rect::from_points(0.0, 0.0, style::SM, 0.0),
                 ..Default::default()

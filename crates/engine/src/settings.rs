@@ -14,6 +14,8 @@ pub struct Settings {
     pub smaa: bool,
     pub sharpen: bool,
     pub ui_scale: f32,
+    pub audio_effects: f32,
+    pub audio_ambient: f32,
 }
 
 impl Default for Settings {
@@ -30,6 +32,8 @@ impl Default for Settings {
             smaa: true,
             sharpen: true,
             ui_scale: 1.0,
+            audio_effects: 1.0,
+            audio_ambient: 0.3,
         }
     }
 }

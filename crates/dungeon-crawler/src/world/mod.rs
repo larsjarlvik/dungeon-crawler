@@ -162,16 +162,33 @@ impl World {
 
         sound_effects.load(&character.get_sound_effects());
         sound_effects.load(&map.sound_effects);
+        sound_effects.volume = ctx.settings.audio_effects;
 
-        let mut sound_ambience = self
-            .components
-            .get_non_send_resource_mut::<engine::ecs::resources::SoundAmbience>()
-            .unwrap();
-
-        sound_ambience.load("ambience".to_string());
+        self.set_sounds(ctx);
 
         println!("Load resources {} ms", start.elapsed().as_millis());
         self.resources = Some(Resources { map, character });
+    }
+
+    pub fn set_sounds(&mut self, ctx: &engine::Context) {
+        {
+            let mut sound_ambience = self
+                .components
+                .get_non_send_resource_mut::<engine::ecs::resources::SoundAmbience>()
+                .unwrap();
+
+            sound_ambience.volume = ctx.settings.audio_ambient;
+            sound_ambience.play("ambience");
+        }
+
+        {
+            let mut sound_effects = self
+                .components
+                .get_non_send_resource_mut::<engine::ecs::resources::SoundEffects>()
+                .unwrap();
+
+            sound_effects.volume = ctx.settings.audio_effects;
+        }
     }
 }
 

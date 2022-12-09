@@ -56,6 +56,7 @@ pub fn main() {
                     state.views = Views::new(&mut state.engine.ctx, window.scale_factor() as f32);
                     state.resize(&window);
                     state.engine.reload_pipelines();
+                    state.world.set_sounds(&state.engine.ctx);
                     state.world.game_state = GameState::Running;
                 }
                 _ => {}

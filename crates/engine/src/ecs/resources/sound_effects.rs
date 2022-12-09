@@ -9,6 +9,7 @@ pub struct SoundEffects {
     sounds: FxHashMap<String, Vec<Vec<u8>>>,
     sinks: FxHashMap<String, rodio::SpatialSink>,
     handle: rodio::OutputStreamHandle,
+    pub volume: f32,
     _stream: rodio::OutputStream,
 }
 
@@ -27,6 +28,7 @@ impl Default for SoundEffects {
             sounds,
             sinks: FxHashMap::default(),
             handle,
+            volume: 1.0,
             _stream: stream,
         }
     }
@@ -84,6 +86,7 @@ impl SoundEffects {
 
         let file = Cursor::new(sound.choose(&mut rand::thread_rng()).unwrap().clone());
         sink.append(rodio::Decoder::new(file).unwrap());
+        sink.set_volume(self.volume);
     }
 
     pub fn set_position(&mut self, sink: &String, camera: &resources::Camera, position: Vector3<f32>) {
