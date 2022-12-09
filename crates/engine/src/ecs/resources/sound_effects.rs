@@ -12,6 +12,12 @@ pub struct SoundEffects {
     _stream: rodio::OutputStream,
 }
 
+struct Positions {
+    left: [f32; 3],
+    right: [f32; 3],
+    emitter: [f32; 3],
+}
+
 impl Default for SoundEffects {
     fn default() -> Self {
         let sounds = FxHashMap::default();
@@ -44,19 +50,29 @@ impl SoundEffects {
         }
     }
 
-    pub fn play(&mut self, sink: &str, sound: &String, camera: &resources::Camera, position: Option<Vector3<f32>>) {
+    fn get_left_right_emit(&self, camera: &resources::Camera, position: Option<Vector3<f32>>) -> Positions {
         let position = match position {
-            Some(position) => position.into(),
+            Some(position) => (position * config::SOUND_DISTANCE_SCALE).into(),
             None => [0.0, 0.0, 0.0],
         };
 
-        let left = camera.target + Vector3::new(-config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0);
-        let right = camera.target + Vector3::new(config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0);
+        let left = camera.target * config::SOUND_DISTANCE_SCALE + Vector3::new(-config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0);
+        let right = camera.target * config::SOUND_DISTANCE_SCALE + Vector3::new(config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0);
+
+        Positions {
+            left: left.into(),
+            right: right.into(),
+            emitter: position,
+        }
+    }
+
+    pub fn play(&mut self, sink: &str, sound: &String, camera: &resources::Camera, position: Option<Vector3<f32>>) {
+        let positions = self.get_left_right_emit(camera, position);
 
         let sink = self
             .sinks
             .entry(sink.into())
-            .or_insert_with(|| rodio::SpatialSink::try_new(&self.handle, position, left.into(), right.into()).unwrap());
+            .or_insert_with(|| rodio::SpatialSink::try_new(&self.handle, positions.emitter, positions.left, positions.right).unwrap());
 
         let sound = self.sounds.get(sound).unwrap_or_else(|| panic!("Could not find sound {}!", sound));
 
@@ -66,12 +82,11 @@ impl SoundEffects {
 
     pub fn set_position(&mut self, sink: &String, camera: &resources::Camera, position: Vector3<f32>) {
         if let Some(sink) = &mut self.sinks.get(sink) {
-            let left = camera.target + Vector3::new(-config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0);
-            let right = camera.target + Vector3::new(config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0);
+            let positions = self.get_left_right_emit(camera, Some(position));
 
-            sink.set_left_ear_position(left.into());
-            sink.set_right_ear_position(right.into());
-            sink.set_emitter_position(position.into());
+            sink.set_left_ear_position(positions.left);
+            sink.set_right_ear_position(positions.right);
+            sink.set_emitter_position(positions.emitter);
         }
     }
 
