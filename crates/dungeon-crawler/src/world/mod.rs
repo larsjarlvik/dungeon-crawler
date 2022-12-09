@@ -163,6 +163,13 @@ impl World {
         sound_effects.load(&character.get_sound_effects());
         sound_effects.load(&map.sound_effects);
 
+        let mut sound_ambience = self
+            .components
+            .get_non_send_resource_mut::<engine::ecs::resources::SoundAmbience>()
+            .unwrap();
+
+        sound_ambience.load("ambience".to_string());
+
         println!("Load resources {} ms", start.elapsed().as_millis());
         self.resources = Some(Resources { map, character });
     }
@@ -174,6 +181,7 @@ pub fn setup_world(ctx: &engine::Context) -> bevy_ecs::world::World {
     components.insert_resource(engine::ecs::resources::Camera::new(ctx.viewport.get_aspect()));
     components.insert_resource(engine::ecs::resources::Time::default());
     components.insert_non_send_resource(engine::ecs::resources::SoundEffects::default());
+    components.insert_non_send_resource(engine::ecs::resources::SoundAmbience::default());
     components.insert_resource(resources::Input::default());
     components.insert_resource(resources::Fps::default());
 
