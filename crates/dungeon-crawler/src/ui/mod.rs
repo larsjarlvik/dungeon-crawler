@@ -68,13 +68,14 @@ impl Views {
             &mut root,
             ui_scale_x,
             self.ui_scale,
-            &RenderParams {
+            &mut RenderParams {
                 scale: point2(
                     engine.ctx.viewport.width as f32 / ui_scale_x,
                     engine.ctx.viewport.height as f32 / self.ui_scale,
                 ),
                 opacity,
                 frame_time,
+                clip: [0, 0, engine.ctx.viewport.width, engine.ctx.viewport.height],
             },
         );
 

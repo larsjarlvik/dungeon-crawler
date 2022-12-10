@@ -10,8 +10,7 @@ pub struct Checkbox {
 impl Checkbox {
     pub fn draw(&self) -> Box<DisplayWidget> {
         DisplayWidget::new(
-            self.key.clone().into(),
-            AssetData {
+            DisplayWidgetProps {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.5),
                 background_hover: Some(Vector4::new(0.3, 0.3, 0.3, 0.5)),
                 background_pressed: Some(Vector4::new(0.5, 0.5, 0.5, 0.5)),
@@ -25,9 +24,9 @@ impl Checkbox {
                 ..Default::default()
             },
         )
+        .with_key(self.key.as_str())
         .with_children(vec![DisplayWidget::new(
-            None,
-            AssetData {
+            DisplayWidgetProps {
                 asset_id: Some("check".into()),
                 visible: self.checked,
                 ..Default::default()

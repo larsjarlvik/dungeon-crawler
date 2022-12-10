@@ -56,7 +56,7 @@ impl base::BaseWidget for TextWidget {
         _input: &mut engine::ecs::resources::Input,
         _state: &mut crate::state::State,
         parent_layout: &NodeLayout,
-        params: &RenderParams,
+        params: &mut RenderParams,
     ) {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);

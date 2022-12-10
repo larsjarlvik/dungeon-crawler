@@ -8,8 +8,7 @@ pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseW
     let key = "dead_screen".to_string();
 
     let screen = DisplayWidget::new(
-        Some(key.clone()),
-        AssetData {
+        DisplayWidgetProps {
             background: style::PALETTE_BROWN.extend(0.5),
             ..Default::default()
         },
@@ -24,6 +23,7 @@ pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseW
             ..Default::default()
         },
     )
+    .with_key(key.as_str())
     .with_children(vec![
         TextWidget::new(
             TextData {

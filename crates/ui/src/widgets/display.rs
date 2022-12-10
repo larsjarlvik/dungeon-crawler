@@ -1,29 +1,69 @@
 use super::{
     base::{self},
-    AssetData, NodeLayout, RenderParams,
+    Gradient, NodeLayout, RenderParams,
 };
 use crate::WidgetState;
 use cgmath::*;
 use engine::pipelines::ui_element::context::{self, ImageContext};
 use taffy::prelude::*;
 
+#[derive(Debug)]
+pub struct DisplayWidgetProps {
+    pub asset_id: Option<String>,
+    pub background: Vector4<f32>,
+    pub gradient: Option<Gradient>,
+    pub foreground: Vector4<f32>,
+    pub background_hover: Option<Vector4<f32>>,
+    pub background_pressed: Option<Vector4<f32>>,
+    pub border_radius: Dimension,
+    pub shadow_radius: Dimension,
+    pub shadow_offset: Option<Vector2<f32>>,
+    pub shadow_color: Vector4<f32>,
+    pub overflow: bool,
+    pub visible: bool,
+}
+
+impl Default for DisplayWidgetProps {
+    fn default() -> Self {
+        Self {
+            asset_id: None,
+            background: Vector4::new(0.0, 0.0, 0.0, 0.0),
+            foreground: Vector4::new(0.0, 0.0, 0.0, 0.0),
+            background_hover: None,
+            background_pressed: None,
+            border_radius: Dimension::default(),
+            shadow_radius: Dimension::default(),
+            shadow_offset: None,
+            gradient: None,
+            shadow_color: Vector4::new(0.0, 0.0, 0.0, 1.0),
+            overflow: true,
+            visible: true,
+        }
+    }
+}
+
 pub struct DisplayWidget {
     pub key: Option<String>,
-    pub data: AssetData,
+    pub data: DisplayWidgetProps,
+    pub children: Vec<Box<dyn base::BaseWidget>>,
     node: Option<Node>,
     style: Style,
-    pub children: Vec<Box<dyn base::BaseWidget>>,
 }
 
 impl DisplayWidget {
-    pub fn new(key: Option<String>, data: AssetData, style: Style) -> Box<Self> {
+    pub fn new(data: DisplayWidgetProps, style: Style) -> Box<Self> {
         Box::new(Self {
-            key,
+            key: None,
             data,
             style,
             node: None,
             children: vec![],
         })
+    }
+
+    pub fn with_key(mut self, key: &str) -> Box<Self> {
+        self.key = Some(key.into());
+        Box::new(self)
     }
 
     pub fn with_children(mut self, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
@@ -51,7 +91,7 @@ impl base::BaseWidget for DisplayWidget {
         input: &mut engine::ecs::resources::Input,
         state: &mut crate::state::State,
         parent_layout: &NodeLayout,
-        params: &RenderParams,
+        params: &mut RenderParams,
     ) {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let layout = NodeLayout::new(parent_layout, layout);
@@ -65,6 +105,10 @@ impl base::BaseWidget for DisplayWidget {
             WidgetState::Hover | WidgetState::Clicked => self.data.background_hover.unwrap_or(self.data.background),
             WidgetState::Pressed => self.data.background_pressed.unwrap_or(self.data.background),
         };
+
+        if !self.data.overflow {
+            params.clip = [layout.x as u32, layout.y as u32, layout.width as u32, layout.height as u32];
+        }
 
         if self.data.visible {
             let (background_end, gradient_angle) = if let Some(gradient) = &self.data.gradient {
@@ -98,14 +142,16 @@ impl base::BaseWidget for DisplayWidget {
                     },
                     shadow_color: self.data.shadow_color,
                     opacity: params.opacity,
+                    clip: params.clip,
                 },
                 self.data.asset_id.clone(),
             );
 
             engine.ctx.images.queue(bind_group, self.data.asset_id.clone());
-            self.children
-                .iter()
-                .for_each(|c| c.render(taffy, engine, input, state, &layout, params));
         }
+
+        self.children
+            .iter()
+            .for_each(|c| c.render(taffy, engine, input, state, &layout, params));
     }
 }

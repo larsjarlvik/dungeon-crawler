@@ -48,8 +48,7 @@ impl MainMenu {
         }
 
         let mut menu_panel = DisplayWidget::new(
-            None,
-            AssetData { ..Default::default() },
+            DisplayWidgetProps { ..Default::default() },
             Style {
                 flex_direction: FlexDirection::Column,
                 padding: Rect::<Dimension>::from_points(style::SM, style::SL, 0.0, 0.0),
@@ -93,8 +92,7 @@ impl MainMenu {
         }
 
         DisplayWidget::new(
-            Some("main_menu".into()),
-            AssetData {
+            DisplayWidgetProps {
                 background: style::PALETTE_BROWN.extend(0.5),
                 gradient: Some(Gradient {
                     background_end: style::PALETTE_GRAY.extend(0.5),
@@ -111,6 +109,7 @@ impl MainMenu {
                 ..Default::default()
             },
         )
+        .with_key("main_menu")
         .with_children(children)
     }
 }

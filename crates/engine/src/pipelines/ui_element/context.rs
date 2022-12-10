@@ -25,6 +25,7 @@ pub struct Data {
     pub shadow_radius: f32,
     pub shadow_color: Vector4<f32>,
     pub shadow_offset: Vector2<f32>,
+    pub clip: [u32; 4],
 }
 
 pub struct RenderBundle {
@@ -101,12 +102,7 @@ impl ImageContext {
 
         RenderBundle {
             uniform_bind_group,
-            clip: [
-                data.position.x as u32,
-                data.position.y as u32,
-                (data.size.x as u32).max(1),
-                (data.size.y as u32).max(1),
-            ],
+            clip: data.clip,
         }
     }
 

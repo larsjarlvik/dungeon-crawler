@@ -2,6 +2,7 @@ use super::{base, NodeLayout, RenderParams};
 use taffy::prelude::*;
 
 pub struct NodeWidget {
+    pub key: Option<String>,
     style: Style,
     pub children: Vec<Box<dyn base::BaseWidget>>,
     pub node: Option<Node>,
@@ -13,7 +14,13 @@ impl NodeWidget {
             style,
             children: vec![],
             node: None,
+            key: None,
         })
+    }
+
+    pub fn with_key(mut self, key: &str) -> Box<Self> {
+        self.key = Some(key.into());
+        Box::new(self)
     }
 
     pub fn with_children(mut self, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
@@ -37,11 +44,12 @@ impl base::BaseWidget for NodeWidget {
         input: &mut engine::ecs::resources::Input,
         state: &mut crate::state::State,
         parent_layout: &NodeLayout,
-        params: &RenderParams,
+        params: &mut RenderParams,
     ) {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
+        state.process(&self.key, &layout, input, params.scale);
         self.children
             .iter()
             .for_each(|c| c.render(taffy, engine, input, state, &layout, params));

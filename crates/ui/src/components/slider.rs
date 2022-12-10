@@ -19,9 +19,9 @@ impl Slider {
             },
             ..Default::default()
         })
+        .with_key(self.key.as_str())
         .with_children(vec![DisplayWidget::new(
-            None,
-            AssetData {
+            DisplayWidgetProps {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
                 ..Default::default()
             },
@@ -35,8 +35,7 @@ impl Slider {
         )
         .with_children(vec![
             DisplayWidget::new(
-                None,
-                AssetData {
+                DisplayWidgetProps {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),
                     ..Default::default()
                 },
@@ -49,8 +48,7 @@ impl Slider {
                 },
             ),
             DisplayWidget::new(
-                None,
-                AssetData {
+                DisplayWidgetProps {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),
                     border_radius: Dimension::Percent(0.5),
                     ..Default::default()

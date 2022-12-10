@@ -18,7 +18,7 @@ impl Ui {
         root: &'a mut widgets::NodeWidget,
         width: f32,
         height: f32,
-        params: &RenderParams,
+        params: &mut RenderParams,
     ) {
         let mut taffy = Taffy::new();
         let root_node = root.calculate_layout(&mut engine.ctx, &mut taffy);

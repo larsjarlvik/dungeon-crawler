@@ -32,8 +32,7 @@ impl Default for BarProps {
 impl Bar {
     pub fn draw(&self, label: &str, props: BarProps) -> Box<DisplayWidget> {
         DisplayWidget::new(
-            None,
-            AssetData {
+            DisplayWidgetProps {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
                 shadow_radius: Dimension::Points(2.0),
                 shadow_color: Vector4::new(1.0, 0.8, 0.0, 1.0),
@@ -53,8 +52,7 @@ impl Bar {
         )
         .with_children(vec![
             DisplayWidget::new(
-                None,
-                AssetData {
+                DisplayWidgetProps {
                     background: props.color,
                     gradient: props.gradient,
                     ..Default::default()
