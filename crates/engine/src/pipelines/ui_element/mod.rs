@@ -1,19 +1,18 @@
 mod uniforms;
-use self::uniforms::Uniforms;
-use crate::{pipelines::builders, texture, Context};
-use std::mem;
+use crate::{pipelines::builders, Context};
 pub mod context;
 
 pub struct UiElementPipeline {
     render_pipeline: builders::Pipeline,
-    uniform_bind_group_layout: builders::MappedBindGroupLayout,
     texture_bind_group_layout: builders::MappedBindGroupLayout,
-    sampler: wgpu::Sampler,
+    uniform_bind_group_layout: builders::MappedBindGroupLayout,
+    render_pipeline_textured: builders::Pipeline,
 }
 
 impl UiElementPipeline {
     pub fn new(ctx: &Context) -> Self {
-        let builder = builders::PipelineBuilder::new(ctx, "asset");
+        let builder = builders::PipelineBuilder::new(ctx, "ui_element");
+
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,
             "uniform_bind_group_layout",
@@ -29,84 +28,81 @@ impl UiElementPipeline {
             ],
         );
 
+        let blend_state = wgpu::BlendState {
+            color: wgpu::BlendComponent {
+                operation: wgpu::BlendOperation::Add,
+                src_factor: wgpu::BlendFactor::SrcAlpha,
+                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+            },
+            alpha: wgpu::BlendComponent::OVER,
+        };
+
         let render_pipeline = builder
             .with_shader("shaders/ui-element.wgsl")
             .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
-            .with_blend(wgpu::BlendState {
-                color: wgpu::BlendComponent {
-                    operation: wgpu::BlendOperation::Add,
-                    src_factor: wgpu::BlendFactor::SrcAlpha,
-                    dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                },
-                alpha: wgpu::BlendComponent::OVER,
-            })
+            .with_blend(blend_state)
+            .with_color_targets(vec![ctx.color_format])
+            .with_bind_group_layout(&uniform_bind_group_layout)
+            .build();
+
+        let builder = builders::PipelineBuilder::new(ctx, "ui_element_textured");
+        let render_pipeline_textured = builder
+            .with_shader("shaders/ui-element-textured.wgsl")
+            .with_primitve_topology(wgpu::PrimitiveTopology::TriangleStrip)
+            .with_blend(blend_state)
             .with_color_targets(vec![ctx.color_format])
             .with_bind_group_layout(&uniform_bind_group_layout)
             .with_bind_group_layout(&texture_bind_group_layout)
             .build();
 
-        let sampler = texture::Texture::create_sampler(ctx, wgpu::AddressMode::ClampToEdge, wgpu::FilterMode::Linear, None);
-
         Self {
             render_pipeline,
-            uniform_bind_group_layout,
+            render_pipeline_textured,
             texture_bind_group_layout,
-            sampler,
+            uniform_bind_group_layout,
         }
     }
 
     pub fn render(&self, ctx: &mut Context, target: &wgpu::TextureView) {
-        let mut bundles = vec![];
+        let mut command_buffers = vec![];
 
         for (id, data) in ctx.images.queue.iter() {
-            let builder = builders::RenderBundleBuilder::new(ctx, "asset");
-            let uniform_buffer = builder.create_uniform_buffer(mem::size_of::<uniforms::Uniforms>() as u64);
+            let mut encoder = ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("ui_element_encoder"),
+            });
 
-            ctx.queue.write_buffer(
-                &uniform_buffer,
-                0,
-                bytemuck::cast_slice(&[Uniforms {
-                    position: data.position.into(),
-                    size: data.size.into(),
-                    viewport_size: [ctx.viewport.width as f32, ctx.viewport.height as f32],
-                    background: data.background.into(),
-                    background_end: data.background_end.into(),
-                    foreground: data.foreground.into(),
-                    opacity: data.opacity,
-                    has_image: id.is_some() as u32,
-                    border_radius: data.border_radius,
-                    shadow_radius: data.shadow_radius,
-                    shadow_color: data.shadow_color.into(),
-                    shadow_offset: data.shadow_offset.into(),
-                    gradient_angle: data.gradient_angle.to_radians(),
-                }]),
-            );
+            {
+                let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("ui_element_render_pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &target,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: true,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                });
 
-            let mut primitive_builder = builders::PrimitiveBuilder::new(ctx, "asset").with_length(4);
-            if let Some(id) = id {
-                let asset = ctx.images.textures.get(id).expect("Image not found!");
-                primitive_builder = primitive_builder.with_texture_bind_group(
-                    &self.texture_bind_group_layout,
-                    &[
-                        builders::RenderBundleBuilder::create_entry(0, wgpu::BindingResource::TextureView(&asset.view)),
-                        builders::RenderBundleBuilder::create_entry(1, wgpu::BindingResource::Sampler(&self.sampler)),
-                    ],
-                );
+                if let Some(id) = id {
+                    let asset = ctx.images.textures.get(id.into()).expect("Could not find texture!");
+
+                    render_pass.set_pipeline(&self.render_pipeline_textured.render_pipeline);
+                    render_pass.set_bind_group(self.texture_bind_group_layout.index as u32, &asset, &[]);
+                } else {
+                    render_pass.set_pipeline(&self.render_pipeline.render_pipeline);
+                }
+
+                render_pass.set_scissor_rect(data.clip[0], data.clip[1], data.clip[2], data.clip[3]);
+                render_pass.set_bind_group(self.uniform_bind_group_layout.index as u32, &data.uniform_bind_group, &[]);
+                render_pass.draw(0..4, 0..1);
             }
 
-            bundles.push(
-                builder
-                    .with_pipeline(&self.render_pipeline)
-                    .with_uniform_bind_group(&self.uniform_bind_group_layout, &uniform_buffer)
-                    .with_primitive(primitive_builder)
-                    .build(),
-            );
+            command_buffers.push(encoder.finish());
         }
 
-        builders::RenderTargetBuilder::new(ctx, "particle")
-            .with_color_attachment(target, wgpu::LoadOp::Load)
-            .execute_bundles(bundles.iter().collect());
-
+        ctx.queue.submit(command_buffers);
         ctx.images.queue.clear();
     }
 }

@@ -72,6 +72,14 @@ impl Settings {
             ..Default::default()
         })
         .with_children(vec![
+            TextWidget::new(
+                TextData {
+                    size: style::HEADING2,
+                    text: "Graphics".into(),
+                },
+                Rect::from_points(0.0, 0.0, 0.0, style::SM),
+                AlignSelf::FlexStart,
+            ),
             setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
             setting(
                 "Render scale:",
@@ -87,6 +95,14 @@ impl Settings {
             setting("Anti aliasing:", anti_aliasing.draw(), None),
             setting("Sharpen:", sharpen.draw(), None),
             setting("Show FPS:", show_fps.draw(), None),
+            TextWidget::new(
+                TextData {
+                    size: style::HEADING2,
+                    text: "Sound".into(),
+                },
+                Rect::from_points(0.0, 0.0, style::SL, style::SM),
+                AlignSelf::FlexStart,
+            ),
             setting(
                 "Effects:",
                 audio_effects.draw(),
@@ -98,7 +114,7 @@ impl Settings {
                 Some(format!("{:.0}%", audio_ambient.value * 100.0)),
             ),
             NodeWidget::new(Style {
-                margin: Rect::from_points(0.0, 0.0, style::SM, 0.0),
+                margin: Rect::from_points(0.0, 0.0, style::SL, style::SL),
                 ..Default::default()
             })
             .with_children(vec![

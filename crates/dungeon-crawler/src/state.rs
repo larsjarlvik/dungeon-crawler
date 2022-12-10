@@ -30,7 +30,7 @@ impl State {
         .await;
 
         let world = world::World::new(&engine);
-        let views = Views::new(&mut engine.ctx, window.scale_factor() as f32);
+        let views = Views::new(&mut engine, window.scale_factor() as f32);
 
         println!("Startup {} ms", start.elapsed().as_millis());
         Self { engine, world, views }

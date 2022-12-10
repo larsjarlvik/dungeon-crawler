@@ -30,20 +30,20 @@ pub struct Views {
 }
 
 impl Views {
-    pub fn new(ctx: &mut engine::Context, scale: f32) -> Self {
-        ImageContext::add_texture(ctx, "logo", engine::file::read_bytes("icon.png"));
-        ImageContext::add_texture(ctx, "menu", engine::file::read_bytes("icons/menu.png"));
-        ImageContext::add_texture(ctx, "health", engine::file::read_bytes("icons/health.png"));
-        ImageContext::add_texture(ctx, "attack", engine::file::read_bytes("icons/attack.png"));
-        ImageContext::add_texture(ctx, "check", engine::file::read_bytes("icons/check.png"));
+    pub fn new(engine: &mut engine::Engine, scale: f32) -> Self {
+        ImageContext::add_texture(engine, "logo", engine::file::read_bytes("icon.png"));
+        ImageContext::add_texture(engine, "menu", engine::file::read_bytes("icons/menu.png"));
+        ImageContext::add_texture(engine, "health", engine::file::read_bytes("icons/health.png"));
+        ImageContext::add_texture(engine, "attack", engine::file::read_bytes("icons/attack.png"));
+        ImageContext::add_texture(engine, "check", engine::file::read_bytes("icons/check.png"));
 
         Self {
-            ui_scale: 2000.0 / scale / ctx.settings.ui_scale,
+            ui_scale: 2000.0 / scale / engine.ctx.settings.ui_scale,
             ui: ui::Ui::default(),
             input: input::Input::new(),
             state: ui::State::default(),
             view: Transition::new(ViewState::Splash),
-            main_menu: views::MainMenu::new(ctx),
+            main_menu: views::MainMenu::new(&engine.ctx),
         }
     }
 
@@ -106,7 +106,8 @@ impl Views {
                             (background, 0.0)
                         };
 
-                        engine.ctx.images.queue(
+                        let bind_group = ImageContext::create_item(
+                            engine,
                             context::Data {
                                 position,
                                 size,
@@ -133,6 +134,8 @@ impl Views {
                             },
                             data.asset_id.clone(),
                         );
+
+                        engine.ctx.images.queue(bind_group, data.asset_id.clone());
                     }
                 }
                 _ => {}
