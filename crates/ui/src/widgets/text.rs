@@ -1,7 +1,9 @@
 use super::{
     base::{self},
-    NodeLayout, RenderWidget, RenderWidgetType,
+    NodeLayout, RenderParams,
 };
+use cgmath::{Point2, Vector4};
+use engine::pipelines::{glyph::GlyphProps, GlyphPipeline};
 use taffy::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -29,7 +31,7 @@ impl TextWidget {
 }
 
 impl base::BaseWidget for TextWidget {
-    fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
+    fn calculate_layout(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
         let size = engine::pipelines::glyph::get_bounds(ctx, &self.data.text, self.data.size);
 
         let node = taffy
@@ -47,10 +49,20 @@ impl base::BaseWidget for TextWidget {
         node
     }
 
-    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+    fn render(&self, taffy: &Taffy, engine: &mut engine::Engine, parent_layout: &NodeLayout, params: &RenderParams) {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
+        let position = Point2::new(layout.x * params.scale.x, layout.y * params.scale.y);
 
-        vec![(layout, RenderWidget::new(None, RenderWidgetType::Text(&self.data)))]
+        GlyphPipeline::queue(
+            &mut engine.ctx,
+            GlyphProps {
+                position,
+                text: self.data.text.clone(),
+                size: self.data.size * params.scale.y,
+                color: Vector4::new(1.0, 1.0, 1.0, params.opacity),
+                ..Default::default()
+            },
+        );
     }
 }

@@ -8,8 +8,8 @@ pub struct Checkbox {
 }
 
 impl Checkbox {
-    pub fn draw(&self) -> Box<PanelWidget> {
-        PanelWidget::new(
+    pub fn draw(&self) -> Box<AssetWidget> {
+        AssetWidget::new(
             self.key.clone().into(),
             AssetData {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.5),
@@ -25,7 +25,7 @@ impl Checkbox {
                 ..Default::default()
             },
         )
-        .with_children(vec![PanelWidget::new(
+        .with_children(vec![AssetWidget::new(
             None,
             AssetData {
                 asset_id: Some("check".into()),

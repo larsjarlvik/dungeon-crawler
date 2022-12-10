@@ -3,7 +3,7 @@ use ui::prelude::*;
 use ui::widgets::*;
 
 pub fn splash() -> Box<dyn BaseWidget> {
-    PanelWidget::new(
+    AssetWidget::new(
         None,
         AssetData {
             background: Vector4::new(0.0, 0.0, 0.0, 1.0),

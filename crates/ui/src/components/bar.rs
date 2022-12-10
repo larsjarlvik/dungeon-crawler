@@ -30,8 +30,8 @@ impl Default for BarProps {
 }
 
 impl Bar {
-    pub fn draw(&self, label: &str, props: BarProps) -> Box<PanelWidget> {
-        PanelWidget::new(
+    pub fn draw(&self, label: &str, props: BarProps) -> Box<AssetWidget> {
+        AssetWidget::new(
             None,
             AssetData {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
@@ -52,7 +52,7 @@ impl Bar {
             },
         )
         .with_children(vec![
-            PanelWidget::new(
+            AssetWidget::new(
                 None,
                 AssetData {
                     background: props.color,

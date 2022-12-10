@@ -1,9 +1,6 @@
 use cgmath::*;
 use fxhash::FxHashSet;
-use ui::{
-    widgets::{NodeLayout, RenderWidget, RenderWidgetState},
-    Event, MouseData, State,
-};
+use ui::{widgets::NodeLayout, Event, MouseData, State};
 
 use crate::world::{
     resources::{self, input::mouse},
@@ -12,6 +9,14 @@ use crate::world::{
 
 pub struct Input {
     pub locks: FxHashSet<u64>,
+}
+
+#[derive(Debug, Clone)]
+pub enum WidgetState {
+    None,
+    Hover,
+    Pressed,
+    Clicked,
 }
 
 impl Input {
@@ -40,7 +45,7 @@ impl Input {
                             self.locks.remove(id);
 
                             if !repeat {
-                                widget.state = RenderWidgetState::Clicked;
+                                widget.state = WidgetState::Clicked;
                                 ui_state.set_event(
                                     &widget.key,
                                     Event::Click(MouseData {
@@ -52,7 +57,7 @@ impl Input {
                         }
                         mouse::PressState::Pressed(_) => {
                             self.locks.insert(*id);
-                            widget.state = RenderWidgetState::Pressed;
+                            widget.state = WidgetState::Pressed;
 
                             if let Some(position) = button.position {
                                 let position = to_relative(&position, scale);
@@ -69,10 +74,10 @@ impl Input {
 
                     break;
                 } else if on_element(&button.position, layout, scale).is_some() {
-                    widget.state = RenderWidgetState::Hover;
+                    widget.state = WidgetState::Hover;
                     break;
                 } else {
-                    widget.state = RenderWidgetState::None;
+                    widget.state = WidgetState::None;
                 }
             }
         }

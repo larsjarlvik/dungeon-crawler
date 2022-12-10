@@ -1,7 +1,9 @@
 use super::{
     base::{self},
-    AssetData, NodeLayout, RenderWidget, RenderWidgetType,
+    AssetData, NodeLayout, RenderParams,
 };
+use cgmath::*;
+use engine::pipelines::ui_element::context::{self, ImageContext};
 use taffy::prelude::*;
 
 pub struct AssetWidget {
@@ -9,6 +11,7 @@ pub struct AssetWidget {
     pub data: AssetData,
     node: Option<Node>,
     style: Style,
+    pub children: Vec<Box<dyn base::BaseWidget>>,
 }
 
 impl AssetWidget {
@@ -18,21 +21,78 @@ impl AssetWidget {
             data,
             style,
             node: None,
+            children: vec![],
         })
+    }
+
+    pub fn with_children(mut self, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
+        self.children = children;
+        Box::new(self)
     }
 }
 
 impl base::BaseWidget for AssetWidget {
-    fn render(&mut self, _ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
-        let node = taffy.new_leaf(self.style).unwrap();
+    fn calculate_layout(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
+        let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(ctx, taffy)).collect();
+        let node = taffy.new_with_children(self.style, &children).unwrap();
         self.node = Some(node);
         node
     }
 
-    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+    fn render<'a>(&self, taffy: &Taffy, engine: &mut engine::Engine, parent_layout: &NodeLayout, params: &RenderParams) {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let layout = NodeLayout::new(parent_layout, layout);
 
-        vec![(layout, RenderWidget::new(self.key.clone(), RenderWidgetType::Asset(&self.data)))]
+        let position = Point2::new(layout.x * params.scale.x, layout.y * params.scale.y);
+        let size = Point2::new(layout.width * params.scale.x, layout.height * params.scale.y);
+
+        // let background = match self.state {
+        //     RenderWidgetState::None => data.background,
+        //     RenderWidgetState::Hover | RenderWidgetState::Clicked => data.background_hover.unwrap_or(data.background),
+        //     RenderWidgetState::Pressed => data.background_pressed.unwrap_or(data.background),
+        // };
+        let background = self.data.background;
+
+        if self.data.visible {
+            let (background_end, gradient_angle) = if let Some(gradient) = &self.data.gradient {
+                (gradient.background_end, gradient.angle)
+            } else {
+                (self.data.background, 0.0)
+            };
+
+            let bind_group = ImageContext::create_item(
+                engine,
+                context::Data {
+                    position,
+                    size,
+                    // background: self.state.get_transition(&self.key, self.data.background, frame_time),
+                    background,
+                    background_end,
+                    gradient_angle,
+                    foreground: self.data.foreground,
+                    border_radius: match self.data.border_radius {
+                        Dimension::Points(p) => p * params.scale.y,
+                        Dimension::Percent(p) => layout.height * params.scale.y * p,
+                        _ => 0.0,
+                    },
+                    shadow_radius: match self.data.shadow_radius {
+                        Dimension::Points(p) => p * params.scale.y,
+                        Dimension::Percent(p) => layout.height * params.scale.y * p,
+                        _ => 0.0,
+                    },
+                    shadow_offset: match self.data.shadow_offset {
+                        Some(shadow_offset) => shadow_offset * params.scale.y,
+                        None => Vector2::new(0.0, 0.0),
+                    },
+                    shadow_color: self.data.shadow_color,
+                    opacity: params.opacity,
+                },
+                self.data.asset_id.clone(),
+            );
+
+            engine.ctx.images.queue(bind_group, self.data.asset_id.clone());
+
+            self.children.iter().for_each(|c| c.render(taffy, engine, &layout, params));
+        }
     }
 }

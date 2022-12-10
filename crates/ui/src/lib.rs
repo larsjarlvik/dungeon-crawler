@@ -12,13 +12,14 @@ pub struct Ui {}
 impl Ui {
     pub fn render<'a>(
         &'a self,
-        ctx: &mut engine::Context,
+        engine: &mut engine::Engine,
         root: &'a mut widgets::NodeWidget,
         width: f32,
         height: f32,
-    ) -> Vec<(NodeLayout, RenderWidget)> {
+        params: &RenderParams,
+    ) {
         let mut taffy = Taffy::new();
-        let root_node = root.render(ctx, &mut taffy);
+        let root_node = root.calculate_layout(&mut engine.ctx, &mut taffy);
         let root_layout = NodeLayout {
             x: 0.0,
             y: 0.0,
@@ -49,11 +50,6 @@ impl Ui {
             )
             .unwrap();
 
-        let result = {
-            let nodes = root.get_nodes(&taffy, &root_layout);
-            nodes.into_iter().map(|(node, widget)| (node, widget.clone())).collect()
-        };
-
-        result
+        root.render(&mut taffy, engine, &root_layout, params);
     }
 }

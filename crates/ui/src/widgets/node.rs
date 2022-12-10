@@ -1,4 +1,5 @@
-use super::{base, NodeLayout, RenderWidget};
+use super::{base, NodeLayout, RenderParams};
+use cgmath::*;
 use taffy::prelude::*;
 
 pub struct NodeWidget {
@@ -23,17 +24,17 @@ impl NodeWidget {
 }
 
 impl base::BaseWidget for NodeWidget {
-    fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
-        let children: Vec<Node> = self.children.iter_mut().map(|c| c.render(ctx, taffy)).collect();
+    fn calculate_layout(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
+        let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(ctx, taffy)).collect();
         let node = taffy.new_with_children(self.style, &children).unwrap();
         self.node = Some(node);
         node
     }
 
-    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+    fn render(&self, taffy: &Taffy, engine: &mut engine::Engine, parent_layout: &NodeLayout, params: &RenderParams) {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
-        self.children.iter().flat_map(|c| c.get_nodes(taffy, &layout)).collect()
+        self.children.iter().for_each(|c| c.render(taffy, engine, &layout, params));
     }
 }

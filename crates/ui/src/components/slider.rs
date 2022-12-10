@@ -9,8 +9,8 @@ pub struct Slider {
 }
 
 impl Slider {
-    pub fn draw(&self) -> Box<PanelWidget> {
-        PanelWidget::new(
+    pub fn draw(&self) -> Box<AssetWidget> {
+        AssetWidget::new(
             self.key.clone().into(),
             AssetData {
                 visible: false,
@@ -26,7 +26,7 @@ impl Slider {
                 ..Default::default()
             },
         )
-        .with_children(vec![PanelWidget::new(
+        .with_children(vec![AssetWidget::new(
             None,
             AssetData {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
@@ -41,7 +41,7 @@ impl Slider {
             },
         )
         .with_children(vec![
-            PanelWidget::new(
+            AssetWidget::new(
                 None,
                 AssetData {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),
@@ -55,7 +55,7 @@ impl Slider {
                     ..Default::default()
                 },
             ),
-            PanelWidget::new(
+            AssetWidget::new(
                 None,
                 AssetData {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),
