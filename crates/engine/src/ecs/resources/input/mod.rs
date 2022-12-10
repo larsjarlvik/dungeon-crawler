@@ -10,16 +10,9 @@ pub mod joystick;
 pub mod mouse;
 
 // TODO: Should not be in engine!
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub enum UiActionCode {
-    Attack,
-    Health,
-}
-
 #[derive(Debug, Default, Resource)]
 pub struct Input {
     pub keys: FxHashMap<VirtualKeyCode, PressState>,
-    pub ui: FxHashMap<UiActionCode, PressState>,
     pub mouse: FxHashMap<u64, MouseButton>,
     pub joystick: Option<Joystick>,
     pub blocked: bool,
@@ -71,13 +64,6 @@ impl Input {
                 PressState::Pressed(_) => button.state = PressState::Pressed(true),
             }
         }
-    }
-
-    pub fn set_from_ui(&mut self, action_code: UiActionCode, pressed: bool) {
-        match pressed {
-            true => self.ui.insert(action_code, PressState::Pressed(self.ui.contains_key(&action_code))),
-            false => self.ui.remove(&action_code),
-        };
     }
 
     pub fn pressed_buttons(&self) -> FxHashMap<u64, MouseButton> {

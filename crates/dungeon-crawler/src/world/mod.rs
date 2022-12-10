@@ -89,7 +89,7 @@ impl World {
                     damage: 2.0..7.0,
                     time: 1.0,
                 },
-                components::UserControl,
+                components::UserControl::default(),
                 engine::ecs::components::SoundEffects::default(),
                 engine::ecs::components::Render { cull_frustum: false },
                 engine::ecs::components::Shadow,

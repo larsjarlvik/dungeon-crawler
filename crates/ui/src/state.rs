@@ -1,5 +1,9 @@
 use cgmath::*;
-use engine::{config, ecs::resources::input::mouse, utils};
+use engine::{
+    config,
+    ecs::resources::input::mouse::{self},
+    utils,
+};
 use fxhash::{FxHashMap, FxHashSet};
 
 use crate::widgets::NodeLayout;
