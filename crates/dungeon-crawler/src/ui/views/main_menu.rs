@@ -47,7 +47,7 @@ impl MainMenu {
             world.game_state = GameState::Terminated;
         }
 
-        let mut menu_panel = AssetWidget::new(
+        let mut menu_panel = DisplayWidget::new(
             None,
             AssetData { ..Default::default() },
             Style {
@@ -92,7 +92,7 @@ impl MainMenu {
             SubMenu::None => {}
         }
 
-        AssetWidget::new(
+        DisplayWidget::new(
             Some("main_menu".into()),
             AssetData {
                 background: style::PALETTE_BROWN.extend(0.5),

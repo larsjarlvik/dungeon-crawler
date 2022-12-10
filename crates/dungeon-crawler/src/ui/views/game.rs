@@ -11,7 +11,7 @@ use cgmath::*;
 use engine::ecs::resources::{input::UiActionCode, Input};
 use ui::{components::*, prelude::*, widgets::*};
 
-fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> Box<AssetWidget> {
+fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> Box<DisplayWidget> {
     Bar::default().draw(
         label,
         BarProps {
@@ -29,7 +29,7 @@ fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> B
     )
 }
 
-fn action_button(button: &Button, icon: &str, foreground: Vector3<f32>, icon_size: f32, padding: f32) -> Box<AssetWidget> {
+fn action_button(button: &Button, icon: &str, foreground: Vector3<f32>, icon_size: f32, padding: f32) -> Box<DisplayWidget> {
     button.draw(ButtonProps {
         icon: Some((icon.into(), icon_size)),
         border_radius: Dimension::Percent(0.5),

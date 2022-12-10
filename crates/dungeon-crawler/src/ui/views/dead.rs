@@ -7,7 +7,7 @@ use ui::widgets::*;
 pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
     let key = "dead_screen".to_string();
 
-    let screen = AssetWidget::new(
+    let screen = DisplayWidget::new(
         Some(key.clone()),
         AssetData {
             background: style::PALETTE_BROWN.extend(0.5),

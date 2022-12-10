@@ -3,7 +3,7 @@ use ui::prelude::*;
 use ui::widgets::*;
 
 pub fn splash() -> Box<dyn BaseWidget> {
-    AssetWidget::new(
+    DisplayWidget::new(
         None,
         AssetData {
             background: Vector4::new(0.0, 0.0, 0.0, 1.0),
@@ -20,7 +20,7 @@ pub fn splash() -> Box<dyn BaseWidget> {
             ..Default::default()
         },
     )
-    .with_children(vec![AssetWidget::new(
+    .with_children(vec![DisplayWidget::new(
         None,
         AssetData {
             asset_id: Some("logo".into()),

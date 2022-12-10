@@ -7,7 +7,7 @@ use cgmath::*;
 use engine::pipelines::ui_element::context::{self, ImageContext};
 use taffy::prelude::*;
 
-pub struct AssetWidget {
+pub struct DisplayWidget {
     pub key: Option<String>,
     pub data: AssetData,
     node: Option<Node>,
@@ -15,7 +15,7 @@ pub struct AssetWidget {
     pub children: Vec<Box<dyn base::BaseWidget>>,
 }
 
-impl AssetWidget {
+impl DisplayWidget {
     pub fn new(key: Option<String>, data: AssetData, style: Style) -> Box<Self> {
         Box::new(Self {
             key,
@@ -32,10 +32,14 @@ impl AssetWidget {
     }
 }
 
-impl base::BaseWidget for AssetWidget {
+impl base::BaseWidget for DisplayWidget {
     fn calculate_layout(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
         let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(ctx, taffy)).collect();
-        let node = taffy.new_with_children(self.style, &children).unwrap();
+        let node = if children.len() > 0 {
+            taffy.new_with_children(self.style, &children).unwrap()
+        } else {
+            taffy.new_leaf(self.style).unwrap()
+        };
         self.node = Some(node);
         node
     }
@@ -99,7 +103,6 @@ impl base::BaseWidget for AssetWidget {
             );
 
             engine.ctx.images.queue(bind_group, self.data.asset_id.clone());
-
             self.children
                 .iter()
                 .for_each(|c| c.render(taffy, engine, input, state, &layout, params));

@@ -9,24 +9,17 @@ pub struct Slider {
 }
 
 impl Slider {
-    pub fn draw(&self) -> Box<AssetWidget> {
-        AssetWidget::new(
-            self.key.clone().into(),
-            AssetData {
-                visible: false,
-                ..Default::default()
+    pub fn draw(&self) -> Box<NodeWidget> {
+        NodeWidget::new(Style {
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            size: Size {
+                width: Dimension::Auto,
+                height: Dimension::Points(48.0),
             },
-            Style {
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                size: Size {
-                    width: Dimension::Auto,
-                    height: Dimension::Points(48.0),
-                },
-                ..Default::default()
-            },
-        )
-        .with_children(vec![AssetWidget::new(
+            ..Default::default()
+        })
+        .with_children(vec![DisplayWidget::new(
             None,
             AssetData {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
@@ -41,7 +34,7 @@ impl Slider {
             },
         )
         .with_children(vec![
-            AssetWidget::new(
+            DisplayWidget::new(
                 None,
                 AssetData {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),
@@ -55,7 +48,7 @@ impl Slider {
                     ..Default::default()
                 },
             ),
-            AssetWidget::new(
+            DisplayWidget::new(
                 None,
                 AssetData {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),

@@ -41,11 +41,11 @@ impl Button {
         Self { key: key.into() }
     }
 
-    pub fn draw(&self, props: ButtonProps) -> Box<AssetWidget> {
+    pub fn draw(&self, props: ButtonProps) -> Box<DisplayWidget> {
         let mut children: Vec<Box<dyn BaseWidget>> = vec![];
 
         if let Some((icon, size)) = props.icon.clone() {
-            children.push(AssetWidget::new(
+            children.push(DisplayWidget::new(
                 None,
                 AssetData {
                     asset_id: Some(icon),
@@ -70,7 +70,7 @@ impl Button {
             ));
         }
 
-        AssetWidget::new(
+        DisplayWidget::new(
             Some(self.key.clone()),
             AssetData {
                 background: props.background,
