@@ -43,6 +43,8 @@ impl Views {
 
     pub fn update(&mut self, engine: &mut engine::Engine, world: &mut World, frame_time: f32) {
         self.view.set(map_view_state(world));
+        self.state.locks.clear();
+
         let ui_scale_x = self.ui_scale * engine.ctx.viewport.get_aspect();
         let opacity = self.view.tick();
 

@@ -100,6 +100,10 @@ impl State {
     ) -> WidgetState {
         let mut state = WidgetState::None;
 
+        if key.is_none() {
+            return state;
+        }
+
         for (id, button) in input.mouse.iter() {
             if let Some(press_position) = on_element(&button.press_position, layout, scale) {
                 match button.state {
