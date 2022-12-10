@@ -9,6 +9,7 @@ use winit::event::VirtualKeyCode;
 pub mod joystick;
 pub mod mouse;
 
+// TODO: Should not be in engine!
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum UiActionCode {
     Attack,

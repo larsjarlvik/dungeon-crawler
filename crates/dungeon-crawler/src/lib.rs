@@ -2,13 +2,16 @@
 
 use crate::ui::Views;
 use cgmath::Point2;
-use engine::Settings;
+use engine::{
+    ecs::resources::{input::mouse::PressState, Input},
+    Settings,
+};
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::{Fullscreen, WindowBuilder},
 };
-use world::{resources::input::mouse::PressState, GameState};
+use world::GameState;
 
 mod config;
 mod map;
@@ -83,7 +86,7 @@ pub fn main() {
                         WindowEvent::KeyboardInput { input, .. } => {
                             state.keyboard(input);
 
-                            let input = state.world.components.get_resource::<world::resources::Input>().unwrap();
+                            let input = state.world.components.get_resource::<Input>().unwrap();
                             if input.is_pressed(VirtualKeyCode::Escape) {
                                 *control_flow = ControlFlow::Exit;
                             }

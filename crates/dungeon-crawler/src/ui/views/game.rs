@@ -2,12 +2,13 @@ use crate::{
     ui::style,
     world::{
         self, components,
-        resources::{self, input::UiActionCode},
+        resources::{self},
         GameState,
     },
 };
 use bevy_ecs::prelude::*;
 use cgmath::*;
+use engine::ecs::resources::{input::UiActionCode, Input};
 use ui::{components::*, prelude::*, widgets::*};
 
 fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> Box<AssetWidget> {
@@ -135,7 +136,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
 }
 
 pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
-    let mut input = world.components.get_resource_mut::<resources::Input>().unwrap();
+    let mut input = world.components.get_resource_mut::<Input>().unwrap();
     let menu_button = Button::new("menu_button");
     if ui_state.clicked(&menu_button.key).is_some() {
         world.game_state = GameState::MainMenu;

@@ -1,13 +1,12 @@
 use crate::{
     ui::{self, Views},
-    world::{
-        self,
-        resources::{self, input::mouse::PressState},
-        GameState,
-    },
+    world::{self, GameState},
 };
 use cgmath::*;
-use engine::file;
+use engine::{
+    ecs::resources::{input::mouse::PressState, Input},
+    file,
+};
 use std::time::Instant;
 use winit::{event::VirtualKeyCode, window::Window};
 
@@ -65,7 +64,7 @@ impl State {
 
     pub fn keyboard(&mut self, keyboard_input: &winit::event::KeyboardInput) {
         let r = {
-            let mut input = self.world.components.get_resource_mut::<world::resources::Input>().unwrap();
+            let mut input = self.world.components.get_resource_mut::<Input>().unwrap();
             input.keyboard(keyboard_input);
             input.key_state(VirtualKeyCode::R)
         };
@@ -76,12 +75,12 @@ impl State {
     }
 
     pub fn mouse_move(&mut self, id: u64, x: f32, y: f32) {
-        let mut input = self.world.components.get_resource_mut::<world::resources::Input>().unwrap();
+        let mut input = self.world.components.get_resource_mut::<Input>().unwrap();
         input.mouse_button(id).mouse_move(Point2::new(x, y));
     }
 
     pub fn mouse_press(&mut self, id: u64, touch: bool, pressed: bool) {
-        let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
+        let mut input = self.world.components.get_resource_mut::<Input>().unwrap();
         input.mouse_button(id).press(touch, pressed);
     }
 
@@ -98,7 +97,7 @@ impl State {
         self.engine.shadow_pipeline.update(&self.engine.ctx, &self.world.components);
         self.views.update(&mut self.engine, &mut self.world, last_frame);
 
-        let mut input = self.world.components.get_resource_mut::<resources::Input>().unwrap();
+        let mut input = self.world.components.get_resource_mut::<Input>().unwrap();
         let pressed_buttons = input.pressed_buttons();
         let views = &self.views;
 

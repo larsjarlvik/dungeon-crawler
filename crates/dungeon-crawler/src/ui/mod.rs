@@ -1,6 +1,6 @@
-use crate::world::{resources, GameState, World};
+use crate::world::{GameState, World};
 use cgmath::*;
-use engine::pipelines::ui_element::context::ImageContext;
+use engine::{ecs::resources::Input, pipelines::ui_element::context::ImageContext};
 mod transition;
 mod views;
 use ui::{prelude::*, widgets::*};
@@ -60,9 +60,11 @@ impl Views {
             ViewState::MainMenu => self.main_menu.draw(engine, &mut self.state, world),
         }]);
 
-        let input = world.components.get_resource_mut::<resources::Input>().unwrap();
+        let mut input = world.components.get_resource_mut::<Input>().unwrap();
         self.ui.render(
             engine,
+            &mut input,
+            &mut self.state,
             &mut root,
             ui_scale_x,
             self.ui_scale,
@@ -77,12 +79,10 @@ impl Views {
         );
 
         self.state.blocked = opacity < 1.0;
-        // self.input.process(&mut nodes, &mut self.state, world, scale);
     }
 
     pub fn is_click_through(&self, button_id: &u64) -> bool {
-        // self.input.locks.contains(button_id)
-        false
+        self.state.locks.contains(button_id)
     }
 }
 

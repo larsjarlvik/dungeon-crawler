@@ -13,6 +13,8 @@ impl Ui {
     pub fn render<'a>(
         &'a self,
         engine: &mut engine::Engine,
+        input: &mut engine::ecs::resources::Input,
+        state: &mut crate::state::State,
         root: &'a mut widgets::NodeWidget,
         width: f32,
         height: f32,
@@ -50,6 +52,6 @@ impl Ui {
             )
             .unwrap();
 
-        root.render(&mut taffy, engine, &root_layout, params);
+        root.render(&mut taffy, engine, input, state, &root_layout, params);
     }
 }

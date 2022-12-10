@@ -49,7 +49,15 @@ impl base::BaseWidget for TextWidget {
         node
     }
 
-    fn render(&self, taffy: &Taffy, engine: &mut engine::Engine, parent_layout: &NodeLayout, params: &RenderParams) {
+    fn render(
+        &self,
+        taffy: &Taffy,
+        engine: &mut engine::Engine,
+        _input: &mut engine::ecs::resources::Input,
+        _state: &mut crate::state::State,
+        parent_layout: &NodeLayout,
+        params: &RenderParams,
+    ) {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
         let position = Point2::new(layout.x * params.scale.x, layout.y * params.scale.y);

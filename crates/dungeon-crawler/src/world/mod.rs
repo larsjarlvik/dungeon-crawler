@@ -199,7 +199,7 @@ pub fn setup_world(ctx: &engine::Context) -> bevy_ecs::world::World {
     components.insert_resource(engine::ecs::resources::Time::default());
     components.insert_non_send_resource(engine::ecs::resources::SoundEffects::default());
     components.insert_non_send_resource(engine::ecs::resources::SoundAmbience::default());
-    components.insert_resource(resources::Input::default());
+    components.insert_resource(engine::ecs::resources::Input::default());
     components.insert_resource(resources::Fps::default());
 
     components

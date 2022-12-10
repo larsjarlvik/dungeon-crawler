@@ -999,6 +999,7 @@ dependencies = [
  "uuid",
  "wgpu",
  "wgpu_glyph",
+ "winit",
 ]
 
 [[package]]

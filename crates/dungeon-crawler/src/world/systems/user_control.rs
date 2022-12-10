@@ -3,11 +3,12 @@ use std::time::Duration;
 use crate::world::{components::Health, *};
 use bevy_ecs::prelude::*;
 use cgmath::*;
+use engine::ecs::resources::{input::UiActionCode, Input};
 use winit::event::VirtualKeyCode;
 
 pub fn user_control(
     mut commands: Commands,
-    input: Res<resources::Input>,
+    input: Res<Input>,
     mut query: ParamSet<(
         Query<
             (
@@ -87,7 +88,7 @@ pub fn user_control(
             });
         }
 
-        if input.is_pressed(VirtualKeyCode::Space) || input.ui.contains_key(&resources::input::UiActionCode::Attack) {
+        if input.is_pressed(VirtualKeyCode::Space) || input.ui.contains_key(&UiActionCode::Attack) {
             if let Some((_, _, direction)) = focus_target {
                 movement.direction = direction;
             };
@@ -97,9 +98,7 @@ pub fn user_control(
             }
         }
 
-        if (input.is_pressed(VirtualKeyCode::H) || input.ui.contains_key(&resources::input::UiActionCode::Health))
-            && stats.health.changes.is_empty()
-        {
+        if (input.is_pressed(VirtualKeyCode::H) || input.ui.contains_key(&UiActionCode::Health)) && stats.health.changes.is_empty() {
             // TODO: Health value
             stats.health.changes.push(components::HealthChange::new(
                 2.0,

@@ -1,5 +1,4 @@
 use super::{base, NodeLayout, RenderParams};
-use cgmath::*;
 use taffy::prelude::*;
 
 pub struct NodeWidget {
@@ -31,10 +30,20 @@ impl base::BaseWidget for NodeWidget {
         node
     }
 
-    fn render(&self, taffy: &Taffy, engine: &mut engine::Engine, parent_layout: &NodeLayout, params: &RenderParams) {
+    fn render(
+        &self,
+        taffy: &Taffy,
+        engine: &mut engine::Engine,
+        input: &mut engine::ecs::resources::Input,
+        state: &mut crate::state::State,
+        parent_layout: &NodeLayout,
+        params: &RenderParams,
+    ) {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
-        self.children.iter().for_each(|c| c.render(taffy, engine, &layout, params));
+        self.children
+            .iter()
+            .for_each(|c| c.render(taffy, engine, input, state, &layout, params));
     }
 }

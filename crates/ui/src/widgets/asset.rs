@@ -1,3 +1,5 @@
+use crate::WidgetState;
+
 use super::{
     base::{self},
     AssetData, NodeLayout, RenderParams,
@@ -39,19 +41,27 @@ impl base::BaseWidget for AssetWidget {
         node
     }
 
-    fn render<'a>(&self, taffy: &Taffy, engine: &mut engine::Engine, parent_layout: &NodeLayout, params: &RenderParams) {
+    fn render<'a>(
+        &self,
+        taffy: &Taffy,
+        engine: &mut engine::Engine,
+        input: &mut engine::ecs::resources::Input,
+        state: &mut crate::state::State,
+        parent_layout: &NodeLayout,
+        params: &RenderParams,
+    ) {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let layout = NodeLayout::new(parent_layout, layout);
 
         let position = Point2::new(layout.x * params.scale.x, layout.y * params.scale.y);
         let size = Point2::new(layout.width * params.scale.x, layout.height * params.scale.y);
 
-        // let background = match self.state {
-        //     RenderWidgetState::None => data.background,
-        //     RenderWidgetState::Hover | RenderWidgetState::Clicked => data.background_hover.unwrap_or(data.background),
-        //     RenderWidgetState::Pressed => data.background_pressed.unwrap_or(data.background),
-        // };
-        let background = self.data.background;
+        let widget_state = state.process(&self.key, &layout, input, params.scale);
+        let background = match widget_state {
+            WidgetState::None => self.data.background,
+            WidgetState::Hover | WidgetState::Clicked => self.data.background_hover.unwrap_or(self.data.background),
+            WidgetState::Pressed => self.data.background_pressed.unwrap_or(self.data.background),
+        };
 
         if self.data.visible {
             let (background_end, gradient_angle) = if let Some(gradient) = &self.data.gradient {
@@ -65,8 +75,7 @@ impl base::BaseWidget for AssetWidget {
                 context::Data {
                     position,
                     size,
-                    // background: self.state.get_transition(&self.key, self.data.background, frame_time),
-                    background,
+                    background: state.get_transition(&self.key, background, params.frame_time),
                     background_end,
                     gradient_angle,
                     foreground: self.data.foreground,
@@ -92,7 +101,9 @@ impl base::BaseWidget for AssetWidget {
 
             engine.ctx.images.queue(bind_group, self.data.asset_id.clone());
 
-            self.children.iter().for_each(|c| c.render(taffy, engine, &layout, params));
+            self.children
+                .iter()
+                .for_each(|c| c.render(taffy, engine, input, state, &layout, params));
         }
     }
 }
