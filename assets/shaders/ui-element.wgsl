@@ -27,7 +27,7 @@ fn vert_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     let y = i32(vertex_index) & 1;
     let tc = vec2<f32>(f32(x), f32(y));
     let size = uniforms.size + uniforms.border_radius + uniforms.shadow_radius * 2.0;
-    let position = uniforms.position - uniforms.shadow_radius;
+    let position = uniforms.position;
     let pos = tc * 2.0 * (size / uniforms.viewport_size) + ((position * 2.0 - 1.0) / uniforms.viewport_size);
 
     var result: VertexOutput;

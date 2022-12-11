@@ -108,7 +108,12 @@ impl base::BaseWidget for DisplayWidget {
         };
 
         if !self.data.overflow {
-            layout.clip = Some([layout.x as u32, layout.y as u32, layout.width as u32, layout.height as u32]);
+            layout.clip = Some([
+                (layout.x * params.scale.x) as u32,
+                (layout.y * params.scale.y) as u32,
+                (layout.width * params.scale.x) as u32,
+                (layout.height * params.scale.y) as u32,
+            ]);
         }
 
         if self.data.visible {

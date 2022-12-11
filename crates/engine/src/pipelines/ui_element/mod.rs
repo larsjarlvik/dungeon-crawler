@@ -72,6 +72,7 @@ impl UiElementPipeline {
             });
 
             {
+                // TODO: Do we need to create multiple render passes?
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("ui_element_render_pass"),
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {

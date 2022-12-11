@@ -22,13 +22,11 @@ impl Scroll {
             },
         )
         .with_children(vec![DisplayWidget::new(
-            DisplayWidgetProps {
-                background: vec4(1.0, 0.0, 0.0, 1.0),
-                ..Default::default()
-            },
+            DisplayWidgetProps { ..Default::default() },
             Style {
                 position_type: PositionType::Absolute,
                 flex_direction: FlexDirection::Column,
+                flex_grow: 1.0,
                 ..Default::default()
             },
         )
