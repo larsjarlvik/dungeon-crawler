@@ -63,7 +63,7 @@ impl ImageContext {
     pub fn create_item(engine: &mut Engine, data: Data, texture_id: Option<String>) -> RenderBundle {
         let builder = builders::RenderBundleBuilder::new(&engine.ctx, "asset");
 
-        let uniform_bind_group = if let Some(_) = texture_id.clone() {
+        let uniform_bind_group = if texture_id.is_some() {
             let uniform_buffer = engine.ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some("image_context_texture_buffer"),
                 contents: bytemuck::cast_slice(&[UniformsTextured {

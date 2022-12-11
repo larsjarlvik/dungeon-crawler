@@ -8,17 +8,9 @@ pub enum UiActionCode {
     Health,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct UserControl {
     pub ui_actions: FxHashMap<UiActionCode, PressState>,
-}
-
-impl Default for UserControl {
-    fn default() -> Self {
-        Self {
-            ui_actions: Default::default(),
-        }
-    }
 }
 
 impl UserControl {

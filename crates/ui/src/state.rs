@@ -113,7 +113,7 @@ impl State {
                         if !repeat {
                             state = WidgetState::Clicked;
                             self.set_event(
-                                &key,
+                                key,
                                 Event::Click(MouseData {
                                     x: (press_at.x - layout.x) / layout.width,
                                     y: (press_at.y - layout.y) / layout.height,
@@ -126,10 +126,9 @@ impl State {
                         state = WidgetState::Pressed;
 
                         if let Some(position) = button.position {
-                            // dbg!(press_at);
                             let position = to_relative(&position, scale);
                             self.set_event(
-                                &key,
+                                key,
                                 Event::MouseDown(MouseData {
                                     x: (position.x - layout.x) / layout.width,
                                     y: (position.y - layout.y) / layout.height,

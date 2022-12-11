@@ -1,3 +1,4 @@
+use cgmath::*;
 use taffy::prelude::*;
 use widgets::*;
 pub mod components;
@@ -16,8 +17,7 @@ impl Ui {
         input: &mut engine::ecs::resources::Input,
         state: &mut crate::state::State,
         root: &'a mut widgets::NodeWidget,
-        width: f32,
-        height: f32,
+        ui_scale: Point2<f32>,
         params: &mut RenderParams,
     ) {
         let mut taffy = Taffy::new();
@@ -25,8 +25,8 @@ impl Ui {
         let root_layout = NodeLayout {
             x: 0.0,
             y: 0.0,
-            width,
-            height,
+            width: ui_scale.x,
+            height: ui_scale.y,
             clip: None,
         };
 
@@ -35,8 +35,8 @@ impl Ui {
                 root_node,
                 Style {
                     size: Size {
-                        width: Dimension::Points(width),
-                        height: Dimension::Points(height),
+                        width: Dimension::Points(ui_scale.x),
+                        height: Dimension::Points(ui_scale.y),
                     },
                     ..Default::default()
                 },
@@ -47,12 +47,12 @@ impl Ui {
             .compute_layout(
                 root_node,
                 Size {
-                    width: AvailableSpace::Definite(width),
-                    height: AvailableSpace::Definite(height),
+                    width: AvailableSpace::Definite(ui_scale.x),
+                    height: AvailableSpace::Definite(ui_scale.y),
                 },
             )
             .unwrap();
 
-        root.render(&mut taffy, engine, input, state, &root_layout, params);
+        root.render(&taffy, engine, input, state, &root_layout, params);
     }
 }

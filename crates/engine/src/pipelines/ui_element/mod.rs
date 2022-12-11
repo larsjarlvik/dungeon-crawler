@@ -73,7 +73,7 @@ impl UiElementPipeline {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("ui_element_render_pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &target,
+                    view: target,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
@@ -85,10 +85,10 @@ impl UiElementPipeline {
 
             for (id, data) in ctx.images.queue.iter() {
                 if let Some(id) = id {
-                    let asset = ctx.images.textures.get(id.into()).expect("Could not find texture!");
+                    let asset = ctx.images.textures.get(id).expect("Could not find texture!");
 
                     render_pass.set_pipeline(&self.render_pipeline_textured.render_pipeline);
-                    render_pass.set_bind_group(self.texture_bind_group_layout.index as u32, &asset, &[]);
+                    render_pass.set_bind_group(self.texture_bind_group_layout.index as u32, asset, &[]);
                 } else {
                     render_pass.set_pipeline(&self.render_pipeline.render_pipeline);
                 }

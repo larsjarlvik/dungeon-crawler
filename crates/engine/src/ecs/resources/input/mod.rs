@@ -29,7 +29,7 @@ impl Input {
     }
 
     pub fn mouse_button(&mut self, id: u64) -> &mut MouseButton {
-        self.mouse.entry(id).or_insert_with(MouseButton::new)
+        self.mouse.entry(id).or_default()
     }
 
     pub fn key_state(&self, key: VirtualKeyCode) -> PressState {

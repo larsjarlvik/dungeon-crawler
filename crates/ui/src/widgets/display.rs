@@ -79,7 +79,7 @@ impl DisplayWidget {
 impl base::BaseWidget for DisplayWidget {
     fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node {
         let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(engine, taffy)).collect();
-        let node = if children.len() > 0 {
+        let node = if !children.is_empty() {
             taffy.new_with_children(self.style, &children).unwrap()
         } else {
             taffy.new_leaf(self.style).unwrap()

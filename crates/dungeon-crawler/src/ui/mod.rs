@@ -44,12 +44,12 @@ impl Views {
         self.view.set(map_view_state(world));
         self.state.locks.clear();
 
-        let ui_scale_x = self.ui_scale * engine.ctx.viewport.get_aspect();
+        let ui_scale = point2(self.ui_scale * engine.ctx.viewport.get_aspect(), self.ui_scale);
         let opacity = self.view.tick();
 
         let mut root = NodeWidget::new(Style {
             size: Size {
-                width: Dimension::Points(ui_scale_x),
+                width: Dimension::Points(ui_scale.x),
                 height: Dimension::Percent(self.ui_scale),
             },
             ..Default::default()
@@ -67,12 +67,11 @@ impl Views {
             &mut input,
             &mut self.state,
             &mut root,
-            ui_scale_x,
-            self.ui_scale,
+            ui_scale,
             &mut RenderParams {
                 scale: point2(
-                    engine.ctx.viewport.width as f32 / ui_scale_x,
-                    engine.ctx.viewport.height as f32 / self.ui_scale,
+                    engine.ctx.viewport.width as f32 / ui_scale.x,
+                    engine.ctx.viewport.height as f32 / ui_scale.y,
                 ),
                 opacity,
                 frame_time,

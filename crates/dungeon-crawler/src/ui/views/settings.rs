@@ -208,7 +208,7 @@ fn create_slider<F: FnOnce(f32)>(ui_state: &mut ui::State, key: &str, value: f32
 }
 
 fn create_checkbox<F: FnOnce()>(ui_state: &mut ui::State, key: &str, checked: bool, handle: F) -> Checkbox {
-    if ui_state.clicked(&key.to_string()).is_some() {
+    if ui_state.clicked(key).is_some() {
         handle();
     }
 
