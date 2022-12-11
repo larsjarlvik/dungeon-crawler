@@ -78,10 +78,7 @@ impl Settings {
         })
         .with_children(vec![
             self.scroll.draw(
-                ScrollProps {
-                    padding: Rect::from_points(style::SM, style::SM, style::SM, 0.0),
-                    ..Default::default()
-                },
+                ScrollProps::default(),
                 vec![
                     TextWidget::new(
                         TextData {
