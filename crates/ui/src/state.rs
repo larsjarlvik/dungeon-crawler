@@ -66,7 +66,7 @@ impl State {
         }
     }
 
-    pub fn clicked(&mut self, key: &String) -> Option<MouseData> {
+    pub fn clicked(&mut self, key: &str) -> Option<MouseData> {
         if self.blocked {
             return None;
         }
@@ -105,7 +105,7 @@ impl State {
         }
 
         for (id, button) in input.mouse.iter() {
-            if let Some(press_position) = on_element(&button.press_position, layout, scale) {
+            if let Some(press_at) = on_element(&button.press_position, layout, scale) {
                 match button.state {
                     mouse::PressState::Released(repeat) => {
                         self.locks.remove(id);
@@ -115,8 +115,8 @@ impl State {
                             self.set_event(
                                 &key,
                                 Event::Click(MouseData {
-                                    x: (press_position.x - layout.x) / layout.width,
-                                    y: (press_position.y - layout.y) / layout.height,
+                                    x: (press_at.x - layout.x) / layout.width,
+                                    y: (press_at.y - layout.y) / layout.height,
                                 }),
                             );
                         }
@@ -126,6 +126,7 @@ impl State {
                         state = WidgetState::Pressed;
 
                         if let Some(position) = button.position {
+                            // dbg!(press_at);
                             let position = to_relative(&position, scale);
                             self.set_event(
                                 &key,
@@ -157,9 +158,22 @@ fn to_relative(mp: &Point2<f32>, scale: Point2<f32>) -> Point2<f32> {
 
 fn on_element(mp: &Option<Point2<f32>>, layout: &NodeLayout, scale: Point2<f32>) -> Option<Point2<f32>> {
     if let Some(mp) = mp {
-        let mp = to_relative(mp, scale);
-        if mp.x >= layout.x && mp.y >= layout.y && mp.x <= layout.x + layout.width && mp.y <= layout.y + layout.height {
-            Some(mp)
+        let mpr = to_relative(mp, scale);
+
+        if mpr.x >= layout.x && mpr.y >= layout.y && mpr.x <= layout.x + layout.width && mpr.y <= layout.y + layout.height {
+            if let Some(clip) = layout.clip {
+                if mp.x >= clip[0] as f32
+                    && mp.y >= clip[1] as f32
+                    && mp.x <= (clip[0] + clip[2]) as f32
+                    && mp.y <= (clip[1] + clip[3]) as f32
+                {
+                    Some(mpr)
+                } else {
+                    None
+                }
+            } else {
+                Some(mpr)
+            }
         } else {
             None
         }

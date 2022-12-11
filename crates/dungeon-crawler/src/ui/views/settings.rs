@@ -7,14 +7,14 @@ use ui::widgets::*;
 
 pub struct Settings {
     settings: engine::Settings,
-    slider_pos: f32,
+    scroll: Scroll,
 }
 
 impl Settings {
     pub fn new(ctx: &engine::Context) -> Settings {
         Self {
             settings: ctx.settings,
-            slider_pos: 0.0,
+            scroll: Scroll::new("settings_scroll", 0.0),
         }
     }
 
@@ -55,10 +55,7 @@ impl Settings {
             self.settings.audio_ambient = (val * 20.0).round() / 20.0;
         });
 
-        if let Some(mouse) = ui_state.mouse_down("settings_scroll") {
-            self.slider_pos += mouse.y.max(0.0).min(1.0);
-        }
-
+        self.scroll.handle_state(ui_state);
         let apply_settings = Button::new("apply_settings");
         if ui_state.clicked(&apply_settings.key).is_some() {
             self.settings.store();
@@ -80,9 +77,10 @@ impl Settings {
             ..Default::default()
         })
         .with_children(vec![
-            Scroll::new("settings_scroll", self.slider_pos).draw(
+            self.scroll.draw(
                 ScrollProps {
                     padding: Rect::from_points(style::SM, style::SM, style::SM, 0.0),
+                    ..Default::default()
                 },
                 vec![
                     TextWidget::new(

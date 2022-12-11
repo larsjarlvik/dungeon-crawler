@@ -1,27 +1,48 @@
-use crate::widgets::*;
+use crate::{widgets::*, State};
 use cgmath::*;
 use taffy::prelude::*;
 
 pub struct Scroll {
     key: String,
     position: f32,
+    mouse_offset: Option<f32>,
 }
 
 pub struct ScrollProps {
     pub padding: Rect<Dimension>,
+    pub background: Vector4<f32>,
 }
 
 impl Default for ScrollProps {
     fn default() -> Self {
         Self {
             padding: Default::default(),
+            background: Vector4::zero(),
         }
     }
 }
 
 impl Scroll {
     pub fn new(key: &str, position: f32) -> Self {
-        Self { key: key.into(), position }
+        Self {
+            key: key.into(),
+            position,
+            mouse_offset: None,
+        }
+    }
+
+    pub fn handle_state(&mut self, ui_state: &mut State) {
+        if let Some(_) = ui_state.clicked(&self.key) {
+            self.mouse_offset = None;
+        }
+
+        if let Some(mouse) = ui_state.mouse_down(&self.key) {
+            if let Some(initial_pos) = self.mouse_offset {
+                self.position = (initial_pos + mouse.y).max(0.0).min(1.0);
+            } else {
+                self.mouse_offset = Some(self.position - mouse.y);
+            }
+        }
     }
 
     pub fn draw(&self, props: ScrollProps, children: Vec<Box<dyn BaseWidget>>) -> Box<NodeWidget> {
@@ -37,7 +58,7 @@ impl Scroll {
             DisplayWidget::new(
                 DisplayWidgetProps {
                     overflow: false,
-                    background: vec4(0.0, 0.0, 0.0, 0.2),
+                    background: props.background,
                     ..Default::default()
                 },
                 Style {

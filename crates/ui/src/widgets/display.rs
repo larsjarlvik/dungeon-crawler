@@ -100,7 +100,7 @@ impl base::BaseWidget for DisplayWidget {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let mut layout = NodeLayout::new(parent_layout, layout);
 
-        if parent_layout.width < layout.width || !self.data.locked_offset {
+        if parent_layout.width < layout.width {
             layout.x += self.data.offset.x * (parent_layout.width - layout.width).abs();
         }
         if parent_layout.height < layout.height || !self.data.locked_offset {
