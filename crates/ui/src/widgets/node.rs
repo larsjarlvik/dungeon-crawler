@@ -30,8 +30,8 @@ impl NodeWidget {
 }
 
 impl base::BaseWidget for NodeWidget {
-    fn calculate_layout(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
-        let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(ctx, taffy)).collect();
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node {
+        let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(engine, taffy)).collect();
         let node = taffy.new_with_children(self.style, &children).unwrap();
         self.node = Some(node);
         node

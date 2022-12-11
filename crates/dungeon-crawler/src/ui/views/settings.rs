@@ -72,47 +72,49 @@ impl Settings {
             ..Default::default()
         })
         .with_children(vec![
-            TextWidget::new(
-                TextData {
-                    size: style::HEADING2,
-                    text: "Graphics".into(),
-                },
-                Rect::from_points(0.0, 0.0, 0.0, style::SM),
-                AlignSelf::FlexStart,
-            ),
-            setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
-            setting(
-                "Render scale:",
-                render_scale.draw(),
-                Some(format!("{:.0}%", render_scale.value)),
-            ),
-            setting("UI scale:", ui_scale.draw(), Some(format!("{:.0}%", ui_scale.value * 100.0))),
-            setting(
-                "Shadow quality:",
-                shadow_quality.draw(),
-                Some(format!("{:.2}", shadow_quality.value)),
-            ),
-            setting("Anti aliasing:", anti_aliasing.draw(), None),
-            setting("Sharpen:", sharpen.draw(), None),
-            setting("Show FPS:", show_fps.draw(), None),
-            TextWidget::new(
-                TextData {
-                    size: style::HEADING2,
-                    text: "Sound".into(),
-                },
-                Rect::from_points(0.0, 0.0, style::SL, style::SM),
-                AlignSelf::FlexStart,
-            ),
-            setting(
-                "Effects:",
-                audio_effects.draw(),
-                Some(format!("{:.0}%", audio_effects.value * 100.0)),
-            ),
-            setting(
-                "Ambient:",
-                audio_ambient.draw(),
-                Some(format!("{:.0}%", audio_ambient.value * 100.0)),
-            ),
+            Scroll::new().draw(vec![
+                TextWidget::new(
+                    TextData {
+                        size: style::HEADING2,
+                        text: "Graphics".into(),
+                    },
+                    Rect::from_points(0.0, 0.0, 0.0, style::SM),
+                    AlignSelf::FlexStart,
+                ),
+                setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
+                setting(
+                    "Render scale:",
+                    render_scale.draw(),
+                    Some(format!("{:.0}%", render_scale.value)),
+                ),
+                setting("UI scale:", ui_scale.draw(), Some(format!("{:.0}%", ui_scale.value * 100.0))),
+                setting(
+                    "Shadow quality:",
+                    shadow_quality.draw(),
+                    Some(format!("{:.2}", shadow_quality.value)),
+                ),
+                setting("Anti aliasing:", anti_aliasing.draw(), None),
+                setting("Sharpen:", sharpen.draw(), None),
+                setting("Show FPS:", show_fps.draw(), None),
+                TextWidget::new(
+                    TextData {
+                        size: style::HEADING2,
+                        text: "Sound".into(),
+                    },
+                    Rect::from_points(0.0, 0.0, style::SL, style::SM),
+                    AlignSelf::FlexStart,
+                ),
+                setting(
+                    "Effects:",
+                    audio_effects.draw(),
+                    Some(format!("{:.0}%", audio_effects.value * 100.0)),
+                ),
+                setting(
+                    "Ambient:",
+                    audio_ambient.draw(),
+                    Some(format!("{:.0}%", audio_ambient.value * 100.0)),
+                ),
+            ]),
             NodeWidget::new(Style {
                 margin: Rect::from_points(0.0, 0.0, style::SL, style::SL),
                 ..Default::default()

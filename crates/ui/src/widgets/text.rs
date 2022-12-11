@@ -3,7 +3,7 @@ use super::{
     NodeLayout, RenderParams,
 };
 use cgmath::{Point2, Vector4};
-use engine::pipelines::{glyph::GlyphProps, GlyphPipeline};
+use engine::pipelines::glyph::GlyphProps;
 use taffy::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -31,8 +31,8 @@ impl TextWidget {
 }
 
 impl base::BaseWidget for TextWidget {
-    fn calculate_layout(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
-        let size = engine::pipelines::glyph::get_bounds(ctx, &self.data.text, self.data.size);
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node {
+        let size = engine.glyph_pipeline.get_bounds(&self.data.text, self.data.size);
 
         let node = taffy
             .new_leaf(Style {
@@ -62,8 +62,8 @@ impl base::BaseWidget for TextWidget {
         let layout = NodeLayout::new(parent_layout, layout);
         let position = Point2::new(layout.x * params.scale.x, layout.y * params.scale.y);
 
-        GlyphPipeline::queue(
-            &mut engine.ctx,
+        engine.glyph_pipeline.queue(
+            Some(params.clip),
             GlyphProps {
                 position,
                 text: self.data.text.clone(),

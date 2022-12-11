@@ -26,15 +26,17 @@ impl NodeLayout {
     }
 }
 
+pub type Clip = [u32; 4];
+
 pub struct RenderParams {
     pub scale: Point2<f32>,
     pub opacity: f32,
     pub frame_time: f32,
-    pub clip: [u32; 4],
+    pub clip: Clip,
 }
 
 pub trait BaseWidget {
-    fn calculate_layout(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node;
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node;
     fn render(
         &self,
         taffy: &Taffy,

@@ -73,8 +73,8 @@ impl DisplayWidget {
 }
 
 impl base::BaseWidget for DisplayWidget {
-    fn calculate_layout(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
-        let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(ctx, taffy)).collect();
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node {
+        let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(engine, taffy)).collect();
         let node = if children.len() > 0 {
             taffy.new_with_children(self.style, &children).unwrap()
         } else {
@@ -100,6 +100,7 @@ impl base::BaseWidget for DisplayWidget {
         let size = Point2::new(layout.width * params.scale.x, layout.height * params.scale.y);
 
         let widget_state = state.process(&self.key, &layout, input, params.scale);
+
         let background = match widget_state {
             WidgetState::None => self.data.background,
             WidgetState::Hover | WidgetState::Clicked => self.data.background_hover.unwrap_or(self.data.background),

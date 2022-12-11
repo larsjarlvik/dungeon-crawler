@@ -21,7 +21,7 @@ impl Ui {
         params: &mut RenderParams,
     ) {
         let mut taffy = Taffy::new();
-        let root_node = root.calculate_layout(&mut engine.ctx, &mut taffy);
+        let root_node = root.calculate_layout(engine, &mut taffy);
         let root_layout = NodeLayout {
             x: 0.0,
             y: 0.0,
