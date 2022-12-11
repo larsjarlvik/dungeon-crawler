@@ -56,7 +56,7 @@ impl Settings {
         });
 
         if let Some(mouse) = ui_state.mouse_down("settings_scroll") {
-            self.slider_pos = mouse.y.max(0.0).min(1.0);
+            self.slider_pos += mouse.y.max(0.0).min(1.0);
         }
 
         let apply_settings = Button::new("apply_settings");

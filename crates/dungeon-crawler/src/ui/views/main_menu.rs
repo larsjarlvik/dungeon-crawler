@@ -101,7 +101,7 @@ impl MainMenu {
                 ..Default::default()
             },
             Style {
-                padding: Rect::<Dimension>::from_points(style::SL, style::SM, style::SL, style::SM),
+                padding: Rect::<Dimension>::from_points(style::SL, style::SL, style::SL, style::SM),
                 size: Size {
                     width: Dimension::Percent(1.0),
                     height: Dimension::Percent(1.0),

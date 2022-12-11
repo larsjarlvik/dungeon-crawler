@@ -26,6 +26,8 @@ impl Scroll {
 
     pub fn draw(&self, props: ScrollProps, children: Vec<Box<dyn BaseWidget>>) -> Box<NodeWidget> {
         let handle_color = vec4(1.0, 1.0, 1.0, 0.7);
+        let handle_width = 20.0;
+        let handle_padding = 7.0;
 
         NodeWidget::new(Style {
             flex_grow: 1.0,
@@ -51,6 +53,7 @@ impl Scroll {
             .with_children(vec![DisplayWidget::new(
                 DisplayWidgetProps {
                     offset: vec2(0.0, -self.position),
+                    locked_offset: true,
                     ..Default::default()
                 },
                 Style {
@@ -69,7 +72,7 @@ impl Scroll {
                 },
                 Style {
                     size: Size {
-                        width: Dimension::Points(20.0),
+                        width: Dimension::Points(handle_width),
                         height: Dimension::Auto,
                     },
                     ..Default::default()
@@ -88,13 +91,30 @@ impl Scroll {
                     position_type: PositionType::Absolute,
                     size: Size {
                         width: Dimension::Percent(1.0),
-                        height: Dimension::Points(100.0),
+                        height: Dimension::Percent(0.3),
                     },
                     ..Default::default()
                 },
             )
-            .with_key(format!("{}_handle", self.key).as_str())])
-            .with_key(self.key.as_str()),
+            .with_key(format!("{}_handle", self.key).as_str())]),
+            NodeWidget::new(Style {
+                flex_direction: FlexDirection::RowReverse,
+                size: Size {
+                    width: Dimension::Points(1.0),
+                    height: Dimension::Percent(1.0),
+                },
+                ..Default::default()
+            })
+            .with_children(vec![NodeWidget::new(Style {
+                position_type: PositionType::Absolute,
+                position: Rect::<Dimension>::from_points(-(handle_width * handle_padding + handle_width) / 2.0, 0.0, 0.0, 0.0),
+                size: Size {
+                    width: Dimension::Points(handle_width * handle_padding),
+                    height: Dimension::Percent(1.0),
+                },
+                ..Default::default()
+            })
+            .with_key(self.key.as_str())]),
         ])
     }
 }

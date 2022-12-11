@@ -22,6 +22,7 @@ pub struct DisplayWidgetProps {
     pub overflow: bool,
     pub visible: bool,
     pub offset: Vector2<f32>,
+    pub locked_offset: bool,
 }
 
 impl Default for DisplayWidgetProps {
@@ -40,6 +41,7 @@ impl Default for DisplayWidgetProps {
             overflow: true,
             visible: true,
             offset: Vector2::new(0.0, 0.0),
+            locked_offset: false,
         }
     }
 }
@@ -98,8 +100,12 @@ impl base::BaseWidget for DisplayWidget {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
         let mut layout = NodeLayout::new(parent_layout, layout);
 
-        layout.x += self.data.offset.x * (parent_layout.width - layout.width).abs();
-        layout.y += self.data.offset.y * (parent_layout.height - layout.height).abs();
+        if parent_layout.width < layout.width || !self.data.locked_offset {
+            layout.x += self.data.offset.x * (parent_layout.width - layout.width).abs();
+        }
+        if parent_layout.height < layout.height || !self.data.locked_offset {
+            layout.y += self.data.offset.y * (parent_layout.height - layout.height).abs();
+        }
 
         let position = Point2::new(layout.x * params.scale.x, layout.y * params.scale.y);
         let size = Point2::new(layout.width * params.scale.x, layout.height * params.scale.y);
