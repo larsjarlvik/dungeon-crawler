@@ -63,7 +63,7 @@ impl base::BaseWidget for TextWidget {
         let position = Point2::new(layout.x * params.scale.x, layout.y * params.scale.y);
 
         engine.glyph_pipeline.queue(
-            Some(params.clip),
+            parent_layout.clip,
             GlyphProps {
                 position,
                 text: self.data.text.clone(),

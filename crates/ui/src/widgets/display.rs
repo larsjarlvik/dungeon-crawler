@@ -94,7 +94,7 @@ impl base::BaseWidget for DisplayWidget {
         params: &mut RenderParams,
     ) {
         let layout = taffy.layout(self.node.unwrap()).expect("Failed to layout node!");
-        let layout = NodeLayout::new(parent_layout, layout);
+        let mut layout = NodeLayout::new(parent_layout, layout);
 
         let position = Point2::new(layout.x * params.scale.x, layout.y * params.scale.y);
         let size = Point2::new(layout.width * params.scale.x, layout.height * params.scale.y);
@@ -108,7 +108,7 @@ impl base::BaseWidget for DisplayWidget {
         };
 
         if !self.data.overflow {
-            params.clip = [layout.x as u32, layout.y as u32, layout.width as u32, layout.height as u32];
+            layout.clip = Some([layout.x as u32, layout.y as u32, layout.width as u32, layout.height as u32]);
         }
 
         if self.data.visible {
@@ -143,7 +143,7 @@ impl base::BaseWidget for DisplayWidget {
                     },
                     shadow_color: self.data.shadow_color,
                     opacity: params.opacity,
-                    clip: params.clip,
+                    clip: layout.clip,
                 },
                 self.data.asset_id.clone(),
             );

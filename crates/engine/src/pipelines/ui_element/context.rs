@@ -25,12 +25,12 @@ pub struct Data {
     pub shadow_radius: f32,
     pub shadow_color: Vector4<f32>,
     pub shadow_offset: Vector2<f32>,
-    pub clip: [u32; 4],
+    pub clip: Option<[u32; 4]>,
 }
 
 pub struct RenderBundle {
     pub uniform_bind_group: wgpu::BindGroup,
-    pub clip: [u32; 4],
+    pub clip: Option<[u32; 4]>,
 }
 
 #[derive(Default)]

@@ -76,7 +76,6 @@ impl Views {
                 ),
                 opacity,
                 frame_time,
-                clip: [0, 0, engine.ctx.viewport.width, engine.ctx.viewport.height],
             },
         );
 

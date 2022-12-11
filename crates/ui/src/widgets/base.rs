@@ -9,6 +9,7 @@ pub struct Gradient {
 
 #[derive(Debug, Clone)]
 pub struct NodeLayout {
+    pub clip: Option<[u32; 4]>,
     pub width: f32,
     pub height: f32,
     pub x: f32,
@@ -22,6 +23,7 @@ impl NodeLayout {
             y: parent_layout.y + layout.location.y,
             width: layout.size.width,
             height: layout.size.height,
+            clip: parent_layout.clip,
         }
     }
 }
@@ -32,7 +34,6 @@ pub struct RenderParams {
     pub scale: Point2<f32>,
     pub opacity: f32,
     pub frame_time: f32,
-    pub clip: Clip,
 }
 
 pub trait BaseWidget {

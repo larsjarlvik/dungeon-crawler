@@ -27,6 +27,7 @@ impl Ui {
             y: 0.0,
             width,
             height,
+            clip: None,
         };
 
         taffy

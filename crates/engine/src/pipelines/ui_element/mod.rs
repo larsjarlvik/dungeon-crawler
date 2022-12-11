@@ -94,12 +94,15 @@ impl UiElementPipeline {
                     render_pass.set_pipeline(&self.render_pipeline.render_pipeline);
                 }
 
-                render_pass.set_scissor_rect(
-                    data.clip[0],
-                    data.clip[1],
-                    data.clip[2].min(ctx.viewport.width - data.clip[0]),
-                    data.clip[3].min(ctx.viewport.height - data.clip[1]),
-                );
+                if let Some(clip) = data.clip {
+                    render_pass.set_scissor_rect(
+                        clip[0],
+                        clip[1],
+                        clip[2].min(ctx.viewport.width - clip[0]),
+                        clip[3].min(ctx.viewport.height - clip[1]),
+                    );
+                }
+
                 render_pass.set_bind_group(self.uniform_bind_group_layout.index as u32, &data.uniform_bind_group, &[]);
                 render_pass.draw(0..4, 0..1);
             }
