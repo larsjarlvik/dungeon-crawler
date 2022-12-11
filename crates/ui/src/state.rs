@@ -81,7 +81,7 @@ impl State {
         None
     }
 
-    pub fn mouse_down(&mut self, key: &String) -> Option<MouseData> {
+    pub fn mouse_down(&mut self, key: &str) -> Option<MouseData> {
         if let Some(Event::MouseDown(data)) = self.events.get(key) {
             let data = *data;
             self.events.remove(key);

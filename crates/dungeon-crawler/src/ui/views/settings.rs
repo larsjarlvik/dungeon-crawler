@@ -7,11 +7,15 @@ use ui::widgets::*;
 
 pub struct Settings {
     settings: engine::Settings,
+    slider_pos: f32,
 }
 
 impl Settings {
     pub fn new(ctx: &engine::Context) -> Settings {
-        Self { settings: ctx.settings }
+        Self {
+            settings: ctx.settings,
+            slider_pos: 0.0,
+        }
     }
 
     pub fn draw(&mut self, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
@@ -51,6 +55,10 @@ impl Settings {
             self.settings.audio_ambient = (val * 20.0).round() / 20.0;
         });
 
+        if let Some(mouse) = ui_state.mouse_down("settings_scroll") {
+            self.slider_pos = mouse.y.max(0.0).min(1.0);
+        }
+
         let apply_settings = Button::new("apply_settings");
         if ui_state.clicked(&apply_settings.key).is_some() {
             self.settings.store();
@@ -72,49 +80,54 @@ impl Settings {
             ..Default::default()
         })
         .with_children(vec![
-            Scroll::new().draw(vec![
-                TextWidget::new(
-                    TextData {
-                        size: style::HEADING2,
-                        text: "Graphics".into(),
-                    },
-                    Rect::from_points(0.0, 0.0, 0.0, style::SM),
-                    AlignSelf::FlexStart,
-                ),
-                setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
-                setting(
-                    "Render scale:",
-                    render_scale.draw(),
-                    Some(format!("{:.0}%", render_scale.value)),
-                ),
-                setting("UI scale:", ui_scale.draw(), Some(format!("{:.0}%", ui_scale.value * 100.0))),
-                setting(
-                    "Shadow quality:",
-                    shadow_quality.draw(),
-                    Some(format!("{:.2}", shadow_quality.value)),
-                ),
-                setting("Anti aliasing:", anti_aliasing.draw(), None),
-                setting("Sharpen:", sharpen.draw(), None),
-                setting("Show FPS:", show_fps.draw(), None),
-                TextWidget::new(
-                    TextData {
-                        size: style::HEADING2,
-                        text: "Sound".into(),
-                    },
-                    Rect::from_points(0.0, 0.0, style::SL, style::SM),
-                    AlignSelf::FlexStart,
-                ),
-                setting(
-                    "Effects:",
-                    audio_effects.draw(),
-                    Some(format!("{:.0}%", audio_effects.value * 100.0)),
-                ),
-                setting(
-                    "Ambient:",
-                    audio_ambient.draw(),
-                    Some(format!("{:.0}%", audio_ambient.value * 100.0)),
-                ),
-            ]),
+            Scroll::new("settings_scroll", self.slider_pos).draw(
+                ScrollProps {
+                    padding: Rect::from_points(style::SM, style::SM, style::SM, 0.0),
+                },
+                vec![
+                    TextWidget::new(
+                        TextData {
+                            size: style::HEADING2,
+                            text: "Graphics".into(),
+                        },
+                        Rect::from_points(0.0, 0.0, 0.0, style::SM),
+                        AlignSelf::FlexStart,
+                    ),
+                    setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
+                    setting(
+                        "Render scale:",
+                        render_scale.draw(),
+                        Some(format!("{:.0}%", render_scale.value)),
+                    ),
+                    setting("UI scale:", ui_scale.draw(), Some(format!("{:.0}%", ui_scale.value * 100.0))),
+                    setting(
+                        "Shadow quality:",
+                        shadow_quality.draw(),
+                        Some(format!("{:.2}", shadow_quality.value)),
+                    ),
+                    setting("Anti aliasing:", anti_aliasing.draw(), None),
+                    setting("Sharpen:", sharpen.draw(), None),
+                    setting("Show FPS:", show_fps.draw(), None),
+                    TextWidget::new(
+                        TextData {
+                            size: style::HEADING2,
+                            text: "Sound".into(),
+                        },
+                        Rect::from_points(0.0, 0.0, style::SL, style::SM),
+                        AlignSelf::FlexStart,
+                    ),
+                    setting(
+                        "Effects:",
+                        audio_effects.draw(),
+                        Some(format!("{:.0}%", audio_effects.value * 100.0)),
+                    ),
+                    setting(
+                        "Ambient:",
+                        audio_ambient.draw(),
+                        Some(format!("{:.0}%", audio_ambient.value * 100.0)),
+                    ),
+                ],
+            ),
             NodeWidget::new(Style {
                 margin: Rect::from_points(0.0, 0.0, style::SL, style::SL),
                 ..Default::default()
@@ -185,7 +198,7 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> 
 }
 
 fn create_slider<F: FnOnce(f32)>(ui_state: &mut ui::State, key: &str, value: f32, max_value: f32, handle: F) -> Slider {
-    if let Some(mouse) = ui_state.mouse_down(&key.to_string()) {
+    if let Some(mouse) = ui_state.mouse_down(key) {
         handle(mouse.x.max(0.0).min(1.0));
     }
 
