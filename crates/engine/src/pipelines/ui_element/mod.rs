@@ -65,27 +65,25 @@ impl UiElementPipeline {
 
     pub fn render(&self, ctx: &mut Context, target: &wgpu::TextureView) {
         let mut command_buffers = vec![];
+        let mut encoder = ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("ui_element_encoder"),
+        });
 
-        for (id, data) in ctx.images.queue.iter() {
-            let mut encoder = ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("ui_element_encoder"),
+        {
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("ui_element_render_pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &target,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: true,
+                    },
+                })],
+                depth_stencil_attachment: None,
             });
 
-            {
-                // TODO: Do we need to create multiple render passes?
-                let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                    label: Some("ui_element_render_pass"),
-                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: &target,
-                        resolve_target: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
-                            store: true,
-                        },
-                    })],
-                    depth_stencil_attachment: None,
-                });
-
+            for (id, data) in ctx.images.queue.iter() {
                 if let Some(id) = id {
                     let asset = ctx.images.textures.get(id.into()).expect("Could not find texture!");
 
@@ -102,14 +100,16 @@ impl UiElementPipeline {
                         clip[2].min(ctx.viewport.width - clip[0]),
                         clip[3].min(ctx.viewport.height - clip[1]),
                     );
+                } else {
+                    render_pass.set_scissor_rect(0, 0, ctx.viewport.width, ctx.viewport.height);
                 }
 
                 render_pass.set_bind_group(self.uniform_bind_group_layout.index as u32, &data.uniform_bind_group, &[]);
                 render_pass.draw(0..4, 0..1);
             }
-
-            command_buffers.push(encoder.finish());
         }
+
+        command_buffers.push(encoder.finish());
 
         ctx.queue.submit(command_buffers);
         ctx.images.queue.clear();
