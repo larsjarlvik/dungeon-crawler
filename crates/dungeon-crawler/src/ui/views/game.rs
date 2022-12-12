@@ -1,8 +1,9 @@
 use crate::{
     ui::style,
     world::{
-        self, components,
-        resources::{self, input::UiActionCode},
+        self,
+        components::{self, UiActionCode, UserControl},
+        resources::{self},
         GameState,
     },
 };
@@ -10,7 +11,7 @@ use bevy_ecs::prelude::*;
 use cgmath::*;
 use ui::{components::*, prelude::*, widgets::*};
 
-fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> Box<PanelWidget> {
+fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> Box<DisplayWidget> {
     Bar::default().draw(
         label,
         BarProps {
@@ -28,7 +29,7 @@ fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> B
     )
 }
 
-fn action_button(button: &Button, icon: &str, foreground: Vector3<f32>, icon_size: f32, padding: f32) -> Box<PanelWidget> {
+fn action_button(button: &Button, icon: &str, foreground: Vector3<f32>, icon_size: f32, padding: f32) -> Box<DisplayWidget> {
     button.draw(ButtonProps {
         icon: Some((icon.into(), icon_size)),
         border_radius: Dimension::Percent(0.5),
@@ -135,17 +136,18 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
 }
 
 pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
-    let mut input = world.components.get_resource_mut::<resources::Input>().unwrap();
     let menu_button = Button::new("menu_button");
-    if ui_state.clicked(&menu_button.key).is_some() {
+    if ui_state.clicked(&menu_button.key, true).is_some() {
         world.game_state = GameState::MainMenu;
     }
 
     let attack_button = Button::new("attack_button");
-    input.set_from_ui(UiActionCode::Attack, ui_state.mouse_down(&attack_button.key).is_some());
-
     let health_button = Button::new("health_button");
-    input.set_from_ui(UiActionCode::Health, ui_state.mouse_down(&health_button.key).is_some());
+
+    for mut user_control in world.components.query::<&mut UserControl>().iter_mut(&mut world.components) {
+        user_control.set_from_ui(UiActionCode::Attack, ui_state.mouse_down(&attack_button.key).is_some());
+        user_control.set_from_ui(UiActionCode::Health, ui_state.mouse_down(&health_button.key).is_some());
+    }
 
     NodeWidget::new(Style {
         flex_direction: FlexDirection::Column,

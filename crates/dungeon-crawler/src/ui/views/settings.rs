@@ -7,11 +7,15 @@ use ui::widgets::*;
 
 pub struct Settings {
     settings: engine::Settings,
+    scroll: Scroll,
 }
 
 impl Settings {
     pub fn new(ctx: &engine::Context) -> Settings {
-        Self { settings: ctx.settings }
+        Self {
+            settings: ctx.settings,
+            scroll: Scroll::new("settings_scroll", 0.0),
+        }
     }
 
     pub fn draw(&mut self, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
@@ -43,15 +47,24 @@ impl Settings {
             self.settings.show_fps = !self.settings.show_fps;
         });
 
+        let audio_effects = create_slider(ui_state, "audio_effects", self.settings.audio_effects, 1.0, |val| {
+            self.settings.audio_effects = (val * 20.0).round() / 20.0;
+        });
+
+        let audio_ambient = create_slider(ui_state, "audio_ambient", self.settings.audio_ambient, 1.0, |val| {
+            self.settings.audio_ambient = (val * 20.0).round() / 20.0;
+        });
+
+        self.scroll.handle_state(ui_state);
         let apply_settings = Button::new("apply_settings");
-        if ui_state.clicked(&apply_settings.key).is_some() {
+        if ui_state.clicked(&apply_settings.key, true).is_some() {
             self.settings.store();
             world.game_state = GameState::Reload;
         }
 
         let reset_settings = Button::new("reset_settings");
-        if ui_state.clicked(&reset_settings.key).is_some() {
-            self.settings = engine::Settings::load();
+        if ui_state.clicked(&reset_settings.key, true).is_some() {
+            self.settings = engine::Settings::default();
         }
 
         NodeWidget::new(Style {
@@ -64,23 +77,54 @@ impl Settings {
             ..Default::default()
         })
         .with_children(vec![
-            setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
-            setting(
-                "Render scale:",
-                render_scale.draw(),
-                Some(format!("{:.0}%", render_scale.value)),
+            self.scroll.draw(
+                ScrollProps::default(),
+                vec![
+                    TextWidget::new(
+                        TextData {
+                            size: style::HEADING2,
+                            text: "Graphics".into(),
+                        },
+                        Rect::from_points(0.0, 0.0, 0.0, style::SM),
+                        AlignSelf::FlexStart,
+                    ),
+                    setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
+                    setting(
+                        "Render scale:",
+                        render_scale.draw(),
+                        Some(format!("{:.0}%", render_scale.value)),
+                    ),
+                    setting("UI scale:", ui_scale.draw(), Some(format!("{:.0}%", ui_scale.value * 100.0))),
+                    setting(
+                        "Shadow quality:",
+                        shadow_quality.draw(),
+                        Some(format!("{:.2}", shadow_quality.value)),
+                    ),
+                    setting("Anti aliasing:", anti_aliasing.draw(), None),
+                    setting("Sharpen:", sharpen.draw(), None),
+                    setting("Show FPS:", show_fps.draw(), None),
+                    TextWidget::new(
+                        TextData {
+                            size: style::HEADING2,
+                            text: "Sound".into(),
+                        },
+                        Rect::from_points(0.0, 0.0, style::SL, style::SM),
+                        AlignSelf::FlexStart,
+                    ),
+                    setting(
+                        "Effects:",
+                        audio_effects.draw(),
+                        Some(format!("{:.0}%", audio_effects.value * 100.0)),
+                    ),
+                    setting(
+                        "Ambient:",
+                        audio_ambient.draw(),
+                        Some(format!("{:.0}%", audio_ambient.value * 100.0)),
+                    ),
+                ],
             ),
-            setting("UI scale:", ui_scale.draw(), Some(format!("{:.0}%", ui_scale.value * 100.0))),
-            setting(
-                "Shadow quality:",
-                shadow_quality.draw(),
-                Some(format!("{:.2}", shadow_quality.value)),
-            ),
-            setting("Anti aliasing:", anti_aliasing.draw(), None),
-            setting("Sharpen:", sharpen.draw(), None),
-            setting("Show FPS:", show_fps.draw(), None),
             NodeWidget::new(Style {
-                margin: Rect::from_points(0.0, 0.0, style::SM, 0.0),
+                margin: Rect::from_points(0.0, 0.0, style::SL, style::SL),
                 ..Default::default()
             })
             .with_children(vec![
@@ -149,7 +193,7 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> 
 }
 
 fn create_slider<F: FnOnce(f32)>(ui_state: &mut ui::State, key: &str, value: f32, max_value: f32, handle: F) -> Slider {
-    if let Some(mouse) = ui_state.mouse_down(&key.to_string()) {
+    if let Some(mouse) = ui_state.mouse_down(key) {
         handle(mouse.x.max(0.0).min(1.0));
     }
 
@@ -161,7 +205,7 @@ fn create_slider<F: FnOnce(f32)>(ui_state: &mut ui::State, key: &str, value: f32
 }
 
 fn create_checkbox<F: FnOnce()>(ui_state: &mut ui::State, key: &str, checked: bool, handle: F) -> Checkbox {
-    if ui_state.clicked(&key.to_string()).is_some() {
+    if ui_state.clicked(key, true).is_some() {
         handle();
     }
 

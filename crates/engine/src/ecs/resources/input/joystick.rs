@@ -1,7 +1,6 @@
 use super::mouse;
-use crate::config;
+use crate::{config, pipelines::joystick::JoystickProperties};
 use cgmath::*;
-use engine::pipelines::joystick::JoystickProperties;
 use fxhash::FxHashMap;
 
 #[derive(Debug, PartialEq, Eq)]

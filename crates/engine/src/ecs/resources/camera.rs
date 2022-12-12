@@ -15,6 +15,7 @@ pub struct Camera {
     pub proj: Matrix4<f32>,
     pub view_proj: Matrix4<f32>,
     pub frustum: frustum::Frustum,
+    pub rotation: Quaternion<f32>,
 }
 
 impl Default for Camera {
@@ -31,6 +32,7 @@ impl Default for Camera {
             proj: Matrix4::identity(),
             view_proj: Matrix4::identity(),
             frustum: frustum::Frustum::default(),
+            rotation: Quaternion::zero(),
         }
     }
 }
@@ -43,6 +45,7 @@ impl Camera {
         let view = Matrix4::look_at_rh(eye, Point3::from_vec(target), Vector3::unit_y());
         let proj = perspective(Deg(45.0), aspect, 1.0, config::Z_FAR);
         let view_proj = proj * view;
+        let rotation = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
 
         Self {
             target,
@@ -55,6 +58,7 @@ impl Camera {
             view,
             proj,
             view_proj,
+            rotation,
             frustum: frustum::Frustum::from_matrix(view_proj),
         }
     }
@@ -62,8 +66,8 @@ impl Camera {
     pub fn set(&mut self, target: Vector3<f32>) {
         self.target = target;
 
-        let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
-        let dist = rot
+        let dist = self
+            .rotation
             .rotate_point(point3(0.0, config::CAMERA_DISTANCE, config::CAMERA_DISTANCE * 0.6))
             .to_vec();
 

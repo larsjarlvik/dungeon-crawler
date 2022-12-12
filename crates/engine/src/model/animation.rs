@@ -66,12 +66,25 @@ impl<T: Interpolate> Channel<T> {
     }
 }
 
+#[derive(Clone, Debug, serde_derive::Deserialize)]
+pub struct RawSoundEffect {
+    sound_effect: String,
+    sound_effect_keyframes: Vec<usize>,
+}
+
+#[derive(Clone, Debug)]
+pub struct SoundEffect {
+    pub name: String,
+    pub timestamps: Vec<f32>,
+}
+
 #[derive(Clone, Debug)]
 pub struct Animation {
     translation_channels: Vec<Channel<Vector3<f32>>>,
     rotation_channels: Vec<Channel<Quaternion<f32>>>,
     scale_channels: Vec<Channel<Vector3<f32>>>,
     pub total_time: f32,
+    pub sound_effect: Option<SoundEffect>,
 }
 
 impl Animation {
@@ -96,16 +109,31 @@ impl Animation {
             .max_by(|c0, c1| c0.partial_cmp(c1).unwrap_or(Ordering::Equal))
             .unwrap_or(0.0);
 
-        let total_time = *[max_translation_time, max_rotation_time, max_scale_time]
-            .iter()
-            .max_by(|c0, c1| c0.partial_cmp(c1).unwrap_or(Ordering::Equal))
-            .unwrap_or(&0.0);
+        let total_time = max_translation_time.max(max_rotation_time).max(max_scale_time);
+
+        // TODO: This is not very safe, total keyframes can be more
+        let keyframes = translation_channels.iter().map(|c| c.sampler.times.len()).max().unwrap_or(0);
+
+        let sound_effect = if let Some(json) = animation.extras() {
+            let raw: RawSoundEffect = serde_json::from_str(json.get()).unwrap();
+            Some(SoundEffect {
+                name: raw.sound_effect,
+                timestamps: raw
+                    .sound_effect_keyframes
+                    .into_iter()
+                    .map(|keyframe| (keyframe as f32 / keyframes as f32) * total_time)
+                    .collect(),
+            })
+        } else {
+            None
+        };
 
         Self {
             translation_channels,
             rotation_channels,
             scale_channels,
             total_time,
+            sound_effect,
         }
     }
 

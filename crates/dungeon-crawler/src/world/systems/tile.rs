@@ -84,6 +84,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                             engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationStatus::Repeat),
                             engine::ecs::components::Transform::from_translation_scale(hostile.position, 0.8),
                             engine::ecs::components::Render { cull_frustum: true },
+                            engine::ecs::components::SoundEffects::default(),
                             components::Stats::new(10, 10, 12, components::stats::get_level_experience(3)),
                             components::Weapon {
                                 damage: 2.0..5.0,

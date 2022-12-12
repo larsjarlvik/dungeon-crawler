@@ -9,16 +9,10 @@ use winit::event::VirtualKeyCode;
 pub mod joystick;
 pub mod mouse;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub enum UiActionCode {
-    Attack,
-    Health,
-}
-
+// TODO: Should not be in engine!
 #[derive(Debug, Default, Resource)]
 pub struct Input {
     pub keys: FxHashMap<VirtualKeyCode, PressState>,
-    pub ui: FxHashMap<UiActionCode, PressState>,
     pub mouse: FxHashMap<u64, MouseButton>,
     pub joystick: Option<Joystick>,
     pub blocked: bool,
@@ -35,7 +29,7 @@ impl Input {
     }
 
     pub fn mouse_button(&mut self, id: u64) -> &mut MouseButton {
-        self.mouse.entry(id).or_insert_with(MouseButton::new)
+        self.mouse.entry(id).or_default()
     }
 
     pub fn key_state(&self, key: VirtualKeyCode) -> PressState {
@@ -70,13 +64,6 @@ impl Input {
                 PressState::Pressed(_) => button.state = PressState::Pressed(true),
             }
         }
-    }
-
-    pub fn set_from_ui(&mut self, action_code: UiActionCode, pressed: bool) {
-        match pressed {
-            true => self.ui.insert(action_code, PressState::Pressed(self.ui.contains_key(&action_code))),
-            false => self.ui.remove(&action_code),
-        };
     }
 
     pub fn pressed_buttons(&self) -> FxHashMap<u64, MouseButton> {

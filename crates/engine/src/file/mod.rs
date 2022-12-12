@@ -1,6 +1,7 @@
 mod assets;
 mod io;
 
+pub use io::exists;
 pub use io::read_file;
 pub use io::write_file;
 

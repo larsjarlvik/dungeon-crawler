@@ -12,6 +12,7 @@ mod primitive;
 pub mod skin;
 mod transform;
 mod vertex;
+
 use super::collision;
 pub use emitter::Emitter;
 pub use mesh::Mesh;
@@ -143,6 +144,14 @@ impl GltfModel {
             .iter()
             .filter(|e| e.name.split(|c| c == '_' || c == '.').any(|x| x == name))
             .cloned()
+            .collect()
+    }
+
+    pub fn get_sound_effects(&self) -> Vec<String> {
+        self.nodes
+            .animations
+            .iter()
+            .flat_map(|(_, anim)| anim.sound_effect.as_ref().map(|effect| effect.name.clone()))
             .collect()
     }
 }

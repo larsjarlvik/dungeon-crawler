@@ -1,4 +1,3 @@
-use super::RenderWidget;
 use cgmath::*;
 use taffy::prelude::*;
 
@@ -8,41 +7,9 @@ pub struct Gradient {
     pub angle: f32,
 }
 
-#[derive(Debug)]
-pub struct AssetData {
-    pub asset_id: Option<String>,
-    pub background: Vector4<f32>,
-    pub gradient: Option<Gradient>,
-    pub foreground: Vector4<f32>,
-    pub background_hover: Option<Vector4<f32>>,
-    pub background_pressed: Option<Vector4<f32>>,
-    pub border_radius: Dimension,
-    pub shadow_radius: Dimension,
-    pub shadow_offset: Option<Vector2<f32>>,
-    pub shadow_color: Vector4<f32>,
-    pub visible: bool,
-}
-
-impl Default for AssetData {
-    fn default() -> Self {
-        Self {
-            asset_id: None,
-            background: Vector4::new(0.0, 0.0, 0.0, 0.0),
-            foreground: Vector4::new(0.0, 0.0, 0.0, 0.0),
-            background_hover: None,
-            background_pressed: None,
-            border_radius: Dimension::default(),
-            shadow_radius: Dimension::default(),
-            shadow_offset: None,
-            gradient: None,
-            shadow_color: Vector4::new(0.0, 0.0, 0.0, 1.0),
-            visible: true,
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct NodeLayout {
+    pub clip: Option<[u32; 4]>,
     pub width: f32,
     pub height: f32,
     pub x: f32,
@@ -56,11 +23,28 @@ impl NodeLayout {
             y: parent_layout.y + layout.location.y,
             width: layout.size.width,
             height: layout.size.height,
+            clip: parent_layout.clip,
         }
     }
 }
 
+pub type Clip = [u32; 4];
+
+pub struct RenderParams {
+    pub scale: Point2<f32>,
+    pub opacity: f32,
+    pub frame_time: f32,
+}
+
 pub trait BaseWidget {
-    fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node;
-    fn get_nodes(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)>;
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node;
+    fn render(
+        &self,
+        taffy: &Taffy,
+        engine: &mut engine::Engine,
+        input: &mut engine::ecs::resources::Input,
+        state: &mut crate::state::State,
+        parent_layout: &NodeLayout,
+        params: &mut RenderParams,
+    );
 }

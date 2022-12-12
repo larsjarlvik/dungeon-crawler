@@ -9,26 +9,19 @@ pub struct Slider {
 }
 
 impl Slider {
-    pub fn draw(&self) -> Box<PanelWidget> {
-        PanelWidget::new(
-            self.key.clone().into(),
-            AssetData {
-                visible: false,
-                ..Default::default()
+    pub fn draw(&self) -> Box<NodeWidget> {
+        NodeWidget::new(Style {
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            size: Size {
+                width: Dimension::Auto,
+                height: Dimension::Points(48.0),
             },
-            Style {
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                size: Size {
-                    width: Dimension::Auto,
-                    height: Dimension::Points(48.0),
-                },
-                ..Default::default()
-            },
-        )
-        .with_children(vec![PanelWidget::new(
-            None,
-            AssetData {
+            ..Default::default()
+        })
+        .with_key(self.key.as_str())
+        .with_children(vec![DisplayWidget::new(
+            DisplayWidgetProps {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
                 ..Default::default()
             },
@@ -41,9 +34,8 @@ impl Slider {
             },
         )
         .with_children(vec![
-            PanelWidget::new(
-                None,
-                AssetData {
+            DisplayWidget::new(
+                DisplayWidgetProps {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),
                     ..Default::default()
                 },
@@ -55,9 +47,8 @@ impl Slider {
                     ..Default::default()
                 },
             ),
-            PanelWidget::new(
-                None,
-                AssetData {
+            DisplayWidget::new(
+                DisplayWidgetProps {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),
                     border_radius: Dimension::Percent(0.5),
                     ..Default::default()

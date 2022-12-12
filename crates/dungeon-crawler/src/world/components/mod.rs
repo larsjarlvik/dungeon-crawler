@@ -26,5 +26,5 @@ pub use name::Name;
 pub use stats::*;
 pub use target::Target;
 pub use tile::*;
-pub use user_control::UserControl;
+pub use user_control::*;
 pub use weapon::Weapon;

@@ -30,7 +30,7 @@ pub struct World {
 
 impl World {
     pub fn new(engine: &engine::Engine) -> Self {
-        let components = create_components(&engine.ctx);
+        let components = setup_world(&engine.ctx);
 
         let mut schedule = Schedule::default();
         schedule.add_stage(
@@ -53,7 +53,8 @@ impl World {
                 .with_system(systems::display)
                 .with_system(systems::tile)
                 .with_system(engine::ecs::systems::camera)
-                .with_system(engine::ecs::systems::animation),
+                .with_system(engine::ecs::systems::animation.label("animation"))
+                .with_system(engine::ecs::systems::player.after("animation")),
         );
 
         Self {
@@ -88,7 +89,8 @@ impl World {
                     damage: 2.0..7.0,
                     time: 1.0,
                 },
-                components::UserControl,
+                components::UserControl::default(),
+                engine::ecs::components::SoundEffects::default(),
                 engine::ecs::components::Render { cull_frustum: false },
                 engine::ecs::components::Shadow,
                 engine::ecs::components::Follow,
@@ -147,24 +149,58 @@ impl World {
 
         stats.health.current <= 0.0
     }
+
+    pub fn load_resources(&mut self, ctx: &engine::Context) {
+        let start = Instant::now();
+        let character = engine::load_model(ctx, "models/character.glb");
+        let map = map::Map::new(ctx, 42312, 3);
+
+        let mut sound_effects = self
+            .components
+            .get_non_send_resource_mut::<engine::ecs::resources::SoundEffects>()
+            .unwrap();
+
+        sound_effects.load(&character.get_sound_effects());
+        sound_effects.load(&map.sound_effects);
+        sound_effects.volume = ctx.settings.audio_effects;
+
+        self.set_sounds(ctx);
+
+        println!("Load resources {} ms", start.elapsed().as_millis());
+        self.resources = Some(Resources { map, character });
+    }
+
+    pub fn set_sounds(&mut self, ctx: &engine::Context) {
+        {
+            let mut sound_ambience = self
+                .components
+                .get_non_send_resource_mut::<engine::ecs::resources::SoundAmbience>()
+                .unwrap();
+
+            sound_ambience.volume = ctx.settings.audio_ambient;
+            sound_ambience.play("ambience");
+        }
+
+        {
+            let mut sound_effects = self
+                .components
+                .get_non_send_resource_mut::<engine::ecs::resources::SoundEffects>()
+                .unwrap();
+
+            sound_effects.volume = ctx.settings.audio_effects;
+        }
+    }
 }
 
-pub fn create_components(ctx: &engine::Context) -> bevy_ecs::world::World {
+pub fn setup_world(ctx: &engine::Context) -> bevy_ecs::world::World {
     let mut components = bevy_ecs::world::World::new();
 
     components.insert_resource(engine::ecs::resources::Camera::new(ctx.viewport.get_aspect()));
-    components.insert_resource(resources::Input::default());
     components.insert_resource(engine::ecs::resources::Time::default());
+    components.insert_non_send_resource(engine::ecs::resources::SoundEffects::default());
+    components.insert_non_send_resource(engine::ecs::resources::SoundAmbience::default());
+    components.insert_resource(engine::ecs::resources::Input::default());
     components.insert_resource(resources::Fps::default());
 
     components
-}
-
-pub fn load_resources(ctx: &engine::Context) -> Resources {
-    let start = Instant::now();
-    let character = engine::load_model(ctx, "models/character.glb");
-    let map = map::Map::new(ctx, 42312, 3);
-
-    println!("Load resources {} ms", start.elapsed().as_millis());
-    Resources { map, character }
 }

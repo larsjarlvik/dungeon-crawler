@@ -1,4 +1,4 @@
-use crate::ModelInstance;
+use crate::{model::animation::SoundEffect, ModelInstance};
 use bevy_ecs::prelude::*;
 use fxhash::FxHashMap;
 
@@ -6,6 +6,7 @@ use fxhash::FxHashMap;
 pub struct Model {
     pub key: String,
     pub animation_times: FxHashMap<String, f32>,
+    pub animation_sound_effects: FxHashMap<String, SoundEffect>,
     pub highlight: f32,
 }
 

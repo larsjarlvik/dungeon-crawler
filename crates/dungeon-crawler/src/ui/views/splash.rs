@@ -3,9 +3,8 @@ use ui::prelude::*;
 use ui::widgets::*;
 
 pub fn splash() -> Box<dyn BaseWidget> {
-    PanelWidget::new(
-        None,
-        AssetData {
+    DisplayWidget::new(
+        DisplayWidgetProps {
             background: Vector4::new(0.0, 0.0, 0.0, 1.0),
             ..Default::default()
         },
@@ -20,9 +19,8 @@ pub fn splash() -> Box<dyn BaseWidget> {
             ..Default::default()
         },
     )
-    .with_children(vec![AssetWidget::new(
-        None,
-        AssetData {
+    .with_children(vec![DisplayWidget::new(
+        DisplayWidgetProps {
             asset_id: Some("logo".into()),
             ..Default::default()
         },

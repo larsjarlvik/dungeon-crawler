@@ -41,13 +41,12 @@ impl Button {
         Self { key: key.into() }
     }
 
-    pub fn draw(&self, props: ButtonProps) -> Box<PanelWidget> {
+    pub fn draw(&self, props: ButtonProps) -> Box<DisplayWidget> {
         let mut children: Vec<Box<dyn BaseWidget>> = vec![];
 
         if let Some((icon, size)) = props.icon.clone() {
-            children.push(AssetWidget::new(
-                None,
-                AssetData {
+            children.push(DisplayWidget::new(
+                DisplayWidgetProps {
                     asset_id: Some(icon),
                     foreground: props.foreground,
                     ..Default::default()
@@ -70,9 +69,8 @@ impl Button {
             ));
         }
 
-        PanelWidget::new(
-            Some(self.key.clone()),
-            AssetData {
+        DisplayWidget::new(
+            DisplayWidgetProps {
                 background: props.background,
                 background_hover: Some(props.background.lerp(props.foreground, 0.2)),
                 background_pressed: Some(props.background.lerp(props.foreground, 0.3)),
@@ -93,6 +91,7 @@ impl Button {
                 ..Default::default()
             },
         )
+        .with_key(self.key.as_str())
         .with_children(children)
     }
 }

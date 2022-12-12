@@ -18,3 +18,14 @@ pub fn write_file(name: &str, contents: &str) {
 pub fn read_file(name: &str) -> Result<String, io::Error> {
     fs::read_to_string(get_path(name))
 }
+
+pub fn exists(path: &str) -> bool {
+    #[cfg(target_os = "android")]
+    {
+        let asset_manager = ndk_glue::native_activity().asset_manager();
+        asset_manager.open(&std::ffi::CString::new(path).unwrap()).is_some()
+    }
+
+    #[cfg(not(target_os = "android"))]
+    std::path::Path::new(format!("./assets/{}", path).as_str()).exists()
+}

@@ -2,6 +2,7 @@ use cgmath::*;
 
 pub const DISPLAY1: f32 = 128.0;
 pub const HEADING1: f32 = 64.0;
+pub const HEADING2: f32 = 48.0;
 pub const BODY1: f32 = 40.0;
 pub const BODY2: f32 = 36.0;
 

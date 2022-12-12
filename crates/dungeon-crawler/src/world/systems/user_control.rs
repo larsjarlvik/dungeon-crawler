@@ -1,25 +1,27 @@
 use std::time::Duration;
 
-use crate::world::{components::Health, *};
+use crate::world::{
+    components::{Health, UiActionCode},
+    *,
+};
 use bevy_ecs::prelude::*;
 use cgmath::*;
+use engine::ecs::resources::Input;
 use winit::event::VirtualKeyCode;
 
 pub fn user_control(
     mut commands: Commands,
-    input: Res<resources::Input>,
+    input: Res<Input>,
     mut query: ParamSet<(
-        Query<
-            (
-                Entity,
-                &engine::ecs::components::Transform,
-                &mut components::Movement,
-                &mut components::ActionExecutor,
-                &mut components::Stats,
-                Option<&components::Weapon>,
-            ),
-            With<components::UserControl>,
-        >,
+        Query<(
+            Entity,
+            &engine::ecs::components::Transform,
+            &mut components::Movement,
+            &mut components::ActionExecutor,
+            &mut components::Stats,
+            &components::UserControl,
+            Option<&components::Weapon>,
+        )>,
         Query<(
             &components::Name,
             &components::Agressor,
@@ -35,7 +37,7 @@ pub fn user_control(
         .map(|(n, _, t, s)| (t.translation.current, s.health.clone(), n.name.clone()))
         .collect();
 
-    for (entity, transform, mut movement, mut action, mut stats, weapon) in query.p0().iter_mut() {
+    for (entity, transform, mut movement, mut action, mut stats, user_control, weapon) in query.p0().iter_mut() {
         commands.entity(entity).remove::<components::DisplayTarget>();
 
         let mut targets: Vec<&(Vector3<f32>, Health, String)> = targets
@@ -87,7 +89,7 @@ pub fn user_control(
             });
         }
 
-        if input.is_pressed(VirtualKeyCode::Space) || input.ui.contains_key(&resources::input::UiActionCode::Attack) {
+        if input.is_pressed(VirtualKeyCode::Space) || user_control.ui_actions.contains_key(&UiActionCode::Attack) {
             if let Some((_, _, direction)) = focus_target {
                 movement.direction = direction;
             };
@@ -97,7 +99,7 @@ pub fn user_control(
             }
         }
 
-        if (input.is_pressed(VirtualKeyCode::H) || input.ui.contains_key(&resources::input::UiActionCode::Health))
+        if (input.is_pressed(VirtualKeyCode::H) || user_control.ui_actions.contains_key(&UiActionCode::Health))
             && stats.health.changes.is_empty()
         {
             // TODO: Health value

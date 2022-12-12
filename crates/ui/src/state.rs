@@ -1,6 +1,12 @@
 use cgmath::*;
-use engine::{config, utils};
-use fxhash::FxHashMap;
+use engine::{
+    config,
+    ecs::resources::input::mouse::{self},
+    utils,
+};
+use fxhash::{FxHashMap, FxHashSet};
+
+use crate::widgets::NodeLayout;
 
 #[derive(Clone, Copy)]
 pub struct MouseData {
@@ -14,13 +20,32 @@ pub enum Event {
     MouseDown(MouseData),
 }
 
+#[derive(Debug, Clone)]
+pub enum WidgetState {
+    None,
+    Hover,
+    Pressed,
+    Clicked,
+}
+
 #[derive(Default)]
 pub struct State {
+    pub blocked: bool,
     transitions: FxHashMap<String, Vector4<f32>>,
     pub events: FxHashMap<String, Event>,
+    pub locks: FxHashSet<u64>,
 }
 
 impl State {
+    pub fn new() -> Self {
+        Self {
+            blocked: false,
+            transitions: FxHashMap::default(),
+            events: FxHashMap::default(),
+            locks: FxHashSet::default(),
+        }
+    }
+
     pub fn get_transition(&mut self, key: &Option<String>, to: Vector4<f32>, frame_time: f32) -> Vector4<f32> {
         if let Some(key) = &key {
             let prev_val = *self.transitions.get(key).unwrap_or(&to);
@@ -41,24 +66,119 @@ impl State {
         }
     }
 
-    pub fn clicked(&mut self, key: &String) -> Option<MouseData> {
+    pub fn clicked(&mut self, key: &str, vibrate: bool) -> Option<MouseData> {
+        if self.blocked {
+            return None;
+        }
+
         if let Some(Event::Click(data)) = self.events.get(key) {
             let data = *data;
             self.events.remove(key);
-            utils::vibrate(config::VIBRATION_LENGTH);
+            if vibrate {
+                utils::vibrate(config::VIBRATION_LENGTH);
+            }
             return Some(data);
         }
 
         None
     }
 
-    pub fn mouse_down(&mut self, key: &String) -> Option<MouseData> {
+    pub fn mouse_down(&mut self, key: &str) -> Option<MouseData> {
         if let Some(Event::MouseDown(data)) = self.events.get(key) {
             let data = *data;
             self.events.remove(key);
             return Some(data);
         }
 
+        None
+    }
+
+    pub fn process(
+        &mut self,
+        key: &Option<String>,
+        layout: &NodeLayout,
+        input: &engine::ecs::resources::Input,
+        scale: Point2<f32>,
+    ) -> WidgetState {
+        let mut state = WidgetState::None;
+
+        if key.is_none() {
+            return state;
+        }
+
+        for (id, button) in input.mouse.iter() {
+            if let Some(press_at) = on_element(&button.press_position, layout, scale) {
+                match button.state {
+                    mouse::PressState::Released(repeat) => {
+                        self.locks.remove(id);
+
+                        if !repeat {
+                            state = WidgetState::Clicked;
+                            self.set_event(
+                                key,
+                                Event::Click(MouseData {
+                                    x: (press_at.x - layout.x) / layout.width,
+                                    y: (press_at.y - layout.y) / layout.height,
+                                }),
+                            );
+                        }
+                    }
+                    mouse::PressState::Pressed(_) => {
+                        self.locks.insert(*id);
+                        state = WidgetState::Pressed;
+
+                        if let Some(position) = button.position {
+                            let position = to_relative(&position, scale);
+                            self.set_event(
+                                key,
+                                Event::MouseDown(MouseData {
+                                    x: (position.x - layout.x) / layout.width,
+                                    y: (position.y - layout.y) / layout.height,
+                                }),
+                            );
+                        }
+                    }
+                }
+
+                break;
+            } else if on_element(&button.position, layout, scale).is_some() {
+                state = WidgetState::Hover;
+                break;
+            } else {
+                state = WidgetState::None;
+            }
+        }
+
+        state
+    }
+}
+
+fn to_relative(mp: &Point2<f32>, scale: Point2<f32>) -> Point2<f32> {
+    point2(mp.x / scale.x, mp.y / scale.y)
+}
+
+fn on_element(mp: &Option<Point2<f32>>, layout: &NodeLayout, scale: Point2<f32>) -> Option<Point2<f32>> {
+    if let Some(mp) = mp {
+        let mpr = to_relative(mp, scale);
+
+        if mpr.x >= layout.x && mpr.y >= layout.y && mpr.x <= layout.x + layout.width && mpr.y <= layout.y + layout.height {
+            if let Some(clip) = layout.clip {
+                if mp.x >= clip[0] as f32
+                    && mp.y >= clip[1] as f32
+                    && mp.x <= (clip[0] + clip[2]) as f32
+                    && mp.y <= (clip[1] + clip[3]) as f32
+                {
+                    Some(mpr)
+                } else {
+                    None
+                }
+            } else {
+                Some(mpr)
+            }
+        } else {
+            None
+        }
+    } else {
         None
     }
 }
