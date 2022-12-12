@@ -25,25 +25,25 @@ impl MainMenu {
 
     pub fn draw(&mut self, engine: &mut engine::Engine, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
         let new_game_button = Button::new("new_game_button");
-        if ui_state.clicked(&new_game_button.key).is_some() {
+        if ui_state.clicked(&new_game_button.key, true).is_some() {
             self.sub_menu = SubMenu::None;
             world.init(engine);
             world.game_state = GameState::Running;
         }
 
         let resume_button = Button::new("resume_button");
-        if ui_state.clicked(&resume_button.key).is_some() {
+        if ui_state.clicked(&resume_button.key, true).is_some() {
             self.sub_menu = SubMenu::None;
             world.game_state = GameState::Running;
         }
 
         let settings_button = Button::new("settings_button");
-        if ui_state.clicked(&settings_button.key).is_some() {
+        if ui_state.clicked(&settings_button.key, true).is_some() {
             self.sub_menu = SubMenu::Settings;
         }
 
         let exit_button = Button::new("exit_button");
-        if ui_state.clicked(&exit_button.key).is_some() {
+        if ui_state.clicked(&exit_button.key, true).is_some() {
             world.game_state = GameState::Terminated;
         }
 

@@ -43,7 +43,7 @@ pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseW
         ),
     ]);
 
-    if ui_state.clicked(&key).is_some() {
+    if ui_state.clicked(&key, true).is_some() {
         world.game_state = GameState::MainMenu;
     }
 

@@ -57,13 +57,13 @@ impl Settings {
 
         self.scroll.handle_state(ui_state);
         let apply_settings = Button::new("apply_settings");
-        if ui_state.clicked(&apply_settings.key).is_some() {
+        if ui_state.clicked(&apply_settings.key, true).is_some() {
             self.settings.store();
             world.game_state = GameState::Reload;
         }
 
         let reset_settings = Button::new("reset_settings");
-        if ui_state.clicked(&reset_settings.key).is_some() {
+        if ui_state.clicked(&reset_settings.key, true).is_some() {
             self.settings = engine::Settings::load();
         }
 
@@ -205,7 +205,7 @@ fn create_slider<F: FnOnce(f32)>(ui_state: &mut ui::State, key: &str, value: f32
 }
 
 fn create_checkbox<F: FnOnce()>(ui_state: &mut ui::State, key: &str, checked: bool, handle: F) -> Checkbox {
-    if ui_state.clicked(key).is_some() {
+    if ui_state.clicked(key, true).is_some() {
         handle();
     }
 

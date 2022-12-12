@@ -137,7 +137,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
 
 pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
     let menu_button = Button::new("menu_button");
-    if ui_state.clicked(&menu_button.key).is_some() {
+    if ui_state.clicked(&menu_button.key, true).is_some() {
         world.game_state = GameState::MainMenu;
     }
 

@@ -32,7 +32,7 @@ impl Scroll {
     }
 
     pub fn handle_state(&mut self, ui_state: &mut State) {
-        if ui_state.clicked(&self.key).is_some() {
+        if ui_state.clicked(&self.key, false).is_some() {
             self.mouse_offset = None;
         }
 

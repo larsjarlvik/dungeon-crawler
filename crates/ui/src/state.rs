@@ -66,7 +66,7 @@ impl State {
         }
     }
 
-    pub fn clicked(&mut self, key: &str) -> Option<MouseData> {
+    pub fn clicked(&mut self, key: &str, vibrate: bool) -> Option<MouseData> {
         if self.blocked {
             return None;
         }
@@ -74,7 +74,9 @@ impl State {
         if let Some(Event::Click(data)) = self.events.get(key) {
             let data = *data;
             self.events.remove(key);
-            utils::vibrate(config::VIBRATION_LENGTH);
+            if vibrate {
+                utils::vibrate(config::VIBRATION_LENGTH);
+            }
             return Some(data);
         }
 
