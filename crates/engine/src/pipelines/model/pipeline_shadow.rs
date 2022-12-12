@@ -17,10 +17,8 @@ impl PipelineShadow {
 
         let render_pipeline = builder
             .with_shader("shaders/model-shadow.wgsl")
-            .with_depth_bias()
             .with_depth_target(config::DEPTH_FORMAT)
             .with_buffer_layouts(vec![model::VertexPosition::desc()])
-            .with_cull_mode(Some(wgpu::Face::Front))
             .with_bind_group_layout(&uniform_bind_group_layout)
             .build();
 
