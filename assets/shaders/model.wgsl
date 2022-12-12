@@ -19,7 +19,7 @@ struct Uniforms {
 struct EnvironmentUniforms {
     eye_pos: vec3<f32>,
     eye_target: vec3<f32>,
-    light: array<Light, 16>,
+    light: array<Light, 24>,
     light_count: i32,
     contrast: f32,
 }

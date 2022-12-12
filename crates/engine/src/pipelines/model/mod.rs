@@ -126,7 +126,7 @@ impl ModelPipeline {
         self.shadows.execute_bundles(ctx, shadow_bundles, shadow_target);
     }
 
-    fn get_lights(&self, ctx: &Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 16]) {
+    fn get_lights(&self, ctx: &Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 24]) {
         let alpha = {
             let time = components.get_resource::<resources::Time>().unwrap();
             time.alpha
@@ -136,7 +136,7 @@ impl ModelPipeline {
             (camera.frustum, camera.target)
         };
 
-        let mut lights: [uniforms::LightUniforms; 16] = Default::default();
+        let mut lights: [uniforms::LightUniforms; 24] = Default::default();
 
         let mut visible_lights: Vec<(&components::Light, &components::Transform)> = components
             .query::<(&components::Light, &components::Transform)>()
