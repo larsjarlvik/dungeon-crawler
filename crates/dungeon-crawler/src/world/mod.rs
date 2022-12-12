@@ -89,7 +89,7 @@ impl World {
                     damage: 2.0..7.0,
                     time: 1.0,
                 },
-                components::UserControl,
+                components::UserControl::default(),
                 engine::ecs::components::SoundEffects::default(),
                 engine::ecs::components::Render { cull_frustum: false },
                 engine::ecs::components::Shadow,
@@ -199,7 +199,7 @@ pub fn setup_world(ctx: &engine::Context) -> bevy_ecs::world::World {
     components.insert_resource(engine::ecs::resources::Time::default());
     components.insert_non_send_resource(engine::ecs::resources::SoundEffects::default());
     components.insert_non_send_resource(engine::ecs::resources::SoundAmbience::default());
-    components.insert_resource(resources::Input::default());
+    components.insert_resource(engine::ecs::resources::Input::default());
     components.insert_resource(resources::Fps::default());
 
     components

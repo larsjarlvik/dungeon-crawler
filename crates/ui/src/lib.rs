@@ -1,3 +1,4 @@
+use cgmath::*;
 use taffy::prelude::*;
 use widgets::*;
 pub mod components;
@@ -12,18 +13,21 @@ pub struct Ui {}
 impl Ui {
     pub fn render<'a>(
         &'a self,
-        ctx: &mut engine::Context,
+        engine: &mut engine::Engine,
+        input: &mut engine::ecs::resources::Input,
+        state: &mut crate::state::State,
         root: &'a mut widgets::NodeWidget,
-        width: f32,
-        height: f32,
-    ) -> Vec<(NodeLayout, RenderWidget)> {
+        ui_scale: Point2<f32>,
+        params: &mut RenderParams,
+    ) {
         let mut taffy = Taffy::new();
-        let root_node = root.render(ctx, &mut taffy);
+        let root_node = root.calculate_layout(engine, &mut taffy);
         let root_layout = NodeLayout {
             x: 0.0,
             y: 0.0,
-            width,
-            height,
+            width: ui_scale.x,
+            height: ui_scale.y,
+            clip: None,
         };
 
         taffy
@@ -31,8 +35,8 @@ impl Ui {
                 root_node,
                 Style {
                     size: Size {
-                        width: Dimension::Points(width),
-                        height: Dimension::Points(height),
+                        width: Dimension::Points(ui_scale.x),
+                        height: Dimension::Points(ui_scale.y),
                     },
                     ..Default::default()
                 },
@@ -43,17 +47,12 @@ impl Ui {
             .compute_layout(
                 root_node,
                 Size {
-                    width: AvailableSpace::Definite(width),
-                    height: AvailableSpace::Definite(height),
+                    width: AvailableSpace::Definite(ui_scale.x),
+                    height: AvailableSpace::Definite(ui_scale.y),
                 },
             )
             .unwrap();
 
-        let result = {
-            let nodes = root.get_nodes(&taffy, &root_layout);
-            nodes.into_iter().map(|(node, widget)| (node, widget.clone())).collect()
-        };
-
-        result
+        root.render(&taffy, engine, input, state, &root_layout, params);
     }
 }

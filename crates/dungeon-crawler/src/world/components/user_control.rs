@@ -1,4 +1,25 @@
 use bevy_ecs::prelude::*;
+use engine::ecs::resources::input::mouse::PressState;
+use fxhash::FxHashMap;
 
-#[derive(Component)]
-pub struct UserControl;
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum UiActionCode {
+    Attack,
+    Health,
+}
+
+#[derive(Component, Default)]
+pub struct UserControl {
+    pub ui_actions: FxHashMap<UiActionCode, PressState>,
+}
+
+impl UserControl {
+    pub fn set_from_ui(&mut self, action_code: UiActionCode, pressed: bool) {
+        match pressed {
+            true => self
+                .ui_actions
+                .insert(action_code, PressState::Pressed(self.ui_actions.contains_key(&action_code))),
+            false => self.ui_actions.remove(&action_code),
+        };
+    }
+}

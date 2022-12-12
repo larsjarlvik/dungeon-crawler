@@ -7,9 +7,8 @@ use ui::widgets::*;
 pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
     let key = "dead_screen".to_string();
 
-    let screen = PanelWidget::new(
-        Some(key.clone()),
-        AssetData {
+    let screen = DisplayWidget::new(
+        DisplayWidgetProps {
             background: style::PALETTE_BROWN.extend(0.5),
             ..Default::default()
         },
@@ -24,6 +23,7 @@ pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseW
             ..Default::default()
         },
     )
+    .with_key(key.as_str())
     .with_children(vec![
         TextWidget::new(
             TextData {
@@ -43,7 +43,7 @@ pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseW
         ),
     ]);
 
-    if ui_state.clicked(&key).is_some() {
+    if ui_state.clicked(&key, true).is_some() {
         world.game_state = GameState::MainMenu;
     }
 

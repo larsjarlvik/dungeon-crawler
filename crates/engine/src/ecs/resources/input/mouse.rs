@@ -15,15 +15,6 @@ pub struct MouseButton {
 }
 
 impl MouseButton {
-    pub fn new() -> Self {
-        Self {
-            press_position: None,
-            position: None,
-            state: PressState::Released(true),
-            touch: false,
-        }
-    }
-
     pub fn is_pressed(&self) -> bool {
         match self.state {
             PressState::Released(_) => false,
@@ -57,5 +48,16 @@ impl MouseButton {
                 }
             }
         };
+    }
+}
+
+impl Default for MouseButton {
+    fn default() -> Self {
+        Self {
+            press_position: None,
+            position: None,
+            state: PressState::Released(true),
+            touch: false,
+        }
     }
 }

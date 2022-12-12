@@ -1,7 +1,8 @@
-use super::{base, NodeLayout, RenderWidget};
+use super::{base, NodeLayout, RenderParams};
 use taffy::prelude::*;
 
 pub struct NodeWidget {
+    pub key: Option<String>,
     style: Style,
     pub children: Vec<Box<dyn base::BaseWidget>>,
     pub node: Option<Node>,
@@ -13,7 +14,13 @@ impl NodeWidget {
             style,
             children: vec![],
             node: None,
+            key: None,
         })
+    }
+
+    pub fn with_key(mut self, key: &str) -> Box<Self> {
+        self.key = Some(key.into());
+        Box::new(self)
     }
 
     pub fn with_children(mut self, children: Vec<Box<dyn base::BaseWidget>>) -> Box<Self> {
@@ -23,17 +30,28 @@ impl NodeWidget {
 }
 
 impl base::BaseWidget for NodeWidget {
-    fn render(&mut self, ctx: &mut engine::Context, taffy: &mut Taffy) -> Node {
-        let children: Vec<Node> = self.children.iter_mut().map(|c| c.render(ctx, taffy)).collect();
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node {
+        let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(engine, taffy)).collect();
         let node = taffy.new_with_children(self.style, &children).unwrap();
         self.node = Some(node);
         node
     }
 
-    fn get_nodes<'a>(&self, taffy: &Taffy, parent_layout: &NodeLayout) -> Vec<(NodeLayout, RenderWidget)> {
+    fn render(
+        &self,
+        taffy: &Taffy,
+        engine: &mut engine::Engine,
+        input: &mut engine::ecs::resources::Input,
+        state: &mut crate::state::State,
+        parent_layout: &NodeLayout,
+        params: &mut RenderParams,
+    ) {
         let layout = taffy.layout(self.node.unwrap()).unwrap();
         let layout = NodeLayout::new(parent_layout, layout);
 
-        self.children.iter().flat_map(|c| c.get_nodes(taffy, &layout)).collect()
+        state.process(&self.key, &layout, input, params.scale);
+        self.children
+            .iter()
+            .for_each(|c| c.render(taffy, engine, input, state, &layout, params));
     }
 }

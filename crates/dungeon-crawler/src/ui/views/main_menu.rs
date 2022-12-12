@@ -25,31 +25,30 @@ impl MainMenu {
 
     pub fn draw(&mut self, engine: &mut engine::Engine, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
         let new_game_button = Button::new("new_game_button");
-        if ui_state.clicked(&new_game_button.key).is_some() {
+        if ui_state.clicked(&new_game_button.key, true).is_some() {
             self.sub_menu = SubMenu::None;
             world.init(engine);
             world.game_state = GameState::Running;
         }
 
         let resume_button = Button::new("resume_button");
-        if ui_state.clicked(&resume_button.key).is_some() {
+        if ui_state.clicked(&resume_button.key, true).is_some() {
             self.sub_menu = SubMenu::None;
             world.game_state = GameState::Running;
         }
 
         let settings_button = Button::new("settings_button");
-        if ui_state.clicked(&settings_button.key).is_some() {
+        if ui_state.clicked(&settings_button.key, true).is_some() {
             self.sub_menu = SubMenu::Settings;
         }
 
         let exit_button = Button::new("exit_button");
-        if ui_state.clicked(&exit_button.key).is_some() {
+        if ui_state.clicked(&exit_button.key, true).is_some() {
             world.game_state = GameState::Terminated;
         }
 
-        let mut menu_panel = PanelWidget::new(
-            None,
-            AssetData { ..Default::default() },
+        let mut menu_panel = DisplayWidget::new(
+            DisplayWidgetProps { ..Default::default() },
             Style {
                 flex_direction: FlexDirection::Column,
                 padding: Rect::<Dimension>::from_points(style::SM, style::SL, 0.0, 0.0),
@@ -92,9 +91,8 @@ impl MainMenu {
             SubMenu::None => {}
         }
 
-        PanelWidget::new(
-            Some("main_menu".into()),
-            AssetData {
+        DisplayWidget::new(
+            DisplayWidgetProps {
                 background: style::PALETTE_BROWN.extend(0.5),
                 gradient: Some(Gradient {
                     background_end: style::PALETTE_GRAY.extend(0.5),
@@ -103,7 +101,7 @@ impl MainMenu {
                 ..Default::default()
             },
             Style {
-                padding: Rect::<Dimension>::from_points(style::SL, style::SM, style::SL, style::SM),
+                padding: Rect::<Dimension>::from_points(style::SL, style::SL, style::SL, style::SM),
                 size: Size {
                     width: Dimension::Percent(1.0),
                     height: Dimension::Percent(1.0),
@@ -111,6 +109,7 @@ impl MainMenu {
                 ..Default::default()
             },
         )
+        .with_key("main_menu")
         .with_children(children)
     }
 }

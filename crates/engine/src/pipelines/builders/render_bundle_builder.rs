@@ -56,6 +56,21 @@ impl<'a> RenderBundleBuilder<'a> {
         })
     }
 
+    pub fn create_uniform_bind_group(
+        &self,
+        bind_group_layout: &pipeline_builder::MappedBindGroupLayout,
+        uniform_buffer: &'a wgpu::Buffer,
+    ) -> wgpu::BindGroup {
+        self.ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &bind_group_layout.layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: uniform_buffer.as_entire_binding(),
+            }],
+            label: Some(format!("{}_uniform_bind_group", self.label).as_str()),
+        })
+    }
+
     pub fn with_uniform_bind_group(
         mut self,
         bind_group_layout: &pipeline_builder::MappedBindGroupLayout,
@@ -63,15 +78,7 @@ impl<'a> RenderBundleBuilder<'a> {
     ) -> Self {
         self.buffers.push(uniform_buffer);
 
-        let uniform_bind_group = self.ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &bind_group_layout.layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform_buffer.as_entire_binding(),
-            }],
-            label: Some(format!("{}_uniform_bind_group", self.label).as_str()),
-        });
-
+        let uniform_bind_group = self.create_uniform_bind_group(bind_group_layout, uniform_buffer);
         self.bind_groups.push((bind_group_layout.index, uniform_bind_group));
         self
     }
