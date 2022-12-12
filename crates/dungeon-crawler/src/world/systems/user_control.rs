@@ -1,13 +1,16 @@
-use std::time::Duration;
-
-use crate::world::{
-    components::{Health, UiActionCode},
-    *,
-};
+use crate::world::{components::UiActionCode, *};
 use bevy_ecs::prelude::*;
 use cgmath::*;
 use engine::ecs::resources::Input;
+use std::time::Duration;
 use winit::event::VirtualKeyCode;
+
+struct Target {
+    position: Vector3<f32>,
+    health: f32,
+    max_health: f32,
+    name: String,
+}
 
 pub fn user_control(
     mut commands: Commands,
@@ -31,25 +34,30 @@ pub fn user_control(
     )>,
 ) {
     let rot = cgmath::Quaternion::from_angle_y(Deg(config::CAMERA_ROTATION));
-    let targets: Vec<(Vector3<f32>, Health, String)> = query
+    let targets: Vec<Target> = query
         .p1()
         .iter()
-        .map(|(n, _, t, s)| (t.translation.current, s.health.clone(), n.name.clone()))
+        .map(|(n, _, t, s)| Target {
+            position: t.translation.current,
+            health: s.health.current,
+            max_health: s.get_base_health(),
+            name: n.name.clone(),
+        })
         .collect();
 
     for (entity, transform, mut movement, mut action, mut stats, user_control, weapon) in query.p0().iter_mut() {
         commands.entity(entity).remove::<components::DisplayTarget>();
 
-        let mut targets: Vec<&(Vector3<f32>, Health, String)> = targets
+        let mut targets: Vec<&Target> = targets
             .iter()
-            .filter(|(t, _, _)| t.distance(transform.translation.current) < 8.0)
+            .filter(|target| target.position.distance(transform.translation.current) < 8.0)
             .collect();
 
-        targets.sort_by(|(a, _, _), (b, _, _)| {
-            let direction_a = a - transform.translation.current;
+        targets.sort_by(|a, b| {
+            let direction_a = a.position - transform.translation.current;
             let direction_a = direction_a.x.atan2(direction_a.z);
 
-            let direction_b = b - transform.translation.current;
+            let direction_b = b.position - transform.translation.current;
             let direction_b = direction_b.x.atan2(direction_b.z);
 
             (direction_a - movement.direction)
@@ -58,13 +66,13 @@ pub fn user_control(
                 .unwrap()
         });
 
-        let focus_target = if let Some((translation, health, name)) = targets.first() {
-            let direction = translation - transform.translation.current;
+        let focus_target = if let Some(target) = targets.first() {
+            let direction = target.position - transform.translation.current;
             let direction = direction.x.atan2(direction.z);
 
             // ~90 degrees
             if (direction - movement.direction).abs() < 1.57 {
-                Some((health, name, direction))
+                Some(target)
             } else {
                 None
             }
@@ -81,16 +89,18 @@ pub fn user_control(
             }
         }
 
-        if let Some((health, name, _)) = focus_target {
+        if let Some(target) = focus_target {
             commands.entity(entity).insert(components::DisplayTarget {
-                name: name.clone(),
-                current_health: health.current,
-                max_health: stats.get_base_health(),
+                name: target.name.clone(),
+                current_health: target.health,
+                max_health: target.max_health,
             });
         }
 
         if input.is_pressed(VirtualKeyCode::Space) || user_control.ui_actions.contains_key(&UiActionCode::Attack) {
-            if let Some((_, _, direction)) = focus_target {
+            if let Some(target) = focus_target {
+                let direction = target.position - transform.translation.current;
+                let direction = direction.x.atan2(direction.z);
                 movement.direction = direction;
             };
 
