@@ -33,7 +33,7 @@ impl Default for Settings {
             sharpen: true,
             ui_scale: 1.0,
             audio_effects: 1.0,
-            audio_ambient: 0.3,
+            audio_ambient: 0.2,
         }
     }
 }

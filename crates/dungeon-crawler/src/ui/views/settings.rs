@@ -64,7 +64,7 @@ impl Settings {
 
         let reset_settings = Button::new("reset_settings");
         if ui_state.clicked(&reset_settings.key, true).is_some() {
-            self.settings = engine::Settings::load();
+            self.settings = engine::Settings::default();
         }
 
         NodeWidget::new(Style {
