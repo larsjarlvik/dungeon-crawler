@@ -30,10 +30,10 @@ impl Default for Settings {
             window_pos: [100, 100],
             fullscreen: false,
             smaa: true,
-            sharpen: true,
+            sharpen: false,
             ui_scale: 1.0,
             audio_effects: 1.0,
-            audio_ambient: 0.2,
+            audio_ambient: 0.5,
         }
     }
 }
