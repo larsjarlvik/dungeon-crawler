@@ -33,23 +33,17 @@ fn world_pos_from_depth(tex_coord: vec2<f32>, depth: f32, inv_matrix: mat4x4<f32
 }
 
 let min_shadow = 0.2;
-let disk_size = 12;
+let disk_size = 6;
 
 @fragment
 fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     var disk: array<vec2<f32>, disk_size> = array<vec2<f32>, disk_size>(
-        vec2<f32>(-.326,-.406),
-        vec2<f32>(-.840,-.074),
-        vec2<f32>(-.696, .457),
-        vec2<f32>(-.203, .621),
-        vec2<f32>( .962,-.195),
-        vec2<f32>( .473,-.480),
-        vec2<f32>( .519, .767),
-        vec2<f32>( .185,-.893),
-        vec2<f32>( .507, .064),
-        vec2<f32>( .896, .412),
-        vec2<f32>(-.322,-.933),
-        vec2<f32>(-.792,-.598),
+        vec2<f32>(-0.840,-0.074),
+        vec2<f32>(-0.203, 0.621),
+        vec2<f32>( 0.473,-0.480),
+        vec2<f32>( 0.185,-0.893),
+        vec2<f32>( 0.896, 0.412),
+        vec2<f32>(-0.792,-0.598),
     );
 
     var c: vec2<i32> = vec2<i32>(coord.xy);
@@ -66,7 +60,7 @@ fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let proj_correction = 1.0 / shadow_coords.w;
     let light_local = shadow_coords.xy * flip_correction * proj_correction + vec2<f32>(0.5, 0.5);
 
-    let shadow_scale = 1.6 / uniforms.shadow_size;
+    let shadow_scale = 1.0 / uniforms.shadow_size;
     var shadow_factor = 0.0;
 
     for (var i: i32 = 0; i < disk_size; i += 1) {

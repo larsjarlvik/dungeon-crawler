@@ -16,7 +16,7 @@ pub struct Uniforms {
 pub struct EnvironmentUniforms {
     pub eye_pos: [f32; 4],
     pub target: [f32; 4],
-    pub lights: [LightUniforms; 24],
+    pub lights: [LightUniforms; 16],
     pub lights_count: i32,
     pub contrast: f32,
 }
