@@ -7,7 +7,6 @@ pub struct Uniforms {
     pub model: [[f32; 4]; 4],
     pub inv_model: [[f32; 4]; 4],
     pub joint_transforms: [[[f32; 4]; 4]; config::MAX_JOINT_COUNT],
-    pub highlight: f32,
     pub is_animated: u32,
 }
 

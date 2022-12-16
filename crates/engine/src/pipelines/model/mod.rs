@@ -86,7 +86,6 @@ impl ModelPipeline {
                     model: model_matrix.into(),
                     inv_model,
                     joint_transforms: joint_transforms.clone().try_into().unwrap(),
-                    highlight: model_instance.highlight,
                     is_animated: animation.is_some() as u32,
                 }]),
             );
@@ -114,7 +113,6 @@ impl ModelPipeline {
                         model: model_matrix.into(),
                         inv_model,
                         joint_transforms: joint_transforms.clone().try_into().unwrap(),
-                        highlight: model_instance.highlight,
                         is_animated: animation.is_some() as u32,
                     }]),
                 );

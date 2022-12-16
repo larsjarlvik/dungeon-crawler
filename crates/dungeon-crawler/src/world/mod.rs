@@ -70,7 +70,7 @@ impl World {
         self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {
-            let character_model = engine.initialize_model(&resources.character, "character", 1.3);
+            let character_model = engine.initialize_model(&resources.character, "character");
             let collider = resources
                 .character
                 .collisions
@@ -94,6 +94,7 @@ impl World {
                 engine::ecs::components::Render { cull_frustum: false },
                 engine::ecs::components::Shadow,
                 engine::ecs::components::Follow,
+                engine::ecs::components::Light::new(vec3(1.0, 1.0, 1.0), 1.0, Some(10.0), vec3(0.0, 4.0, 0.0), 0.0),
                 components::Target,
             ));
 

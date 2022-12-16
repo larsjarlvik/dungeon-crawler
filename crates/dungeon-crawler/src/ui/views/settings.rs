@@ -19,8 +19,8 @@ impl Settings {
     }
 
     pub fn draw(&mut self, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
-        let contrast = create_slider(ui_state, "contrast", self.settings.contrast, 10.0, |val| {
-            self.settings.contrast = (val * 20.0).round() / 2.0;
+        let contrast = create_slider(ui_state, "contrast", self.settings.contrast, 2.0, |val| {
+            self.settings.contrast = (val * 10.0).round() / 5.0;
         });
 
         let render_scale = create_slider(ui_state, "render_scale", self.settings.render_scale * 100.0, 100.0, |val| {

@@ -11,7 +11,6 @@ struct Uniforms {
     model: mat4x4<f32>,
     inv_model: mat4x4<f32>,
     joint_transforms: array<mat4x4<f32>, 48>,
-    highlight: f32,
     is_animated: u32,
     _padding: vec2<f32>,
 }
@@ -50,7 +49,6 @@ struct VertexOutput {
     @location(1) normal_w: vec3<f32>,
     @location(2) tangent_w: vec3<f32>,
     @location(3) bitangent_w: vec3<f32>,
-    @location(4) highlight: f32,
     @location(5) world_position: vec4<f32>,
 }
 
@@ -95,7 +93,6 @@ fn vert_main(model: VertexInput) -> VertexOutput {
     out.world_position = uniforms.model * skin_matrix * vec4<f32>(model.position, 1.0);
     out.clip_position = uniforms.view_proj * out.world_position;
     out.tex_coord = model.tex_coord;
-    out.highlight = uniforms.highlight;
     return out;
 }
 
@@ -116,6 +113,21 @@ fn contrast_matrix(contrast: f32) -> mat4x4<f32> {
         vec4<f32>(0.0, 0.0, contrast, 0.0),
         vec4<f32>(t, t, t, 1.0)
     );
+}
+
+fn attenuation_strength_real(rpos: vec3<f32>) -> f32 {
+    let d2 = rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z;
+    return 1.0 / (0.005 + d2);
+}
+
+fn apply_point_glow(wpos: vec3<f32>, dir: vec3<f32>, max_dist: f32, position: vec3<f32>, bloom: f32) -> f32 {
+    let t = max(dot(position - wpos, dir), 0.0);
+    let nearest = wpos + dir * min(t, max_dist);
+
+    let difference = position - nearest;
+    let spread = 1.0;
+    let strength = pow(attenuation_strength_real(difference), spread); // TODO
+    return strength * 0.005 * pow(bloom, 0.65);
 }
 
 fn fresnel_schlick(cosTheta: f32, f0: vec3<f32>) -> vec3<f32> {
@@ -181,22 +193,19 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let position = in.world_position.xyz;
     let view_dir = normalize(env_uniforms.eye_pos - position);
 
-    let f0 = mix(vec3<f32>(0.04), albedo.rgb, metalness);
-    var lo = vec3<f32>(0.0);
+    let f0 = mix(vec3(0.04), albedo.rgb, metalness);
+    var lo = vec3(0.0);
 
     for (var i: i32 = 0; i < env_uniforms.light_count; i += 1) {
         let light = env_uniforms.light[i];
         let light_dist = distance(light.position, position);
 
-        let distance = length(light.position - position);
+        let attenuation = 1.0 / pow(light_dist, 4.0);
 
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(view_dir + light_dir);
-        let attenuation = 1.0 / (distance * distance);
-
 
         let radiance = light.color * attenuation;
-
         let n_dot_v = max(dot(normal, view_dir), 0.0);
         let n_dot_l = max(dot(normal, light_dir), 0.0);
 
@@ -204,20 +213,23 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         let g = geometry_smith(n_dot_v, n_dot_l, roughness);
         let f = fresnel_schlick(max(dot(half_dir, view_dir), 0.0), f0);
 
-        let kd = (vec3<f32>(1.0) - f) * (1.0 - metalness);
+        let kd = (vec3(1.0) - f) * (1.0 - metalness);
         let numerator = ndf * g * f;
         let denominator = 4.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_dir), 0.0) + 0.0001;
         let specular = numerator / denominator;
 
         lo += (kd * albedo.rgb / M_PI + specular) * radiance * n_dot_l;
 
-        // TODO: bloom?
+        if (light.bloom > 0.1) {
+            let dir = (position - env_uniforms.eye_pos.xyz) / light_dist;
+            let bloom = vec3(apply_point_glow(env_uniforms.eye_pos, dir, light_dist, light.position, light.bloom));
+            lo += bloom * denominator;
+        }
     }
 
-    let ambient = vec3<f32>(0.0) * albedo.rgb;
-    var color: vec3<f32> = ambient + lo * in.highlight;
+    var color: vec3<f32> = lo;
     color = color / (color + vec3(1.0)) * occlusion;
-    color = pow(color, vec3<f32>(1.0 / 2.0));
+    color = pow(color, vec3(1.0 / 1.8));
 
-    return vec4<f32>(color, albedo.a);
+    return contrast_matrix(env_uniforms.contrast) * vec4<f32>(color, albedo.a);
 }

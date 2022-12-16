@@ -4,7 +4,6 @@ struct Uniforms {
     model: mat4x4<f32>,
     inv_model: mat4x4<f32>,
     joint_transforms: array<mat4x4<f32>, 48>,
-    highlight: f32,
     is_animated: u32,
     _padding: vec2<f32>,
 }

@@ -79,7 +79,7 @@ impl Map {
             .map(|d| self.add_decor(engine, d, Vector3::zero(), 0.0))
             .collect();
 
-        let model = engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str(), 1.0);
+        let model = engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str());
         entity.insert(components::Tile::new(
             model,
             collisions,
@@ -94,7 +94,7 @@ impl Map {
     }
 
     fn empty_tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, pos: Vector3<f32>) {
-        let model = engine.initialize_model(&self.tiles, "tile-empty", 1.0);
+        let model = engine.initialize_model(&self.tiles, "tile-empty");
         entity.insert(components::Tile::new(model, vec![], pos, self.tile_size, 0.0, vec![], vec![]));
     }
 
@@ -134,7 +134,7 @@ impl Map {
             .unwrap_or_else(|| panic!("Could not find collision for: {}!", name))
             .clone();
 
-        let model = engine.initialize_model(&self.tiles, t, 1.0);
+        let model = engine.initialize_model(&self.tiles, t);
         entity.insert(components::Tile::new(
             model,
             collisions,
@@ -197,7 +197,7 @@ impl Map {
             .collect();
 
         let collisions = self.decor.collisions.get(&d.name).unwrap_or(&vec![]).clone();
-        let model = engine.initialize_model(&self.decor, d.name.as_str(), 1.0);
+        let model = engine.initialize_model(&self.decor, d.name.as_str());
 
         components::Decor {
             model,
@@ -216,7 +216,7 @@ impl Map {
         tile_center: Vector3<f32>,
         collisions: &[Polygon],
     ) -> components::Hostile {
-        let model = engine.initialize_model(&self.hostiles, "skeleton", 1.3);
+        let model = engine.initialize_model(&self.hostiles, "skeleton");
         let mut position;
 
         let collider = self

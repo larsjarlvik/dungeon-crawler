@@ -65,7 +65,7 @@ fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
         amp = d_min_g / max_g;
     }
     amp = sqrt(max(0.0, amp)) * -0.18;
-    let col_out = (col.xyz + colw * vec3<f32>(amp)) / vec3<f32>(1.0 + 4.0 * amp);
+    let col_out = (col.xyz + colw * vec3(amp)) / vec3(1.0 + 4.0 * amp);
 
     return vec4<f32>(col_out, 1.0);
 }

@@ -27,7 +27,7 @@ fn vert_main(@builtin(vertex_index) vertex_index: u32) -> @builtin(position) vec
 }
 
 fn world_pos_from_depth(tex_coord: vec2<f32>, depth: f32, inv_matrix: mat4x4<f32>) -> vec3<f32> {
-    var ndc: vec3<f32> = vec3<f32>(vec2<f32>(tex_coord.x, 1.0 - tex_coord.y) * 2.0 - 1.0, depth);
+    var ndc: vec3<f32> = vec3(vec2<f32>(tex_coord.x, 1.0 - tex_coord.y) * 2.0 - 1.0, depth);
     var p: vec4<f32> = inv_matrix * vec4<f32>(ndc, 1.0);
     return p.xyz / p.w;
 }
