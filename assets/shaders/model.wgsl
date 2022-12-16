@@ -145,9 +145,7 @@ fn gometry_schlick_ggx(n_dot_v: f32, roughness: f32) -> f32 {
     return num / denom;
 }
 
-fn geometry_smith(N: vec3<f32>, V: vec3<f32>, light_dir: vec3<f32>, roughness: f32) -> f32 {
-    let n_dot_v = max(dot(N, V), 0.0);
-    let n_dot_l = max(dot(N, light_dir), 0.0);
+fn geometry_smith(n_dot_v: f32, n_dot_l: f32, roughness: f32) -> f32 {
     let ggx2 = gometry_schlick_ggx(n_dot_v, roughness);
     let ggx1 = gometry_schlick_ggx(n_dot_l, roughness);
 
@@ -189,20 +187,21 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     for (var i: i32 = 0; i < env_uniforms.light_count; i += 1) {
         let light = env_uniforms.light[i];
         let light_dist = distance(light.position, position);
-        if (light_dist > light.radius) { continue; }
 
         let distance = length(light.position - position);
 
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(view_dir + light_dir);
-        let attenuation = clamp(1.0 - distance * distance / (light.radius * light.radius), 0.0, 1.0);
-        let attenuation = attenuation * attenuation;
+        let attenuation = 1.0 / (distance * distance);
 
 
         let radiance = light.color * attenuation;
 
+        let n_dot_v = max(dot(normal, view_dir), 0.0);
+        let n_dot_l = max(dot(normal, light_dir), 0.0);
+
         let ndf = distribution_ggx(normal, half_dir, roughness);
-        let g = geometry_smith(normal, view_dir, light_dir, roughness);
+        let g = geometry_smith(n_dot_v, n_dot_l, roughness);
         let f = fresnel_schlick(max(dot(half_dir, view_dir), 0.0), f0);
 
         let kd = (vec3<f32>(1.0) - f) * (1.0 - metalness);
@@ -210,16 +209,15 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         let denominator = 4.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_dir), 0.0) + 0.0001;
         let specular = numerator / denominator;
 
-        let n_dot_l = max(dot(normal, light_dir), 0.0);
         lo += (kd * albedo.rgb / M_PI + specular) * radiance * n_dot_l;
 
         // TODO: bloom?
     }
 
-    let ambient = vec3<f32>(0.0) * albedo.rgb * occlusion;
+    let ambient = vec3<f32>(0.0) * albedo.rgb;
     var color: vec3<f32> = ambient + lo * in.highlight;
-    color = color / (color + vec3(1.0));
+    color = color / (color + vec3(1.0)) * occlusion;
     color = pow(color, vec3<f32>(1.0 / 2.0));
 
-    return contrast_matrix(env_uniforms.contrast) * vec4<f32>(color, albedo.a);
+    return vec4<f32>(color, albedo.a);
 }

@@ -23,8 +23,8 @@ impl Light {
 
         Self {
             color,
-            base_intensity: intensity,
-            intensity: InterpolatedValue::new(intensity),
+            base_intensity: intensity * 4.0,
+            intensity: InterpolatedValue::new(intensity * 4.0),
             radius,
             bounding_sphere,
             offset: InterpolatedValue::new(offset),
