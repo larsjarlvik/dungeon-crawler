@@ -9,7 +9,7 @@ Tested platforms:
 * Mac OS (Intel / M1)
 * Android
 
-## Roadmap
+## Roadmap (high level)
 What's currently implemented and the next steps.
 
 ### Implemented
@@ -27,6 +27,7 @@ What's currently implemented and the next steps.
 * World generation
 * Quests
 * Storyline
+* And more...
 
 ## Development
 
