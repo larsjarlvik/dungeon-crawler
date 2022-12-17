@@ -45,8 +45,9 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                         commands.entity(tile_id).push_children(&[decor_id]);
 
                         for l in decor.lights.iter() {
+                            let offset = Quaternion::from_angle_y(Deg(decor.rotation)).rotate_vector(l.offset);
                             let mut light_entity = commands.spawn((
-                                engine::ecs::components::Light::new(l.color, l.intensity, l.radius, l.offset, l.bloom),
+                                engine::ecs::components::Light::new(l.color, l.intensity, l.radius, offset, l.bloom),
                                 engine::ecs::components::Render { cull_frustum: true },
                                 engine::ecs::components::Transform::from_translation_angle(l.position, l.rotation),
                             ));
