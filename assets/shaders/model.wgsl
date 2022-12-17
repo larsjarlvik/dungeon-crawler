@@ -208,21 +208,28 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         let n_dot_v = max(dot(normal, view_dir), 0.0);
         let n_dot_l = max(dot(normal, light_dir), 0.0);
 
-        let ndf = distribution_ggx(normal, half_dir, roughness);
-        let g = geometry_smith(n_dot_v, n_dot_l, roughness);
-        let f = fresnel_schlick(max(dot(half_dir, view_dir), 0.0), f0);
+        if (n_dot_l > 0.0 || n_dot_v > 0.0) {
+            let ndf = distribution_ggx(normal, half_dir, roughness);
+            let g = geometry_smith(n_dot_v, n_dot_l, roughness);
+            let f = fresnel_schlick(max(dot(half_dir, view_dir), 0.0), f0);
 
-        let kd = (vec3(1.0) - f) * (1.0 - metalness);
-        let numerator = ndf * g * f;
-        let denominator = 4.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_dir), 0.0) + 0.0001;
-        let specular = numerator / denominator;
+            let kd = (vec3(1.0) - f) * (1.0 - metalness);
+            let numerator = ndf * g * f;
+            let denominator = 4.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_dir), 0.0) + 0.0001;
+            let specular = numerator / denominator;
 
-        lo += (kd * albedo.rgb / M_PI + specular) * radiance * n_dot_l;
+            lo += (kd * albedo.rgb / M_PI + specular) * radiance * n_dot_l;
 
-        if (light.bloom > 0.1) {
-            let dir = (position - env_uniforms.eye_pos.xyz) / light_dist;
-            let bloom = vec3(apply_point_glow(env_uniforms.eye_pos, dir, light_dist, light.position, light.bloom));
-            lo += bloom * denominator;
+            // Reflections
+            let reflect_dir = reflect(-light_dir, normal);
+            let reflection = pow(max(dot(view_dir, reflect_dir), 0.0), 48.0);
+            lo += metalness * (1.0 - roughness) * reflection * light.color;
+
+            if (light.bloom > 0.1) {
+                let dir = (position - env_uniforms.eye_pos.xyz) / light_dist;
+                let bloom = vec3(apply_point_glow(env_uniforms.eye_pos, dir, light_dist, light.position, light.bloom));
+                lo += bloom * denominator;
+            }
         }
     }
 
