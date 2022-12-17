@@ -174,7 +174,6 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var normal: vec3<f32>;
     var normal_t: vec4<f32>;
 
-
     if (primitive_uniforms.has_textures == u32(1)) {
         albedo = pow(textureSample(t_base_color, t_sampler, in.tex_coord), vec4<f32>(2.2));
         let orm = pow(textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord), vec4<f32>(2.2));
@@ -199,13 +198,13 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     for (var i: i32 = 0; i < env_uniforms.light_count; i += 1) {
         let light = env_uniforms.light[i];
         let light_dist = distance(light.position, position);
+        if (light_dist > light.radius) { continue; }
 
-        let attenuation = 1.0 / pow(light_dist, 4.0);
+        let attenuation = pow(clamp(pow(1.0 - (light_dist / light.radius), 2.0), 0.0, 1.0), 2.0) / light_dist * light_dist;
+        let radiance = light.color * attenuation;
 
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(view_dir + light_dir);
-
-        let radiance = light.color * attenuation;
         let n_dot_v = max(dot(normal, view_dir), 0.0);
         let n_dot_l = max(dot(normal, light_dir), 0.0);
 
