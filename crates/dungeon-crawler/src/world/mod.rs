@@ -94,12 +94,12 @@ impl World {
                 engine::ecs::components::Render { cull_frustum: false },
                 engine::ecs::components::Shadow,
                 engine::ecs::components::Follow,
-                engine::ecs::components::Light::new(vec3(1.0, 1.0, 1.0), 1.0, Some(10.0), vec3(0.0, 4.0, 0.0), 0.0),
+                // engine::ecs::components::Light::new(vec3(1.0, 1.0, 1.0), 1.0, 10.0, vec3(0.0, 4.0, 0.0), 0.0),
                 components::Target,
             ));
 
-            if let Some(tile) = &map::edit_mode() {
-                resources.map.single_tile(engine, &mut self.components, tile);
+            if let Some((tile_name, variant)) = map::edit_mode() {
+                resources.map.single_tile(engine, &mut self.components, &tile_name, variant);
             } else {
                 resources.map.generate(&mut self.components, engine);
             }

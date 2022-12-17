@@ -139,13 +139,7 @@ impl ModelPipeline {
         let mut visible_lights: Vec<(&components::Light, &components::Transform)> = components
             .query::<(&components::Light, &components::Transform)>()
             .iter(components)
-            .filter(|(light, transform)| {
-                if let Some(bounding_sphere) = &light.bounding_sphere {
-                    frustum.test_bounding_sphere(&bounding_sphere.transform(transform.to_matrix(alpha)))
-                } else {
-                    true
-                }
-            })
+            .filter(|(light, transform)| frustum.test_bounding_sphere(&light.bounding_sphere.transform(transform.to_matrix(alpha))))
             .collect();
 
         visible_lights.sort_by(|a, b| {
@@ -157,14 +151,13 @@ impl ModelPipeline {
         });
 
         for (i, (light, transform)) in visible_lights.iter().enumerate() {
-            let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
             if i >= lights.len() {
                 break;
             }
 
             lights[i] = uniforms::LightUniforms {
                 position: (transform.translation.get(alpha) + light.offset.get(alpha)).into(),
-                radius,
+                radius: light.radius,
                 color: (light.color * light.base_intensity * light.intensity.get(alpha)).into(),
                 bloom: light.bloom * ctx.settings.bloom,
             };

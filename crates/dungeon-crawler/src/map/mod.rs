@@ -69,12 +69,10 @@ impl Map {
         });
     }
 
-    pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str) {
-        let mut rng = StdRng::seed_from_u64(self.seed);
+    pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str, variant: usize) {
         let mut entity = world.spawn_empty();
-
         let collisions = self.tiles.collisions.get(tile_name).unwrap_or(&vec![]).clone();
-        let decor = decor::get_decor(format!("catacombs/{}", tile_name).as_str(), &mut rng)
+        let decor = decor::get_decor(format!("catacombs/{}", tile_name).as_str(), variant)
             .iter()
             .map(|d| self.add_decor(engine, d, Vector3::zero(), 0.0))
             .collect();
@@ -103,7 +101,10 @@ impl Map {
         let (t, rot) = determine_tile(&entrances);
         let name = t.split('-').last().expect("Could not get map name!");
 
-        let decor: Vec<components::Decor> = decor::get_decor(format!("catacombs/{}", name).as_str(), rng)
+        let tile = format!("catacombs/{}", name);
+        let variant = rng.gen_range(0..decor::get_variants_count(tile.as_str()));
+
+        let decor: Vec<components::Decor> = decor::get_decor(tile.as_str(), variant)
             .iter()
             .map(|d| self.add_decor(engine, d, pos, rot))
             .collect();
@@ -163,7 +164,7 @@ impl Map {
             .map(|l| components::DecorLight {
                 color: l.color,
                 intensity: l.intensity,
-                radius: Some(l.radius),
+                radius: l.radius,
                 offset: l.translation,
                 flicker: l.flicker,
                 bloom: 1.0,
@@ -271,11 +272,22 @@ impl Map {
     }
 }
 
-pub fn edit_mode() -> Option<String> {
+pub fn edit_mode() -> Option<(String, usize)> {
     let args: Vec<String> = env::args().collect();
 
     if let Some(pos) = args.iter().position(|a| a == "--edit") {
-        args.get(pos + 1).cloned()
+        let tile = args.get(pos + 1).cloned();
+        let variant = args.get(pos + 2).cloned();
+
+        tile.map(|tile| {
+            (
+                tile,
+                match variant {
+                    Some(variant) => variant.parse().unwrap_or(0),
+                    None => 0,
+                },
+            )
+        })
     } else {
         None
     }

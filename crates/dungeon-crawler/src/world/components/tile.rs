@@ -10,7 +10,7 @@ pub enum TileState {
 pub struct DecorLight {
     pub color: Vector3<f32>,
     pub intensity: f32,
-    pub radius: Option<f32>,
+    pub radius: f32,
     pub offset: Vector3<f32>,
     pub bloom: f32,
     pub position: Vector3<f32>,

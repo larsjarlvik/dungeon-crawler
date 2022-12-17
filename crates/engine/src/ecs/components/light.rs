@@ -7,19 +7,19 @@ pub struct Light {
     pub color: Vector3<f32>,
     pub base_intensity: f32,
     pub intensity: InterpolatedValue<f32>,
-    pub radius: Option<f32>,
-    pub bounding_sphere: Option<bounding_sphere::BoundingSphere>,
+    pub radius: f32,
+    pub bounding_sphere: bounding_sphere::BoundingSphere,
     pub offset: InterpolatedValue<Vector3<f32>>,
     pub orig_offset: Vector3<f32>,
     pub bloom: f32,
 }
 
 impl Light {
-    pub fn new(color: Vector3<f32>, intensity: f32, radius: Option<f32>, offset: Vector3<f32>, bloom: f32) -> Self {
-        let bounding_sphere = radius.map(|radius| bounding_sphere::BoundingSphere {
+    pub fn new(color: Vector3<f32>, intensity: f32, radius: f32, offset: Vector3<f32>, bloom: f32) -> Self {
+        let bounding_sphere = bounding_sphere::BoundingSphere {
             center: Point3::from_vec(offset),
             radius: radius * 2.0,
-        });
+        };
 
         Self {
             color,
