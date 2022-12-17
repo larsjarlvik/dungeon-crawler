@@ -94,7 +94,7 @@ impl World {
                 engine::ecs::components::Render { cull_frustum: false },
                 engine::ecs::components::Shadow,
                 engine::ecs::components::Follow,
-                // engine::ecs::components::Light::new(vec3(1.0, 1.0, 1.0), 1.0, 10.0, vec3(0.0, 4.0, 0.0), 0.0),
+                engine::ecs::components::Light::new(vec3(1.0, 0.94, 0.88), 0.5, 7.0, vec3(0.0, 3.0, 0.0), 0.0),
                 components::Target,
             ));
 

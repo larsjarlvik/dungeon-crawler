@@ -18,12 +18,12 @@ struct VertexOutput {
 fn vert_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     let x = i32(vertex_index) / 2;
     let y = i32(vertex_index) & 1;
-    let tc = vec2<f32>(f32(x), f32(y));
+    let tc = vec2(f32(x), f32(y));
     let pos = tc * 2.0 * (uniforms.size / uniforms.viewport_size) + ((uniforms.position * 2.0 - 1.0) / uniforms.viewport_size);
 
     var result: VertexOutput;
     result.coord = tc;
-    result.position = vec4<f32>(
+    result.position = vec4(
         pos.x - 1.0,
         1.0 - pos.y,
         0.0, 1.0
@@ -39,5 +39,5 @@ fn vert_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
 @fragment
 fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let texture = textureSample(t_texture, t_sampler, in.coord);
-    return vec4<f32>(mix(texture.rgb, uniforms.foreground.rgb, uniforms.foreground.a), texture.a * uniforms.opacity);
+    return vec4(mix(texture.rgb, uniforms.foreground.rgb, uniforms.foreground.a), texture.a * uniforms.opacity);
 }

@@ -51,7 +51,7 @@ fn vert_main(model: VertexInput) -> VertexOutput {
 
     out.position = position;
     out.elapsed = y;
-    out.clip_position = uniforms.proj * mv * vec4<f32>(position.x, position.y, 0.0, 1.0);
+    out.clip_position = uniforms.proj * mv * vec4(position.x, position.y, 0.0, 1.0);
 
     return out;
 }
@@ -59,7 +59,7 @@ fn vert_main(model: VertexInput) -> VertexOutput {
 // Fragment shader
 @fragment
 fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    let opacity = 1.0 - pow(distance(in.position, vec2<f32>(0.0, 0.0)) / uniforms.size, 0.5);
+    let opacity = 1.0 - pow(distance(in.position, vec2(0.0, 0.0)) / uniforms.size, 0.5);
     let color = mix(uniforms.start_color, uniforms.end_color, clamp(in.elapsed * 4.0, 0.0, 1.0));
-    return vec4<f32>(color.r, color.g, color.b, color.a * opacity * uniforms.strength);
+    return vec4(color.r, color.g, color.b, color.a * opacity * uniforms.strength);
 }

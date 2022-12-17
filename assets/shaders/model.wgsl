@@ -18,7 +18,7 @@ struct Uniforms {
 struct EnvironmentUniforms {
     eye_pos: vec3<f32>,
     eye_target: vec3<f32>,
-    light: array<Light, 16>,
+    light: array<Light, 20>,
     light_count: i32,
     contrast: f32,
 }
@@ -57,10 +57,10 @@ fn vert_main(model: VertexInput) -> VertexOutput {
     var out: VertexOutput;
 
     var skin_matrix: mat4x4<f32> = mat4x4<f32>(
-        vec4<f32>(0.0, 0.0, 0.0, 0.0),
-        vec4<f32>(0.0, 0.0, 0.0, 0.0),
-        vec4<f32>(0.0, 0.0, 0.0, 0.0),
-        vec4<f32>(0.0, 0.0, 0.0, 0.0),
+        vec4(0.0, 0.0, 0.0, 0.0),
+        vec4(0.0, 0.0, 0.0, 0.0),
+        vec4(0.0, 0.0, 0.0, 0.0),
+        vec4(0.0, 0.0, 0.0, 0.0),
     );
 
     if (uniforms.is_animated == u32(1)) {
@@ -79,18 +79,18 @@ fn vert_main(model: VertexInput) -> VertexOutput {
         }
     } else {
         skin_matrix = mat4x4<f32>(
-            vec4<f32>(1.0, 0.0, 0.0, 0.0),
-            vec4<f32>(0.0, 1.0, 0.0, 0.0),
-            vec4<f32>(0.0, 0.0, 1.0, 0.0),
-            vec4<f32>(0.0, 0.0, 0.0, 1.0),
+            vec4(1.0, 0.0, 0.0, 0.0),
+            vec4(0.0, 1.0, 0.0, 0.0),
+            vec4(0.0, 0.0, 1.0, 0.0),
+            vec4(0.0, 0.0, 0.0, 1.0),
         );
     }
 
-    out.normal_w = normalize((uniforms.inv_model * vec4<f32>(model.normal, 0.0)).xyz);
+    out.normal_w = normalize((uniforms.inv_model * vec4(model.normal, 0.0)).xyz);
     out.tangent_w = normalize((uniforms.inv_model * model.tangent).xyz);
     out.bitangent_w = cross(out.normal_w, out.tangent_w) * model.tangent.w;
 
-    out.world_position = uniforms.model * skin_matrix * vec4<f32>(model.position, 1.0);
+    out.world_position = uniforms.model * skin_matrix * vec4(model.position, 1.0);
     out.clip_position = uniforms.view_proj * out.world_position;
     out.tex_coord = model.tex_coord;
     return out;
@@ -108,10 +108,10 @@ fn contrast_matrix(contrast: f32) -> mat4x4<f32> {
     let t = (1.0 - contrast) * 0.5;
 
     return mat4x4<f32>(
-        vec4<f32>(contrast, 0.0, 0.0, 0.0),
-        vec4<f32>(0.0, contrast, 0.0, 0.0),
-        vec4<f32>(0.0, 0.0, contrast, 0.0),
-        vec4<f32>(t, t, t, 1.0)
+        vec4(contrast, 0.0, 0.0, 0.0),
+        vec4(0.0, contrast, 0.0, 0.0),
+        vec4(0.0, 0.0, contrast, 0.0),
+        vec4(t, t, t, 1.0)
     );
 }
 
@@ -166,27 +166,19 @@ fn geometry_smith(n_dot_v: f32, n_dot_l: f32, roughness: f32) -> f32 {
 
 @fragment
 fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    var albedo: vec4<f32>;
-    var occlusion: f32;
-    var roughness: f32;
-    var metalness: f32;
-    var tangent: vec4<f32>;
-    var normal: vec3<f32>;
-    var normal_t: vec4<f32>;
-
-    if (primitive_uniforms.has_textures == u32(1)) {
-        albedo = pow(textureSample(t_base_color, t_sampler, in.tex_coord), vec4<f32>(2.2));
-        let orm = pow(textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord), vec4<f32>(2.2));
-        occlusion = orm.r;
-        roughness = orm.g;
-        metalness = orm.b;
-
-        var tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
-        normal_t = textureSample(t_normal, t_sampler, in.tex_coord);
-        normal = tangent * normalize(2.0 * normal_t.xyz - 1.0);
-    } else {
+    if (primitive_uniforms.has_textures == u32(0)) {
         return primitive_uniforms.base_color;
     }
+
+    let albedo = pow(textureSample(t_base_color, t_sampler, in.tex_coord), vec4(2.2));
+    let orm = pow(textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord), vec4(2.2));
+    let occlusion = orm.r;
+    let roughness = orm.g;
+    let metalness = orm.b;
+
+    let tangent: mat3x3<f32> = mat3x3<f32>(in.tangent_w, in.bitangent_w, in.normal_w);
+    let normal_t = textureSample(t_normal, t_sampler, in.tex_coord);
+    let normal = tangent * normalize(2.0 * normal_t.xyz - 1.0);
 
     // PBR
     let position = in.world_position.xyz;
@@ -208,34 +200,31 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         let n_dot_v = max(dot(normal, view_dir), 0.0);
         let n_dot_l = max(dot(normal, light_dir), 0.0);
 
-        if (n_dot_l > 0.0 || n_dot_v > 0.0) {
-            let ndf = distribution_ggx(normal, half_dir, roughness);
-            let g = geometry_smith(n_dot_v, n_dot_l, roughness);
-            let f = fresnel_schlick(max(dot(half_dir, view_dir), 0.0), f0);
+        let ndf = distribution_ggx(normal, half_dir, roughness);
+        let g = geometry_smith(n_dot_v, n_dot_l, roughness);
+        let f = fresnel_schlick(max(dot(half_dir, view_dir), 0.0), f0);
 
-            let kd = (vec3(1.0) - f) * (1.0 - metalness);
-            let numerator = ndf * g * f;
-            let denominator = 4.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_dir), 0.0) + 0.0001;
-            let specular = numerator / denominator;
+        let kd = (vec3(1.0) - f) * (1.0 - metalness);
+        let numerator = ndf * g * f;
+        let denominator = 4.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_dir), 0.0) + 0.0001;
+        let specular = numerator / denominator;
 
-            lo += (kd * albedo.rgb / M_PI + specular) * radiance * n_dot_l;
+        lo += (kd * albedo.rgb / M_PI + specular) * radiance * n_dot_l;
 
-            // Reflections
-            let reflect_dir = reflect(-light_dir, normal);
-            let reflection = pow(max(dot(view_dir, reflect_dir), 0.0), 48.0);
-            lo += metalness * (1.0 - roughness) * reflection * light.color;
+        // Reflections
+        let reflect_dir = reflect(-light_dir, normal);
+        let reflection = pow(max(dot(view_dir, reflect_dir), 0.0), 48.0);
+        lo += metalness * (1.0 - roughness) * reflection * light.color;
 
-            if (light.bloom > 0.1) {
-                let dir = (position - env_uniforms.eye_pos.xyz) / light_dist;
-                let bloom = vec3(apply_point_glow(env_uniforms.eye_pos, dir, light_dist, light.position, light.bloom));
-                lo += bloom * denominator;
-            }
+        if (light.bloom > 0.1) {
+            let dir = (position - env_uniforms.eye_pos.xyz) / light_dist;
+            let bloom = vec3(apply_point_glow(env_uniforms.eye_pos, dir, light_dist, light.position, light.bloom));
+            lo += bloom * denominator;
         }
     }
 
-    var color: vec3<f32> = lo;
-    color = color / (color + vec3(1.0)) * occlusion;
+    var color: vec3<f32> = lo / (lo + vec3(1.0)) * occlusion;
     color = pow(color, vec3(1.0 / 1.8));
 
-    return contrast_matrix(env_uniforms.contrast) * vec4<f32>(color, albedo.a);
+    return contrast_matrix(env_uniforms.contrast) * vec4(color, albedo.a);
 }

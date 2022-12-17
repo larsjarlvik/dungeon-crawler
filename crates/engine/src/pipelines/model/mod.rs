@@ -124,7 +124,7 @@ impl ModelPipeline {
         self.shadows.execute_bundles(ctx, shadow_bundles, shadow_target);
     }
 
-    fn get_lights(&self, ctx: &Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 16]) {
+    fn get_lights(&self, ctx: &Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 20]) {
         let alpha = {
             let time = components.get_resource::<resources::Time>().unwrap();
             time.alpha
@@ -134,7 +134,7 @@ impl ModelPipeline {
             (camera.frustum, camera.target)
         };
 
-        let mut lights: [uniforms::LightUniforms; 16] = Default::default();
+        let mut lights: [uniforms::LightUniforms; 20] = Default::default();
 
         let mut visible_lights: Vec<(&components::Light, &components::Transform)> = components
             .query::<(&components::Light, &components::Transform)>()
@@ -146,13 +146,13 @@ impl ModelPipeline {
             a.1.translation
                 .get(alpha)
                 .distance(target)
-                .partial_cmp(&b.1.translation.get(alpha).distance(target))
+                .partial_cmp(&(b.1.translation.current + b.0.offset.current).distance(target))
                 .unwrap()
         });
 
-        for (i, (light, transform)) in visible_lights.iter().enumerate() {
+        visible_lights.iter().enumerate().for_each(|(i, (light, transform))| {
             if i >= lights.len() {
-                break;
+                return;
             }
 
             lights[i] = uniforms::LightUniforms {
@@ -161,7 +161,7 @@ impl ModelPipeline {
                 color: (light.color * light.base_intensity * light.intensity.get(alpha)).into(),
                 bloom: light.bloom * ctx.settings.bloom,
             };
-        }
+        });
 
         (visible_lights.len() as i32, lights)
     }

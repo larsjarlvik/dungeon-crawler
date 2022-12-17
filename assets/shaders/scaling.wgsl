@@ -3,9 +3,9 @@
 fn vert_main(@builtin(vertex_index) vertex_index: u32) -> @builtin(position) vec4<f32> {
     let x = i32(vertex_index) / 2;
     let y = i32(vertex_index) & 1;
-    let tc = vec2<f32>(f32(x) * 2.0, f32(y) * 2.0);
+    let tc = vec2(f32(x) * 2.0, f32(y) * 2.0);
 
-    return vec4<f32>(
+    return vec4(
         tc.x * 2.0 - 1.0,
         1.0 - tc.y * 2.0,
         0.0, 1.0
@@ -37,7 +37,7 @@ fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 
     var max_g: f32 = col.y;
     var min_g: f32 = col.y;
-    var uvoff: vec4<f32> = vec4<f32>(1.0, 1.0, -1.0, -1.0) / vec4<f32>(scaled_size.x, scaled_size.x, scaled_size.y, scaled_size.y);
+    var uvoff: vec4<f32> = vec4(1.0, 1.0, -1.0, -1.0) / vec4(scaled_size.x, scaled_size.x, scaled_size.y, scaled_size.y);
     var col1: vec3<f32> = textureSample(t_texture, t_sampler, uv+uvoff.yw).xyz;
     max_g = max(max_g, col1.y);
     min_g = min(min_g, col1.y);
@@ -67,5 +67,5 @@ fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     amp = sqrt(max(0.0, amp)) * -0.18;
     let col_out = (col.xyz + colw * vec3(amp)) / vec3(1.0 + 4.0 * amp);
 
-    return vec4<f32>(col_out, 1.0);
+    return vec4(col_out, 1.0);
 }

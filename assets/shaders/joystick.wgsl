@@ -19,14 +19,14 @@ fn vert_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
 
     let x = i32(vertex_index) / 2;
     let y = i32(vertex_index) & 1;
-    let tc = vec2<f32>(f32(x) * 2.0, f32(y) * 2.0);
+    let tc = vec2(f32(x) * 2.0, f32(y) * 2.0);
 
     let radius = uniforms.radius * 2.0;
 
-    out.clip_position = vec4<f32>(tc.x - 1.0, 1.0 - tc.y, 0.0, 1.0)
-        * vec4<f32>(radius, radius * uniforms.aspect, 1.0, 1.0)
-        + vec4<f32>(uniforms.center.x, -uniforms.center.y, 0.0, 0.0);
-    out.coord = vec2<f32>((tc.x * 2.0) - 2.0, (tc.y * 2.0) - 2.0);
+    out.clip_position = vec4(tc.x - 1.0, 1.0 - tc.y, 0.0, 1.0)
+        * vec4(radius, radius * uniforms.aspect, 1.0, 1.0)
+        + vec4(uniforms.center.x, -uniforms.center.y, 0.0, 0.0);
+    out.coord = vec2((tc.x * 2.0) - 2.0, (tc.y * 2.0) - 2.0);
 
     return out;
 }
@@ -39,5 +39,5 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let center = clamp(outer - inner, 0.0, 1.0) * 0.45;
 
     let current = step(length(uniforms.current * 0.95 - in.coord.xy), 0.4) * 0.25;
-    return vec4<f32>(0.0, 0.0, 0.0, (center + current) * 2.0);
+    return vec4(0.0, 0.0, 0.0, (center + current) * 2.0);
 }

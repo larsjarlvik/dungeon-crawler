@@ -21,10 +21,10 @@ fn vert_main(model: VertexInput) -> @builtin(position) vec4<f32> {
     if (uniforms.is_animated == u32(1)) {
         let w = model.weights;
         var skin_matrix: mat4x4<f32> = mat4x4<f32>(
-            vec4<f32>(0.0, 0.0, 0.0, 0.0),
-            vec4<f32>(0.0, 0.0, 0.0, 0.0),
-            vec4<f32>(0.0, 0.0, 0.0, 0.0),
-            vec4<f32>(0.0, 0.0, 0.0, 0.0),
+            vec4(0.0, 0.0, 0.0, 0.0),
+            vec4(0.0, 0.0, 0.0, 0.0),
+            vec4(0.0, 0.0, 0.0, 0.0),
+            vec4(0.0, 0.0, 0.0, 0.0),
         );
 
         for (var i: i32 = 0; i < 4; i += 1) {
@@ -39,8 +39,8 @@ fn vert_main(model: VertexInput) -> @builtin(position) vec4<f32> {
             );
         }
 
-        return uniforms.view_proj * uniforms.model * skin_matrix * vec4<f32>(model.position, 1.0);
+        return uniforms.view_proj * uniforms.model * skin_matrix * vec4(model.position, 1.0);
     }
 
-    return uniforms.view_proj * uniforms.model * vec4<f32>(model.position, 1.0);
+    return uniforms.view_proj * uniforms.model * vec4(model.position, 1.0);
 }

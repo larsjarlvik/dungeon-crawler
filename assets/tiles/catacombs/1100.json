@@ -52,8 +52,8 @@
                     -10,
                     3
                 ],
-                "rotation": 0.0,
-                "rotation_rng": 180.0
+                "rotation": 90.0,
+                "rotation_rng": 0.0
             },
             {
                 "name": "bookshelf-books",

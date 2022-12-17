@@ -25,14 +25,14 @@ struct VertexOutput {
 fn vert_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     let x = i32(vertex_index) / 2;
     let y = i32(vertex_index) & 1;
-    let tc = vec2<f32>(f32(x), f32(y));
+    let tc = vec2(f32(x), f32(y));
     let size = uniforms.size + uniforms.border_radius + uniforms.shadow_radius * 2.0;
     let position = uniforms.position;
     let pos = tc * 2.0 * (size / uniforms.viewport_size) + ((position * 2.0 - 1.0) / uniforms.viewport_size);
 
     var result: VertexOutput;
     result.coord = tc;
-    result.position = vec4<f32>(
+    result.position = vec4(
         pos.x - 1.0,
         1.0 - pos.y,
         0.0, 1.0
@@ -43,7 +43,7 @@ fn vert_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
 
 fn round_rect(p: vec2<f32>, b: vec2<f32>, r: f32) -> f32 {
     let q = abs(p) - b + r;
-    return min(max(q.x, q.y), 0.0) + length(max(q, vec2<f32>(0.0))) - r;
+    return min(max(q.x, q.y), 0.0) + length(max(q, vec2(0.0))) - r;
 }
 
 fn sigmoid(t: f32) -> f32 {
@@ -66,7 +66,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
             hsize,
             uniforms.border_radius),
         0.0, 1.0);
-        final_color = vec4<f32>(final_color.rgb, final_color.a * (1.0 - dist_radius));
+        final_color = vec4(final_color.rgb, final_color.a * (1.0 - dist_radius));
     }
 
     // Shadows
@@ -77,7 +77,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
             uniforms.border_radius + uniforms.shadow_radius)),
         0.0, 1.0);
 
-        let shadow_color = vec4<f32>(uniforms.shadow_color.rgb, uniforms.shadow_color.a - dist_shadow);
+        let shadow_color = vec4(uniforms.shadow_color.rgb, uniforms.shadow_color.a - dist_shadow);
         final_color = mix(final_color, shadow_color, dist_radius);
     }
 
@@ -86,5 +86,5 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let grad = cos(angle) * length(in.coord);
     final_color = mix(final_color, uniforms.background_end, smoothstep(0.0, 1.0, grad));
 
-    return vec4<f32>(final_color.rgb, final_color.a * uniforms.opacity);
+    return vec4(final_color.rgb, final_color.a * uniforms.opacity);
 }
