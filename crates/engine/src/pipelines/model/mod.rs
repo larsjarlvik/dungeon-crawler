@@ -2,6 +2,7 @@ mod initializer;
 mod pipeline_display;
 mod pipeline_shadow;
 mod uniforms;
+use self::uniforms::EnvironmentUniforms;
 use crate::{
     config,
     ecs::{components, resources},
@@ -14,8 +15,6 @@ use cgmath::*;
 pub use initializer::Model;
 use std::convert::TryInto;
 pub use uniforms::Uniforms;
-
-use self::uniforms::EnvironmentUniforms;
 
 pub struct ModelPipeline {
     pub display: pipeline_display::PipelineDisplay,
@@ -99,6 +98,7 @@ impl ModelPipeline {
                     lights,
                     lights_count,
                     contrast: ctx.settings.contrast,
+                    gamma: ctx.settings.gamma,
                 }]),
             );
 

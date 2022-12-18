@@ -18,6 +18,7 @@ pub struct EnvironmentUniforms {
     pub lights: [LightUniforms; 20],
     pub lights_count: i32,
     pub contrast: f32,
+    pub gamma: f32,
 }
 
 #[repr(C)]

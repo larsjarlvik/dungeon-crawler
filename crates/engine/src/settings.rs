@@ -4,6 +4,7 @@ use serde_derive::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct Settings {
     pub contrast: f32,
+    pub gamma: f32,
     pub bloom: f32,
     pub render_scale: f32,
     pub shadow_map_scale: f32,
@@ -22,6 +23,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             contrast: 1.0,
+            gamma: 2.0,
             bloom: 2.5,
             render_scale: 1.0,
             shadow_map_scale: 2.0,

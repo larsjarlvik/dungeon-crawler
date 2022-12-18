@@ -21,6 +21,7 @@ struct EnvironmentUniforms {
     light: array<Light, 20>,
     light_count: i32,
     contrast: f32,
+    gamma: f32,
 }
 
 struct PrimitiveUniforms {
@@ -206,7 +207,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     var color: vec3<f32> = lo / (lo + vec3(1.0)) * occlusion;
-    color = pow(color, vec3(1.0 / 1.8));
+    color = pow(color, vec3(1.0 / env_uniforms.gamma));
 
     return contrast_matrix(env_uniforms.contrast) * vec4(color, albedo.a);
 }
