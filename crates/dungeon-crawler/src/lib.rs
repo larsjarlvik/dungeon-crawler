@@ -20,10 +20,7 @@ mod ui;
 mod utils;
 mod world;
 
-#[cfg_attr(
-    target_os = "android",
-    ndk_glue::main(backtrace = "on", logger(level = "info", tag = "dungeon-crawler"))
-)]
+#[cfg_attr(target_os = "android", ndk_glue::main(logger(level = "error", tag = "dungeon-crawler")))]
 pub fn main() {
     #[cfg(not(target_os = "android"))]
     env_logger::init();
