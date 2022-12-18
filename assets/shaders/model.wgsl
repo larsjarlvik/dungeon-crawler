@@ -200,9 +200,10 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         lo += metalness * (1.0 - roughness) * reflection * light.color;
 
         if (light.bloom > 0.1) {
-            let dir = (position - env_uniforms.eye_pos.xyz) / light_dist;
-            let bloom = vec3(apply_point_glow(env_uniforms.eye_pos, dir, light_dist, light.position, light.bloom));
-            lo += bloom * denominator;
+            let dist = distance(position, env_uniforms.eye_pos.xyz);
+            let dir = (position - env_uniforms.eye_pos.xyz) / dist;
+            let bloom = light.color * pow(apply_point_glow(env_uniforms.eye_pos, dir, dist, light.position, light.bloom), 2.2);
+            lo += bloom;
         }
     }
 
