@@ -55,7 +55,7 @@ impl Frustum {
 
     pub fn test_bounding_sphere(&self, bs: &bounding_sphere::BoundingSphere) -> bool {
         for plane in &self.f {
-            if plane.truncate().dot(bs.center.to_vec()) + plane.w <= -bs.radius {
+            if plane.truncate().dot(bs.center.to_vec()) + plane.w <= -bs.radius * 2.0 {
                 return false;
             }
         }
