@@ -56,41 +56,23 @@ struct VertexOutput {
 fn vert_main(model: VertexInput) -> VertexOutput {
     var out: VertexOutput;
 
-    var skin_matrix: mat4x4<f32> = mat4x4<f32>(
-        vec4(0.0, 0.0, 0.0, 0.0),
-        vec4(0.0, 0.0, 0.0, 0.0),
-        vec4(0.0, 0.0, 0.0, 0.0),
-        vec4(0.0, 0.0, 0.0, 0.0),
-    );
-
     if (uniforms.is_animated == u32(1)) {
         let w = model.weights;
+        var skin_matrix: mat4x4<f32> = mat4x4<f32>(vec4(0.0), vec4(0.0), vec4(0.0), vec4(0.0));
 
         for (var i: i32 = 0; i < 4; i += 1) {
-            let j = model.joints[i];
-            var jx: mat4x4<f32> = uniforms.joint_transforms[j];
-
-            skin_matrix = mat4x4<f32>(
-                skin_matrix[0] + w[i] * jx[0],
-                skin_matrix[1] + w[i] * jx[1],
-                skin_matrix[2] + w[i] * jx[2],
-                skin_matrix[3] + w[i] * jx[3],
-            );
+            skin_matrix += w[i] * uniforms.joint_transforms[model.joints[i]];
         }
+
+        out.world_position = uniforms.model * skin_matrix * vec4(model.position, 1.0);
     } else {
-        skin_matrix = mat4x4<f32>(
-            vec4(1.0, 0.0, 0.0, 0.0),
-            vec4(0.0, 1.0, 0.0, 0.0),
-            vec4(0.0, 0.0, 1.0, 0.0),
-            vec4(0.0, 0.0, 0.0, 1.0),
-        );
+        out.world_position = uniforms.model * vec4(model.position, 1.0);
     }
 
     out.normal_w = normalize((uniforms.inv_model * vec4(model.normal, 0.0)).xyz);
     out.tangent_w = normalize((uniforms.inv_model * model.tangent).xyz);
     out.bitangent_w = cross(out.normal_w, out.tangent_w) * model.tangent.w;
 
-    out.world_position = uniforms.model * skin_matrix * vec4(model.position, 1.0);
     out.clip_position = uniforms.view_proj * out.world_position;
     out.tex_coord = model.tex_coord;
     return out;
