@@ -18,7 +18,7 @@ impl Light {
     pub fn new(color: Vector3<f32>, intensity: f32, radius: f32, offset: Vector3<f32>, bloom: f32) -> Self {
         let bounding_sphere = bounding_sphere::BoundingSphere {
             center: Point3::from_vec(offset),
-            radius: radius * 0.75,
+            radius: radius * 0.85,
         };
 
         Self {
