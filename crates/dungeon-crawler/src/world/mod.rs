@@ -136,8 +136,10 @@ impl World {
 
             let mut time = self.components.get_resource_mut::<engine::ecs::resources::Time>().unwrap();
             time.freeze(accumulator, time_step);
-
             self.post_schedule.run(&mut self.components);
+        } else {
+            let mut time = self.components.get_resource_mut::<engine::ecs::resources::Time>().unwrap();
+            time.freeze(0.0, time_step);
         }
     }
 
