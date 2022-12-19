@@ -148,7 +148,7 @@ impl World {
             .get_single(&self.components)
             .expect("No character stats found!");
 
-        stats.health.current <= 0.0
+        stats.health.get() <= 0.0 && stats.health.last_change.elapsed().as_secs_f32() > 3.0
     }
 
     pub fn load_resources(&mut self, ctx: &engine::Context) {

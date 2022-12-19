@@ -27,7 +27,8 @@ impl HealthChange {
 
 #[derive(Clone, Debug)]
 pub struct Health {
-    pub current: f32,
+    current: f32,
+    pub last_change: Instant,
     pub changes: Vec<HealthChange>,
 }
 
@@ -36,6 +37,18 @@ impl Health {
         Self {
             current: amount,
             changes: vec![],
+            last_change: Instant::now(),
         }
+    }
+
+    pub fn set(&mut self, value: f32) {
+        if value != self.current {
+            self.current = value;
+            self.last_change = Instant::now();
+        }
+    }
+
+    pub fn get(&self) -> f32 {
+        self.current
     }
 }

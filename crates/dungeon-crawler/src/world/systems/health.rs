@@ -12,9 +12,8 @@ pub fn health(
     let mut total_experience = vec![];
 
     for (entity, mut stats, mut action) in query.p0().iter_mut() {
-        let previous = stats.health.current;
-
-        if stats.health.current >= 0.0 {
+        let previous = stats.health.get();
+        if previous >= 0.0 {
             stats.health.changes = stats
                 .health
                 .changes
@@ -22,20 +21,20 @@ pub fn health(
                 .into_iter()
                 .filter(|change| match change.change_type {
                     components::HealthChangeType::Once => {
-                        stats.health.current += change.amount;
+                        stats.health.set(previous + change.amount);
                         false
                     }
                     components::HealthChangeType::Forever => {
-                        if stats.health.current > 0.0 {
-                            stats.health.current += change.amount / config::UPDATES_PER_SECOND;
+                        if previous > 0.0 {
+                            stats.health.set(previous + change.amount / config::UPDATES_PER_SECOND);
                             true
                         } else {
                             false
                         }
                     }
                     components::HealthChangeType::OverTime(length) => {
-                        if stats.health.current > 0.0 && stats.health.current < stats.get_base_health() {
-                            stats.health.current += change.amount / config::UPDATES_PER_SECOND;
+                        if previous > 0.0 && previous < stats.get_base_health() {
+                            stats.health.set(previous + change.amount / config::UPDATES_PER_SECOND);
                             change.start.elapsed() < length
                         } else {
                             false
@@ -45,11 +44,12 @@ pub fn health(
                 .collect();
         }
 
-        stats.health.current = stats.health.current.min(stats.get_base_health()).max(0.0);
+        let limited_health = stats.health.get().min(stats.get_base_health()).max(0.0);
+        stats.health.set(limited_health);
 
-        if stats.health.current < previous {
+        if stats.health.get() < previous {
             if let Some(action) = &mut action {
-                if stats.health.current <= 0.0 {
+                if stats.health.get() <= 0.0 {
                     action.set_action(components::Action::Death, 100.0, 0.0);
                     total_experience.push((stats.get_kill_experience(), stats.get_level()));
 
@@ -59,7 +59,7 @@ pub fn health(
                 } else {
                     action.set_action(components::Action::Hit, stats.get_recovery_time(), 0.0);
                 }
-            } else if stats.health.current <= 0.0 {
+            } else if stats.health.get() <= 0.0 {
                 commands.entity(entity).despawn_recursive();
             }
         }

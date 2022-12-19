@@ -39,7 +39,7 @@ pub fn user_control(
         .iter()
         .map(|(n, _, t, s)| Target {
             position: t.translation.current,
-            health: s.health.current,
+            health: s.health.get(),
             max_health: s.get_base_health(),
             name: n.name.clone(),
         })

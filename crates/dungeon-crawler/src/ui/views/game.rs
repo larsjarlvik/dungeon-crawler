@@ -52,8 +52,8 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
 
     let max = stats.get_base_health();
     top_left.push(status_bar(
-        &format!("{} / {}", stats.health.current.floor(), max),
-        stats.health.current,
+        &format!("{} / {}", stats.health.get().floor(), max),
+        stats.health.get(),
         max,
         style::PALETTE_LIGHT_RED,
     ));
