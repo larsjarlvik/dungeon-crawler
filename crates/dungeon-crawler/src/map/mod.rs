@@ -69,17 +69,15 @@ impl Map {
         });
     }
 
-    pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str) {
-        let mut rng = StdRng::seed_from_u64(self.seed);
+    pub fn single_tile(&mut self, engine: &mut engine::Engine, world: &mut World, tile_name: &str, variant: usize) {
         let mut entity = world.spawn_empty();
-
         let collisions = self.tiles.collisions.get(tile_name).unwrap_or(&vec![]).clone();
-        let decor = decor::get_decor(format!("catacombs/{}", tile_name).as_str(), &mut rng)
+        let decor = decor::get_decor(format!("catacombs/{}", tile_name).as_str(), variant)
             .iter()
             .map(|d| self.add_decor(engine, d, Vector3::zero(), 0.0))
             .collect();
 
-        let model = engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str(), 1.0);
+        let model = engine.initialize_model(&self.tiles, format!("tile-catacombs-{}", tile_name).as_str());
         entity.insert(components::Tile::new(
             model,
             collisions,
@@ -94,7 +92,7 @@ impl Map {
     }
 
     fn empty_tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, pos: Vector3<f32>) {
-        let model = engine.initialize_model(&self.tiles, "tile-empty", 1.0);
+        let model = engine.initialize_model(&self.tiles, "tile-empty");
         entity.insert(components::Tile::new(model, vec![], pos, self.tile_size, 0.0, vec![], vec![]));
     }
 
@@ -103,7 +101,10 @@ impl Map {
         let (t, rot) = determine_tile(&entrances);
         let name = t.split('-').last().expect("Could not get map name!");
 
-        let decor: Vec<components::Decor> = decor::get_decor(format!("catacombs/{}", name).as_str(), rng)
+        let tile = format!("catacombs/{}", name);
+        let variant = rng.gen_range(0..decor::get_variants_count(tile.as_str()));
+
+        let decor: Vec<components::Decor> = decor::get_decor(tile.as_str(), variant)
             .iter()
             .map(|d| self.add_decor(engine, d, pos, rot))
             .collect();
@@ -134,7 +135,7 @@ impl Map {
             .unwrap_or_else(|| panic!("Could not find collision for: {}!", name))
             .clone();
 
-        let model = engine.initialize_model(&self.tiles, t, 1.0);
+        let model = engine.initialize_model(&self.tiles, t);
         entity.insert(components::Tile::new(
             model,
             collisions,
@@ -163,7 +164,7 @@ impl Map {
             .map(|l| components::DecorLight {
                 color: l.color,
                 intensity: l.intensity,
-                radius: Some(l.radius),
+                radius: l.radius * d.light_radius.unwrap_or(1.0),
                 offset: l.translation,
                 flicker: l.flicker,
                 bloom: 1.0,
@@ -197,7 +198,7 @@ impl Map {
             .collect();
 
         let collisions = self.decor.collisions.get(&d.name).unwrap_or(&vec![]).clone();
-        let model = engine.initialize_model(&self.decor, d.name.as_str(), 1.0);
+        let model = engine.initialize_model(&self.decor, d.name.as_str());
 
         components::Decor {
             model,
@@ -216,7 +217,7 @@ impl Map {
         tile_center: Vector3<f32>,
         collisions: &[Polygon],
     ) -> components::Hostile {
-        let model = engine.initialize_model(&self.hostiles, "skeleton", 1.3);
+        let model = engine.initialize_model(&self.hostiles, "skeleton");
         let mut position;
 
         let collider = self
@@ -271,11 +272,22 @@ impl Map {
     }
 }
 
-pub fn edit_mode() -> Option<String> {
+pub fn edit_mode() -> Option<(String, usize)> {
     let args: Vec<String> = env::args().collect();
 
     if let Some(pos) = args.iter().position(|a| a == "--edit") {
-        args.get(pos + 1).cloned()
+        let tile = args.get(pos + 1).cloned();
+        let variant = args.get(pos + 2).cloned();
+
+        tile.map(|tile| {
+            (
+                tile,
+                match variant {
+                    Some(variant) => variant.parse().unwrap_or(0),
+                    None => 0,
+                },
+            )
+        })
     } else {
         None
     }

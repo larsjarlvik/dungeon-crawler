@@ -4,26 +4,28 @@
             {
                 "name": "torch",
                 "pos": [
-                    -4,
-                    -9
+                    -5,
+                    -7
                 ],
                 "rotation": 0.0,
-                "rotation_rng": 180.0
+                "rotation_rng": 180.0,
+                "light_radius": 0.7
             },
             {
                 "name": "torch",
                 "pos": [
-                    4,
-                    -9
+                    5,
+                    -7
                 ],
                 "rotation": 0.0,
-                "rotation_rng": 180.0
+                "rotation_rng": 180.0,
+                "light_radius": 0.7
             },
             {
                 "name": "torch-wall",
                 "pos": [
                     -10,
-                    4
+                    5
                 ],
                 "rotation": 90.0,
                 "rotation_rng": 0.0
@@ -32,7 +34,7 @@
                 "name": "torch-wall",
                 "pos": [
                     10,
-                    -1
+                    5
                 ],
                 "rotation": -90.0,
                 "rotation_rng": 0.0
@@ -171,10 +173,11 @@
                 "name": "torch",
                 "pos": [
                     -4,
-                    -9
+                    -8
                 ],
                 "rotation": 0.0,
-                "rotation_rng": 180.0
+                "rotation_rng": 180.0,
+                "light_radius": 0.7
             },
             {
                 "name": "pillar",
@@ -305,15 +308,6 @@
             {
                 "name": "torch",
                 "pos": [
-                    0,
-                    3
-                ],
-                "rotation": 0.0,
-                "rotation_rng": 180.0
-            },
-            {
-                "name": "torch",
-                "pos": [
                     6,
                     3
                 ],
@@ -395,11 +389,12 @@
             {
                 "name": "torch",
                 "pos": [
-                    9,
-                    -9
+                    7,
+                    -8
                 ],
                 "rotation": 0.0,
-                "rotation_rng": 180.0
+                "rotation_rng": 180.0,
+                "light_radius": 0.7
             },
             {
                 "name": "barrel-broken",

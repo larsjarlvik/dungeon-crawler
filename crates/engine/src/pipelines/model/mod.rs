@@ -2,6 +2,7 @@ mod initializer;
 mod pipeline_display;
 mod pipeline_shadow;
 mod uniforms;
+use self::uniforms::EnvironmentUniforms;
 use crate::{
     config,
     ecs::{components, resources},
@@ -14,8 +15,6 @@ use cgmath::*;
 pub use initializer::Model;
 use std::convert::TryInto;
 pub use uniforms::Uniforms;
-
-use self::uniforms::EnvironmentUniforms;
 
 pub struct ModelPipeline {
     pub display: pipeline_display::PipelineDisplay,
@@ -86,7 +85,6 @@ impl ModelPipeline {
                     model: model_matrix.into(),
                     inv_model,
                     joint_transforms: joint_transforms.clone().try_into().unwrap(),
-                    highlight: model_instance.highlight,
                     is_animated: animation.is_some() as u32,
                 }]),
             );
@@ -100,6 +98,7 @@ impl ModelPipeline {
                     lights,
                     lights_count,
                     contrast: ctx.settings.contrast,
+                    gamma: ctx.settings.gamma,
                 }]),
             );
 
@@ -114,7 +113,6 @@ impl ModelPipeline {
                         model: model_matrix.into(),
                         inv_model,
                         joint_transforms: joint_transforms.clone().try_into().unwrap(),
-                        highlight: model_instance.highlight,
                         is_animated: animation.is_some() as u32,
                     }]),
                 );
@@ -126,7 +124,7 @@ impl ModelPipeline {
         self.shadows.execute_bundles(ctx, shadow_bundles, shadow_target);
     }
 
-    fn get_lights(&self, ctx: &Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 24]) {
+    fn get_lights(&self, ctx: &Context, components: &mut World) -> (i32, [uniforms::LightUniforms; 20]) {
         let alpha = {
             let time = components.get_resource::<resources::Time>().unwrap();
             time.alpha
@@ -136,41 +134,34 @@ impl ModelPipeline {
             (camera.frustum, camera.target)
         };
 
-        let mut lights: [uniforms::LightUniforms; 24] = Default::default();
+        let mut lights: [uniforms::LightUniforms; 20] = Default::default();
 
         let mut visible_lights: Vec<(&components::Light, &components::Transform)> = components
             .query::<(&components::Light, &components::Transform)>()
             .iter(components)
-            .filter(|(light, transform)| {
-                if let Some(bounding_sphere) = &light.bounding_sphere {
-                    frustum.test_bounding_sphere(&bounding_sphere.transform(transform.to_matrix(alpha)))
-                } else {
-                    true
-                }
-            })
+            .filter(|(light, transform)| frustum.test_bounding_sphere(&light.bounding_sphere.transform(transform.to_matrix(alpha))))
             .collect();
 
         visible_lights.sort_by(|a, b| {
             a.1.translation
                 .get(alpha)
                 .distance(target)
-                .partial_cmp(&b.1.translation.get(alpha).distance(target))
+                .partial_cmp(&(b.1.translation.current + b.0.offset.current).distance(target))
                 .unwrap()
         });
 
-        for (i, (light, transform)) in visible_lights.iter().enumerate() {
-            let radius = if let Some(radius) = light.radius { radius } else { 0.0 };
+        visible_lights.iter().enumerate().for_each(|(i, (light, transform))| {
             if i >= lights.len() {
-                break;
+                return;
             }
 
             lights[i] = uniforms::LightUniforms {
                 position: (transform.translation.get(alpha) + light.offset.get(alpha)).into(),
-                radius,
-                color: (light.color * light.intensity.get(alpha)).into(),
+                radius: light.radius,
+                color: (light.color * light.base_intensity * light.intensity.get(alpha)).into(),
                 bloom: light.bloom * ctx.settings.bloom,
             };
-        }
+        });
 
         (visible_lights.len() as i32, lights)
     }

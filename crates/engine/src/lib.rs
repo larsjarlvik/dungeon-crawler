@@ -209,7 +209,7 @@ impl Engine {
         None
     }
 
-    pub fn initialize_model(&mut self, gltf_model: &model::GltfModel, name: &str, highlight: f32) -> ecs::components::Model {
+    pub fn initialize_model(&mut self, gltf_model: &model::GltfModel, name: &str) -> ecs::components::Model {
         let model = pipelines::model::Model::new(&self.ctx, &self.model_pipeline, gltf_model, name);
         let nodes = gltf_model.nodes.clone();
         let animation_times = nodes.animations.iter().map(|(a, b)| (a.clone(), b.total_time)).collect();
@@ -235,7 +235,6 @@ impl Engine {
             key,
             animation_times,
             animation_sound_effects,
-            highlight,
         }
     }
 

@@ -5,37 +5,21 @@
                 "name": "torch-wall",
                 "pos": [
                     -10,
-                    -5
+                    0
                 ],
                 "rotation": 90.0,
-                "rotation_rng": 0.0
-            },
-            {
-                "name": "torch-wall",
-                "pos": [
-                    -10,
-                    5
-                ],
-                "rotation": 90.0,
-                "rotation_rng": 0.0
+                "rotation_rng": 0.0,
+                "light_radius": 1.4
             },
             {
                 "name": "torch-wall",
                 "pos": [
                     10,
-                    -5
+                    0
                 ],
                 "rotation": -90.0,
-                "rotation_rng": 0.0
-            },
-            {
-                "name": "torch-wall",
-                "pos": [
-                    10,
-                    5
-                ],
-                "rotation": -90.0,
-                "rotation_rng": 0.0
+                "rotation_rng": 0.0,
+                "light_radius": 1.4
             },
             {
                 "name": "barrel",

@@ -19,8 +19,16 @@ impl Settings {
     }
 
     pub fn draw(&mut self, ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseWidget> {
-        let contrast = create_slider(ui_state, "contrast", self.settings.contrast, 10.0, |val| {
-            self.settings.contrast = (val * 20.0).round() / 2.0;
+        let contrast = create_slider(ui_state, "contrast", self.settings.contrast, 2.0, |val| {
+            self.settings.contrast = (val * 10.0).round() / 5.0;
+        });
+
+        let gamma = create_slider(ui_state, "gamma", self.settings.gamma, 3.0, |val| {
+            self.settings.gamma = (val * 10.0).round() / 5.0 + 1.0;
+        });
+
+        let bloom = create_slider(ui_state, "bloom", self.settings.bloom, 10.0, |val| {
+            self.settings.bloom = (val * 20.0).round() / 2.0;
         });
 
         let render_scale = create_slider(ui_state, "render_scale", self.settings.render_scale * 100.0, 100.0, |val| {
@@ -88,7 +96,9 @@ impl Settings {
                         Rect::from_points(0.0, 0.0, 0.0, style::SM),
                         AlignSelf::FlexStart,
                     ),
+                    setting("Gamma:", gamma.draw(), Some(format!("{:.2}", gamma.value))),
                     setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
+                    setting("Bloom:", bloom.draw(), Some(format!("{:.2}", bloom.value))),
                     setting(
                         "Render scale:",
                         render_scale.draw(),

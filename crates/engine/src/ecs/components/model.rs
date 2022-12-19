@@ -7,7 +7,6 @@ pub struct Model {
     pub key: String,
     pub animation_times: FxHashMap<String, f32>,
     pub animation_sound_effects: FxHashMap<String, SoundEffect>,
-    pub highlight: f32,
 }
 
 impl Model {

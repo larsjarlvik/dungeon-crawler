@@ -1,13 +1,33 @@
 <img alt="banner" src="banner.jpg">
 
 # Dungeon Crawler
-Welcome to Dungeon Crawler (working name). A cross platform RPG game written in rust.
+Welcome to Dungeon Crawler (working name). A cross platform RPG game written in rust, inspired by classic action RPG's.
 
 Tested platforms:
 * Windows
 * Linux
 * Mac OS (Intel / M1)
 * Android
+
+## Roadmap (high level)
+What's currently implemented and the next steps.
+
+### Implemented
+* PBR lighting
+* Animations
+* Collision detection
+* UI
+* Basic procedural map generation
+* Spacial sound effects
+* Ambient sound
+
+### Planned
+* Path finding
+* Inventory / loot
+* World generation
+* Quests
+* Storyline
+* And more...
 
 ## Development
 

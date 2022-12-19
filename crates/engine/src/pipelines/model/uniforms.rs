@@ -7,7 +7,6 @@ pub struct Uniforms {
     pub model: [[f32; 4]; 4],
     pub inv_model: [[f32; 4]; 4],
     pub joint_transforms: [[[f32; 4]; 4]; config::MAX_JOINT_COUNT],
-    pub highlight: f32,
     pub is_animated: u32,
 }
 
@@ -16,9 +15,10 @@ pub struct Uniforms {
 pub struct EnvironmentUniforms {
     pub eye_pos: [f32; 4],
     pub target: [f32; 4],
-    pub lights: [LightUniforms; 24],
+    pub lights: [LightUniforms; 20],
     pub lights_count: i32,
     pub contrast: f32,
+    pub gamma: f32,
 }
 
 #[repr(C)]
