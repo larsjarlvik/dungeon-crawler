@@ -13,24 +13,6 @@
             {
                 "name": "torch",
                 "pos": [
-                    4,
-                    -9
-                ],
-                "rotation": 0.0,
-                "rotation_rng": 180.0
-            },
-            {
-                "name": "torch",
-                "pos": [
-                    9,
-                    -4
-                ],
-                "rotation": 0.0,
-                "rotation_rng": 180.0
-            },
-            {
-                "name": "torch",
-                "pos": [
                     9,
                     4
                 ],

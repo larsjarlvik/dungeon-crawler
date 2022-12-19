@@ -197,7 +197,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         // Reflections
         let reflect_dir = reflect(-light_dir, normal);
         let reflection = pow(max(dot(view_dir, reflect_dir), 0.0), 48.0);
-        lo += metalness * (1.0 - roughness) * reflection * light.color;
+        lo += metalness * (1.0 - roughness) * reflection * light.color * clamp(attenuation * 100.0, 0.0, 1.0);
 
         if (light.bloom > 0.1) {
             let dist = distance(position, env_uniforms.eye_pos.xyz);

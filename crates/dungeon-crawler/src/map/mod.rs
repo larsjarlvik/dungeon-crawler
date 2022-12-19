@@ -164,7 +164,7 @@ impl Map {
             .map(|l| components::DecorLight {
                 color: l.color,
                 intensity: l.intensity,
-                radius: l.radius,
+                radius: l.radius * d.light_radius.unwrap_or(1.0),
                 offset: l.translation,
                 flicker: l.flicker,
                 bloom: 1.0,
