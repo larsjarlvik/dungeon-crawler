@@ -23,6 +23,6 @@ impl Movement {
 
     pub fn towards(&mut self, direction: Vector3<f32>) {
         self.direction = direction.x.atan2(direction.z);
-        self.velocity = self.velocity.min(self.max_velocity).max(-self.max_velocity);
+        self.velocity = self.velocity.clamp(-self.max_velocity, self.max_velocity);
     }
 }

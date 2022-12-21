@@ -135,7 +135,7 @@ fn new_position(grid_size: usize, rng: &mut StdRng, taken_positions: &Vec<(i32, 
             x -= 1;
         }
 
-        checking_pos = (x as i32, z as i32);
+        checking_pos = (x, z);
 
         let gs = grid_size as i32;
         if !taken_positions.iter().any(|t| t == &checking_pos) && x >= -gs && x < gs && z >= -gs && z < gs {

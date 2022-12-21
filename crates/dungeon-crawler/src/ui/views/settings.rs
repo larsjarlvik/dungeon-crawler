@@ -204,7 +204,7 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> 
 
 fn create_slider<F: FnOnce(f32)>(ui_state: &mut ui::State, key: &str, value: f32, max_value: f32, handle: F) -> Slider {
     if let Some(mouse) = ui_state.mouse_down(key) {
-        handle(mouse.x.max(0.0).min(1.0));
+        handle(mouse.x.clamp(0.0, 1.0));
     }
 
     Slider {

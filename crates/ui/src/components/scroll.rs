@@ -38,7 +38,7 @@ impl Scroll {
 
         if let Some(mouse) = ui_state.mouse_down(&self.key) {
             if let Some(initial_pos) = self.mouse_offset {
-                self.position = (initial_pos + mouse.y).max(0.0).min(1.0);
+                self.position = (initial_pos + mouse.y).clamp(0.0, 1.0);
             } else {
                 self.mouse_offset = Some(self.position - mouse.y);
             }

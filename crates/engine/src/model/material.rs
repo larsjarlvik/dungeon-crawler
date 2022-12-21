@@ -51,11 +51,11 @@ impl Material {
 
 fn load_image(ctx: &Context, texture: gltf::Texture, images: &[gltf::image::Data]) -> texture::Texture {
     let image = images.get(texture.source().index()).expect("Could not find normal texture!");
-    let channels = image.pixels.len() as usize / (image.height * image.width) as usize;
+    let channels = image.pixels.len() / (image.height * image.width) as usize;
 
     let pixels = if channels < 4 {
         let len = (image.pixels.len() / channels) * 4;
-        let mut result = Vec::with_capacity(len as usize);
+        let mut result = Vec::with_capacity(len);
         let remain = vec![0; 4 - channels];
 
         image.pixels.chunks(channels).for_each(|c| {

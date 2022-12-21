@@ -44,7 +44,7 @@ pub fn health(
                 .collect();
         }
 
-        let limited_health = stats.health.get().min(stats.get_base_health()).max(0.0);
+        let limited_health = stats.health.get().clamp(0.0, stats.get_base_health());
         stats.health.set(limited_health);
 
         if stats.health.get() < previous {
