@@ -48,6 +48,15 @@ pub fn user_control(
     for (entity, transform, mut movement, mut action, mut stats, user_control, weapon) in query.p0().iter_mut() {
         commands.entity(entity).remove::<components::DisplayTarget>();
 
+        movement.target_velocity = 0.0;
+
+        if let Some(joystick) = &input.joystick {
+            if let Some((direction, strength)) = joystick.get_direction_strength(&input.mouse) {
+                movement.target_velocity = strength * 8.0 / config::UPDATES_PER_SECOND;
+                movement.towards(rot.rotate_vector(vec3(direction.x, 0.0, direction.y)));
+            }
+        }
+
         let focus_target: Option<&Target> = targets
             .iter()
             .filter(|target| target.position.distance(transform.translation.current) < 8.0)
@@ -73,15 +82,6 @@ pub fn user_control(
             None
         };
 
-        movement.target_velocity = 0.0;
-
-        if let Some(joystick) = &input.joystick {
-            if let Some((direction, strength)) = joystick.get_direction_strength(&input.mouse) {
-                movement.target_velocity = strength * 8.0 / config::UPDATES_PER_SECOND;
-                movement.towards(rot.rotate_vector(vec3(direction.x, 0.0, direction.y)));
-            }
-        }
-
         if input.is_pressed(VirtualKeyCode::Space) || user_control.ui_actions.contains_key(&UiActionCode::Attack) {
             if let Some(target) = focus_target {
                 let direction = target.position - transform.translation.current;
@@ -99,8 +99,8 @@ pub fn user_control(
         {
             // TODO: Health value
             stats.health.changes.push(components::HealthChange::new(
-                2.0,
-                components::HealthChangeType::OverTime(Duration::from_secs(10)),
+                4.0,
+                components::HealthChangeType::OverTime(Duration::from_secs(5)),
             ));
         }
     }
@@ -110,11 +110,10 @@ pub fn nearest(a: &Vector3<f32>, b: &Vector3<f32>, pos: Vector3<f32>, direction:
     let dist_a = a - pos;
     let dir_a = dist_a.x.atan2(dist_a.z);
 
-    let dist_b = a - pos;
+    let dist_b = b - pos;
     let dir_b = dist_b.x.atan2(dist_b.z);
 
-    let a = (dir_a - direction).abs() * a.distance(pos);
-    let b = (dir_b - direction).abs() * b.distance(pos);
-
-    a.total_cmp(&b)
+    let a_cmp = (dir_a - direction).abs() * a.distance(pos);
+    let b_cmp = (dir_b - direction).abs() * b.distance(pos);
+    a_cmp.total_cmp(&b_cmp)
 }
