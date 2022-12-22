@@ -42,14 +42,14 @@ pub fn actions(
                     if let Some(weapon) = weapon {
                         let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos());
                         let damage_base = stats.get_attack_damage();
-                        let damage_weapon = weapon.damage.clone();
 
                         commands.spawn((
                             components::Attack {
                                 team: stats.team,
-                                damage: (damage_base.start * damage_weapon.start)..(damage_base.end * damage_weapon.end),
+                                damage: (damage_base.start * weapon.damage.start)..(damage_base.end * weapon.damage.end),
+                                radius: weapon.radius,
                             },
-                            engine::ecs::components::Transform::from_translation(transform.translation.current + dir),
+                            engine::ecs::components::Transform::from_translation(transform.translation.current + dir * weapon.distance),
                         ));
                     }
                 }

@@ -1,7 +1,7 @@
 use crate::world::components;
 use bevy_ecs::prelude::*;
 use cgmath::*;
-use engine::collision::{Intersection, Polygon, PolygonMethods};
+use engine::collision::PolygonMethods;
 use rand::Rng;
 
 pub fn damage(
@@ -16,10 +16,7 @@ pub fn damage(
     let mut rng = rand::thread_rng();
 
     for (entity, attack, attack_transform) in attack_query.iter() {
-        let attack_polygon = vec![vec2(
-            attack_transform.translation.current.x,
-            attack_transform.translation.current.z,
-        )];
+        let attack_center = vec2(attack_transform.translation.current.x, attack_transform.translation.current.z);
 
         for (mut target_stats, target, target_transform) in target_query.iter_mut() {
             // Avoid friendly fire
@@ -27,13 +24,11 @@ pub fn damage(
                 continue;
             }
 
-            if did_hit(&attack_polygon, target, target_transform) {
+            if did_hit(attack_center, attack.radius, target, target_transform) {
                 target_stats.health.changes.push(components::HealthChange::new(
                     -rng.gen_range(attack.damage.clone()).round(),
                     components::HealthChangeType::Once,
                 ));
-
-                break;
             }
         }
 
@@ -41,15 +36,17 @@ pub fn damage(
     }
 }
 
-fn did_hit(attack: &Polygon, target: &components::Collision, target_transform: &engine::ecs::components::Transform) -> bool {
+fn did_hit(
+    attack: Vector2<f32>,
+    radius: f32,
+    target: &components::Collision,
+    target_transform: &engine::ecs::components::Transform,
+) -> bool {
     let c = target
         .polygons
         .iter()
         .flat_map(move |p| p.transform(target_transform.translation.current, target_transform.rotation.current))
         .collect();
 
-    !matches!(
-        engine::collision::check_collision(attack, &c, Vector2::zero()),
-        Intersection::None
-    )
+    engine::collision::check_collision_circle(&c, attack, radius)
 }

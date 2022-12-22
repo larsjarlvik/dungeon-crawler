@@ -87,6 +87,8 @@ impl World {
                 components::Stats::new(15, 15, 15, 0, config::TEAM_FRIENDLY),
                 components::Weapon {
                     damage: 2.0..7.0,
+                    distance: 0.5,
+                    radius: 0.25,
                     time: 1.0,
                 },
                 components::UserControl::default(),

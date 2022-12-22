@@ -89,6 +89,8 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                             components::Stats::new(10, 8, 10, components::stats::get_level_experience(3), config::TEAM_HOSTILE),
                             components::Weapon {
                                 damage: 2.0..5.0,
+                                distance: 0.5,
+                                radius: 0.25,
                                 time: 1.0,
                             },
                             components::Agressor::new(6.0),

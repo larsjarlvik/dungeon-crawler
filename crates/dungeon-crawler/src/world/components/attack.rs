@@ -5,4 +5,5 @@ use std::ops::Range;
 pub struct Attack {
     pub team: usize,
     pub damage: Range<f32>,
+    pub radius: f32,
 }
