@@ -18,10 +18,12 @@ pub struct Stats {
 
     pub experience: u32,
     pub health: health::Health,
+
+    pub team: usize,
 }
 
 impl Stats {
-    pub fn new(strength: u32, vitality: u32, dexterity: u32, experience: u32) -> Self {
+    pub fn new(strength: u32, vitality: u32, dexterity: u32, experience: u32, team: usize) -> Self {
         let level = get_level(experience) - 1;
         let vitality = vitality + level * 2;
         let vitality_health = 2.0;
@@ -37,6 +39,7 @@ impl Stats {
             damage_base: 0.5..1.2,
             experience,
             health: Health::new(vitality as f32 * vitality_health),
+            team,
         }
     }
 

@@ -21,13 +21,14 @@ pub fn damage(
             attack_transform.translation.current.z,
         )];
 
-        for (mut stats, target, target_transform) in target_query.iter_mut() {
-            if target.key == attack.collision_key {
+        for (mut target_stats, target, target_transform) in target_query.iter_mut() {
+            // Avoid friendly fire
+            if target_stats.team == attack.team {
                 continue;
             }
 
             if did_hit(&attack_polygon, target, target_transform) {
-                stats.health.changes.push(components::HealthChange::new(
+                target_stats.health.changes.push(components::HealthChange::new(
                     -rng.gen_range(attack.damage.clone()).round(),
                     components::HealthChangeType::Once,
                 ));

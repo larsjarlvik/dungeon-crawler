@@ -3,6 +3,6 @@ use std::ops::Range;
 
 #[derive(Component)]
 pub struct Attack {
-    pub collision_key: String,
+    pub team: usize,
     pub damage: Range<f32>,
 }

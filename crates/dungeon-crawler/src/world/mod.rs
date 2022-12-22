@@ -84,7 +84,7 @@ impl World {
                 engine::ecs::components::Transform::from_translation_scale(vec3(0.0, 0.0, 0.0), 0.01),
                 components::Movement::new(15.0),
                 components::ActionExecutor::new(),
-                components::Stats::new(15, 15, 15, 0),
+                components::Stats::new(15, 15, 15, 0, config::TEAM_FRIENDLY),
                 components::Weapon {
                     damage: 2.0..7.0,
                     time: 1.0,

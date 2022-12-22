@@ -16,10 +16,9 @@ pub fn actions(
         &mut engine::ecs::components::Animations,
         &mut components::ActionExecutor,
         Option<&components::Weapon>,
-        Option<&components::Collision>,
     )>,
 ) {
-    for (entity, stats, transform, mut movement, mut animation, mut action, weapon, collision) in query.iter_mut() {
+    for (entity, stats, transform, mut movement, mut animation, mut action, weapon) in query.iter_mut() {
         match &action.get() {
             Action::None => {
                 movement.velocity = vec1(movement.velocity).lerp(vec1(movement.target_velocity), 0.1).x;
@@ -40,20 +39,18 @@ pub fn actions(
                 }
 
                 if action.should_execute() {
-                    if let Some(collision) = collision {
-                        if let Some(weapon) = weapon {
-                            let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos());
-                            let damage_base = stats.get_attack_damage();
-                            let damage_weapon = weapon.damage.clone();
+                    if let Some(weapon) = weapon {
+                        let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos());
+                        let damage_base = stats.get_attack_damage();
+                        let damage_weapon = weapon.damage.clone();
 
-                            commands.spawn((
-                                components::Attack {
-                                    collision_key: collision.key.clone(),
-                                    damage: (damage_base.start * damage_weapon.start)..(damage_base.end * damage_weapon.end),
-                                },
-                                engine::ecs::components::Transform::from_translation(transform.translation.current + dir),
-                            ));
-                        }
+                        commands.spawn((
+                            components::Attack {
+                                team: stats.team,
+                                damage: (damage_base.start * damage_weapon.start)..(damage_base.end * damage_weapon.end),
+                            },
+                            engine::ecs::components::Transform::from_translation(transform.translation.current + dir),
+                        ));
                     }
                 }
             }
