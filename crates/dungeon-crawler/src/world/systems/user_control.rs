@@ -48,30 +48,23 @@ pub fn user_control(
     for (entity, transform, mut movement, mut action, mut stats, user_control, weapon) in query.p0().iter_mut() {
         commands.entity(entity).remove::<components::DisplayTarget>();
 
-        let mut targets: Vec<&Target> = targets
+        let focus_target: Option<&Target> = targets
             .iter()
             .filter(|target| target.position.distance(transform.translation.current) < 8.0)
-            .collect();
+            .min_by(|a, b| nearest(&a.position, &b.position, transform.translation.current, movement.direction));
 
-        targets.sort_by(|a, b| {
-            let direction_a = a.position - transform.translation.current;
-            let direction_a = direction_a.x.atan2(direction_a.z);
-
-            let direction_b = b.position - transform.translation.current;
-            let direction_b = direction_b.x.atan2(direction_b.z);
-
-            (direction_a - movement.direction)
-                .abs()
-                .partial_cmp(&(direction_b - movement.direction).abs())
-                .unwrap()
-        });
-
-        let focus_target = if let Some(target) = targets.first() {
+        if let Some(target) = focus_target {
             let direction = target.position - transform.translation.current;
             let direction = direction.x.atan2(direction.z);
 
             // ~90 degrees
             if (direction - movement.direction).abs() < 1.57 {
+                commands.entity(entity).insert(components::DisplayTarget {
+                    name: target.name.clone(),
+                    current_health: target.health,
+                    max_health: target.max_health,
+                });
+
                 Some(target)
             } else {
                 None
@@ -87,14 +80,6 @@ pub fn user_control(
                 movement.target_velocity = strength * 8.0 / config::UPDATES_PER_SECOND;
                 movement.towards(rot.rotate_vector(vec3(direction.x, 0.0, direction.y)));
             }
-        }
-
-        if let Some(target) = focus_target {
-            commands.entity(entity).insert(components::DisplayTarget {
-                name: target.name.clone(),
-                current_health: target.health,
-                max_health: target.max_health,
-            });
         }
 
         if input.is_pressed(VirtualKeyCode::Space) || user_control.ui_actions.contains_key(&UiActionCode::Attack) {
@@ -119,4 +104,17 @@ pub fn user_control(
             ));
         }
     }
+}
+
+pub fn nearest(a: &Vector3<f32>, b: &Vector3<f32>, pos: Vector3<f32>, direction: f32) -> std::cmp::Ordering {
+    let dist_a = a - pos;
+    let dir_a = dist_a.x.atan2(dist_a.z);
+
+    let dist_b = a - pos;
+    let dir_b = dist_b.x.atan2(dist_b.z);
+
+    let a = (dir_a - direction).abs() * a.distance(pos);
+    let b = (dir_b - direction).abs() * b.distance(pos);
+
+    a.total_cmp(&b)
 }

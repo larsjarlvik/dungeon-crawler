@@ -50,7 +50,6 @@ impl World {
         post_schedule.add_stage(
             "post",
             SystemStage::parallel()
-                .with_system(systems::display)
                 .with_system(systems::tile)
                 .with_system(engine::ecs::systems::camera)
                 .with_system(engine::ecs::systems::animation.label("animation"))
