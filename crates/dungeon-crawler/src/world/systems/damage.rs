@@ -15,26 +15,24 @@ pub fn damage(
 ) {
     let mut rng = rand::thread_rng();
 
-    for (entity, attack, transform) in attack_query.iter() {
-        for (mut stats, collision, target_transform) in target_query.iter_mut() {
-            if collision.key == attack.collision_key {
+    for (entity, attack, attack_transform) in attack_query.iter() {
+        let attack_polygon = vec![vec2(
+            attack_transform.translation.current.x,
+            attack_transform.translation.current.z,
+        )];
+
+        for (mut stats, target, target_transform) in target_query.iter_mut() {
+            if target.key == attack.collision_key {
                 continue;
             }
 
-            let collider: Vec<Polygon> = collision
-                .polygons
-                .iter()
-                .map(|p| p.transform(target_transform.translation.current, target_transform.rotation.current))
-                .collect();
+            if did_hit(&attack_polygon, target, target_transform) {
+                stats.health.changes.push(components::HealthChange::new(
+                    -rng.gen_range(attack.damage.clone()).round(),
+                    components::HealthChangeType::Once,
+                ));
 
-            for polygon in collider {
-                if did_hit(&polygon, collision, transform) {
-                    stats.health.changes.push(components::HealthChange::new(
-                        -rng.gen_range(attack.damage.clone()).round(),
-                        components::HealthChangeType::Once,
-                    ));
-                    break;
-                }
+                break;
             }
         }
 
@@ -42,20 +40,15 @@ pub fn damage(
     }
 }
 
-fn did_hit(collider: &Polygon, collision: &components::Collision, transform: &engine::ecs::components::Transform) -> bool {
-    let c = collision
+fn did_hit(attack: &Polygon, target: &components::Collision, target_transform: &engine::ecs::components::Transform) -> bool {
+    let c = target
         .polygons
         .iter()
-        .flat_map(move |p| p.transform(transform.translation.current, transform.rotation.current))
+        .flat_map(move |p| p.transform(target_transform.translation.current, target_transform.rotation.current))
         .collect();
 
-    let result = engine::collision::check_collision(collider, &c, Vector2::zero());
-    match result {
-        Intersection::None => {}
-        _ => {
-            return true;
-        }
-    };
-
-    false
+    !matches!(
+        engine::collision::check_collision(attack, &c, Vector2::zero()),
+        Intersection::None
+    )
 }

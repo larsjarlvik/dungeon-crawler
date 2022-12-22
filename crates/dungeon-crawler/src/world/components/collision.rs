@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::*;
 use engine::collision::Polygon;
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Debug)]
 pub struct Collision {
     pub key: String,
     pub polygons: Vec<Polygon>,

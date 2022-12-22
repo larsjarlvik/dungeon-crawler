@@ -42,7 +42,7 @@ pub fn actions(
                 if action.should_execute() {
                     if let Some(collision) = collision {
                         if let Some(weapon) = weapon {
-                            let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos()) * 0.5;
+                            let dir = vec3(movement.direction.sin(), 0.0, movement.direction.cos());
                             let damage_base = stats.get_attack_damage();
                             let damage_weapon = weapon.damage.clone();
 
