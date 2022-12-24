@@ -48,5 +48,5 @@ fn did_hit(
         .flat_map(move |p| p.transform(target_transform.translation.current, target_transform.rotation.current))
         .collect();
 
-    engine::collision::check_collision_circle(&c, attack, radius)
+    engine::collision::circle_polygon(&c, attack, radius)
 }

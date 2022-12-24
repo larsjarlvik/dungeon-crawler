@@ -27,7 +27,7 @@ pub fn collision(
 
         for polygon in collider.polygons.iter() {
             let polygon = polygon.transform(transform.translation.current, transform.rotation.current);
-            movement.to = engine::collision::get_collision_offset(movement.to, &polygon, &collisions);
+            movement.to = engine::collision::polygon_polygons_offset(movement.to, &polygon, &collisions);
         }
     });
 }

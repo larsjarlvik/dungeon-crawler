@@ -238,7 +238,7 @@ impl Map {
 
             for polygon in collider.iter() {
                 let p = polygon.transform(position, Quaternion::zero());
-                if engine::collision::check_collision_array(Vector3::zero(), &p, collisions) {
+                if engine::collision::polygon_polygons(Vector3::zero(), &p, collisions) {
                     is_colliding = true;
                     break;
                 }
