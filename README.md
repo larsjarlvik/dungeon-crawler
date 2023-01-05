@@ -38,6 +38,17 @@ cargo run
 cargo run --release
 ```
 
+**Hint**
+Reduce incremental built times on Linux using lld linker.
+
+In `~/.cargo/config`:
+```
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-C", "link-arg=-fuse-ld=lld",
+]
+```
+
 #### Android
 
 **Setup**
