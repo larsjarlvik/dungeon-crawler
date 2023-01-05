@@ -1,7 +1,9 @@
 [package]
 name = "ui"
+authors = ["Lars Jarlvik <lars.jarlvik@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
+resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

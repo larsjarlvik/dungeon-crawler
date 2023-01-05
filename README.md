@@ -56,8 +56,14 @@ rustup target add \
 
 **Run**
 ```
-cargo apk run -p dungeon-crawler
-cargo apk run --release -p dungeon-crawler
+cargo apk run -p dungeon-crawler-android
+```
+
+**Release build**
+```
+export CARGO_APK_RELEASE_KEYSTORE="/path/to/dungeon-crawler.keystore"
+export CARGO_APK_RELEASE_KEYSTORE_PASSWORD="Password"
+cargo apk build --release -p dungeon-crawler-android
 ```
 
 ##### Print logs:
