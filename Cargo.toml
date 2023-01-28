@@ -5,6 +5,7 @@ members = [
 default-members = [
     "crates/engine",
     "crates/dungeon-crawler",
+    "crates/map",
     "crates/ui"
 ]
 

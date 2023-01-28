@@ -1,0 +1,13 @@
+[package]
+name = "map"
+authors = ["Lars Jarlvik <lars.jarlvik@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+resolver = "2"
+
+[dependencies]
+rand = "0.8.5"
+image = "0.24.5"
+rayon = "1.6.1"
+itertools = "0.10.5"
+pathfinding = "4.2.1"
