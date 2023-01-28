@@ -153,7 +153,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         return primitive_uniforms.base_color;
     }
 
-    let albedo = pow(textureSample(t_base_color, t_sampler, in.tex_coord), vec4(2.2));
+    let albedo = pow(textureSample(t_base_color, t_sampler, in.tex_coord), vec4(2.2)).rgb;
     let orm = pow(textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord), vec4(2.2));
     let occlusion = orm.r;
     let roughness = orm.g;
@@ -167,7 +167,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let position = in.world_position.xyz;
     let view_dir = normalize(env_uniforms.eye_pos - position);
 
-    let f0 = mix(vec3(0.04), albedo.rgb, metalness);
+    let f0 = mix(vec3(0.04), albedo, metalness);
     var lo = vec3(0.0);
 
     for (var i: i32 = 0; i < env_uniforms.light_count; i += 1) {
@@ -192,7 +192,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         let denominator = 4.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_dir), 0.0) + 0.0001;
         let specular = numerator / denominator;
 
-        lo += (kd * albedo.rgb / M_PI + specular) * radiance * n_dot_l;
+        lo += (kd * albedo / M_PI + specular) * radiance * n_dot_l;
 
         // Reflections
         let reflect_dir = reflect(-light_dir, normal);
@@ -210,5 +210,5 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var color: vec3<f32> = lo / (lo + vec3(1.0)) * occlusion;
     color = pow(color, vec3(1.0 / env_uniforms.gamma));
 
-    return contrast_matrix(env_uniforms.contrast) * vec4(color, albedo.a);
+    return contrast_matrix(env_uniforms.contrast) * vec4(color, 1.0);
 }
