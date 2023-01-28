@@ -1,6 +1,6 @@
 use cgmath::*;
 use fxhash::FxHashMap;
-use pipelines::ui_element::context::ImageContext;
+use pipelines::{model::Method, ui_element::context::ImageContext};
 pub mod bounding_box;
 pub mod bounding_sphere;
 pub mod collision;
@@ -209,8 +209,8 @@ impl Engine {
         None
     }
 
-    pub fn initialize_model(&mut self, gltf_model: &model::GltfModel, name: &str) -> ecs::components::Model {
-        let model = pipelines::model::Model::new(&self.ctx, &self.model_pipeline, gltf_model, name);
+    pub fn initialize_model(&mut self, gltf_model: &model::GltfModel, method: Method, name: &str) -> ecs::components::Model {
+        let model = pipelines::model::Model::new(&self.ctx, &self.model_pipeline, gltf_model, method, name);
         let nodes = gltf_model.nodes.clone();
         let animation_times = nodes.animations.iter().map(|(a, b)| (a.clone(), b.total_time)).collect();
         let animation_sound_effects = nodes

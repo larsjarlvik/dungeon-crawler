@@ -6,10 +6,11 @@ pub struct Config {
     pub tile_size: u32,
     pub tiles: DynamicImage,
     pub variants: Vec<Variant>,
+    pub seed: u64,
 }
 
 impl Config {
-    pub fn new(tile_set: &str, variants: Vec<Variant>) -> Self {
+    pub fn new(seed: u64, tile_set: &str, variants: Vec<Variant>) -> Self {
         let config = {
             let text = engine::file::read_string(format!("maps/{tile_set}/config.json").as_str());
             serde_json::from_str::<Value>(&text).unwrap()
@@ -24,6 +25,7 @@ impl Config {
             tile_size,
             tiles,
             variants,
+            seed,
         }
     }
 }

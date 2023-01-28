@@ -3,12 +3,14 @@ use rand::distributions::WeightedIndex;
 use rand::prelude::Distribution;
 use rand::rngs::StdRng;
 use rand::Rng;
+use rand::SeedableRng;
 use std::ops::Range;
 use std::time::Instant;
 mod grid;
 mod pathfinding;
 mod tile;
-use self::grid::{Direction, Grid, Position};
+use self::grid::{Grid, Position};
+pub use grid::Direction;
 pub use tile::Edges;
 pub use tile::Path;
 pub use tile::Tile;
@@ -16,14 +18,14 @@ mod config;
 pub use config::*;
 
 #[derive(Debug)]
-pub struct Map {
+pub struct MapData {
     pub size: usize,
     pub path_length: Range<usize>,
     pub history: Vec<Grid>,
     pub variants: Vec<Tile>,
 }
 
-impl Map {
+impl MapData {
     pub fn new(size: usize, path_length: Range<usize>) -> Self {
         Self {
             size,
@@ -42,7 +44,8 @@ impl Map {
         }
     }
 
-    pub fn build(&mut self, rng: &mut StdRng, config: &config::Config, log_history: bool) {
+    pub fn build(&mut self, config: &config::Config, log_history: bool) {
+        let mut rng = StdRng::seed_from_u64(config.seed);
         self.history.clear();
         let time = Instant::now();
 
@@ -56,13 +59,13 @@ impl Map {
 
         loop {
             tries += 1;
-            let map_ok = self.generate_map(rng, log_history);
+            let map_ok = self.generate_map(&mut rng, log_history);
 
             if map_ok {
                 let mut grid = self.history.last().unwrap().clone();
 
                 let entrance = self.pick_entrance_exit(
-                    rng,
+                    &mut rng,
                     &grid,
                     config
                         .variants
@@ -72,7 +75,7 @@ impl Map {
                 );
 
                 let exit = self.pick_entrance_exit(
-                    rng,
+                    &mut rng,
                     &grid,
                     config
                         .variants

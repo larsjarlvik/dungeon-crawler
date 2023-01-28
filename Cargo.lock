@@ -1666,6 +1666,8 @@ dependencies = [
 name = "map"
 version = "0.1.0"
 dependencies = [
+ "bevy_ecs",
+ "cgmath",
  "engine",
  "image 0.24.5",
  "itertools",

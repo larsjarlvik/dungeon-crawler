@@ -1,8 +1,9 @@
 mod initializer;
-mod pipeline_display;
+mod pipeline_default;
+mod pipeline_pbr;
 mod pipeline_shadow;
 mod uniforms;
-use self::uniforms::EnvironmentUniforms;
+use self::uniforms::{DefaultUniforms, EnvironmentUniforms};
 use crate::{
     config,
     ecs::{components, resources},
@@ -12,20 +13,22 @@ use crate::{
 };
 use bevy_ecs::prelude::World;
 use cgmath::*;
-pub use initializer::Model;
+pub use initializer::*;
 use std::convert::TryInto;
-pub use uniforms::Uniforms;
+pub use uniforms::PbrUniforms;
 
 pub struct ModelPipeline {
-    pub display: pipeline_display::PipelineDisplay,
+    pub default: pipeline_default::PipelineDefault,
+    pub pbr: pipeline_pbr::PipelinePbr,
     pub shadows: pipeline_shadow::PipelineShadow,
 }
 
 impl ModelPipeline {
     pub fn new(ctx: &Context) -> Self {
         Self {
+            default: pipeline_default::PipelineDefault::new(ctx),
+            pbr: pipeline_pbr::PipelinePbr::new(ctx),
             shadows: pipeline_shadow::PipelineShadow::new(ctx),
-            display: pipeline_display::PipelineDisplay::new(ctx),
         }
     }
 
@@ -49,17 +52,17 @@ impl ModelPipeline {
             )
         };
 
-        let mut bundles = vec![];
+        let mut default_bundles = vec![];
+        let mut pbr_bundles = vec![];
         let mut shadow_bundles = vec![];
 
         let (lights_count, lights) = self.get_lights(ctx, components);
 
-        for (model_instance, animation, render, shadow, transform) in components
+        for (model_instance, animation, render, transform) in components
             .query::<(
                 &components::Model,
                 Option<&components::Animations>,
                 &components::Render,
-                Option<&components::Shadow>,
                 &components::Transform,
             )>()
             .iter(components)
@@ -77,38 +80,54 @@ impl ModelPipeline {
             let joint_transforms = get_joint_transforms(&model.nodes, &animation);
             let inv_model = model_matrix.invert().unwrap().transpose().into();
 
-            ctx.queue.write_buffer(
-                &model.model.display_uniform_buffer,
-                0,
-                bytemuck::cast_slice(&[Uniforms {
-                    view_proj: view_proj.into(),
-                    model: model_matrix.into(),
-                    inv_model,
-                    joint_transforms: joint_transforms.clone().try_into().unwrap(),
-                    is_animated: animation.is_some() as u32,
-                }]),
-            );
+            match &model.model.render_type {
+                initializer::RenderType::Default(default) => {
+                    ctx.queue.write_buffer(
+                        &default.uniform_buffer,
+                        0,
+                        bytemuck::cast_slice(&[DefaultUniforms {
+                            view_proj: view_proj.into(),
+                            model: model_matrix.into(),
+                        }]),
+                    );
 
-            ctx.queue.write_buffer(
-                &model.model.display_environment_uniform_buffer,
-                0,
-                bytemuck::cast_slice(&[EnvironmentUniforms {
-                    eye_pos: eye.to_vec().extend(0.0).into(),
-                    target: eye_target.extend(0.0).into(),
-                    lights,
-                    lights_count,
-                    contrast: ctx.settings.contrast,
-                    gamma: ctx.settings.gamma,
-                }]),
-            );
+                    default_bundles.push(&default.render_bundle);
+                }
+                initializer::RenderType::PBR(pbr) => {
+                    ctx.queue.write_buffer(
+                        &pbr.uniform_buffer,
+                        0,
+                        bytemuck::cast_slice(&[PbrUniforms {
+                            view_proj: view_proj.into(),
+                            model: model_matrix.into(),
+                            inv_model,
+                            joint_transforms: joint_transforms.clone().try_into().unwrap(),
+                            is_animated: animation.is_some() as u32,
+                        }]),
+                    );
 
-            bundles.push(&model.model.display_render_bundle);
+                    ctx.queue.write_buffer(
+                        &pbr.environment_uniform_buffer,
+                        0,
+                        bytemuck::cast_slice(&[EnvironmentUniforms {
+                            eye_pos: eye.to_vec().extend(0.0).into(),
+                            target: eye_target.extend(0.0).into(),
+                            lights,
+                            lights_count,
+                            contrast: ctx.settings.contrast,
+                            gamma: ctx.settings.gamma,
+                        }]),
+                    );
 
-            if shadow.is_some() {
+                    pbr_bundles.push(&pbr.render_bundle);
+                }
+            }
+
+            if render.shadows {
                 ctx.queue.write_buffer(
                     &model.model.shadow_uniform_buffer,
                     0,
-                    bytemuck::cast_slice(&[Uniforms {
+                    bytemuck::cast_slice(&[PbrUniforms {
                         view_proj: shadow_matrix.into(),
                         model: model_matrix.into(),
                         inv_model,
@@ -120,7 +139,8 @@ impl ModelPipeline {
             }
         }
 
-        self.display.execute_bundles(ctx, bundles, target, depth_target);
+        self.pbr.execute_bundles(ctx, pbr_bundles, target, depth_target);
+        self.default.execute_bundles(ctx, default_bundles, target, depth_target);
         self.shadows.execute_bundles(ctx, shadow_bundles, shadow_target);
     }
 

@@ -2,7 +2,14 @@ use crate::config;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct Uniforms {
+pub struct DefaultUniforms {
+    pub view_proj: [[f32; 4]; 4],
+    pub model: [[f32; 4]; 4],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct PbrUniforms {
     pub view_proj: [[f32; 4]; 4],
     pub model: [[f32; 4]; 4],
     pub inv_model: [[f32; 4]; 4],
@@ -46,5 +53,4 @@ impl Default for LightUniforms {
 pub struct PrimitiveUniforms {
     pub orm_factor: [f32; 4],
     pub base_color_factor: [f32; 4],
-    pub has_textures: u32,
 }

@@ -5,6 +5,7 @@ pub mod resources;
 pub mod systems;
 use bevy_ecs::prelude::*;
 use cgmath::*;
+use engine::pipelines::model;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum GameState {
@@ -69,7 +70,7 @@ impl World {
         self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {
-            let character_model = engine.initialize_model(&resources.character, "character");
+            let character_model = engine.initialize_model(&resources.character, model::Method::PBR, "character");
             let collider = resources
                 .character
                 .collisions
@@ -92,12 +93,16 @@ impl World {
                 },
                 components::UserControl::default(),
                 engine::ecs::components::SoundEffects::default(),
-                engine::ecs::components::Render { cull_frustum: false },
-                engine::ecs::components::Shadow,
+                engine::ecs::components::Render {
+                    cull_frustum: false,
+                    shadows: true,
+                },
                 engine::ecs::components::Follow,
                 engine::ecs::components::Light::new(vec3(1.0, 0.94, 0.88), 0.5, 7.0, vec3(0.0, 3.0, 0.0), 0.0),
                 components::Target,
             ));
+
+            resources.map.create_mini_map(engine, &mut self.components);
         }
     }
 
@@ -148,10 +153,10 @@ impl World {
         stats.health.get() <= 0.0 && stats.health.last_change.elapsed().as_secs_f32() > 3.0
     }
 
-    pub fn load_resources(&mut self, ctx: &engine::Context) {
+    pub fn load_resources(&mut self, engine: &mut engine::Engine) {
         let start = Instant::now();
-        let character = engine::load_model(ctx, "models/character.glb");
-        let map = map::load_map("dungeon", 42312);
+        let character = engine::load_model(&engine.ctx, "models/character.glb");
+        let map = map::Map::new(engine, "catacombs", 123);
 
         let mut sound_effects = self
             .components
@@ -160,9 +165,9 @@ impl World {
 
         sound_effects.load(&character.get_sound_effects());
         // sound_effects.load(&map.sound_effects);
-        sound_effects.volume = ctx.settings.audio_effects;
+        sound_effects.volume = engine.ctx.settings.audio_effects;
 
-        self.set_sounds(ctx);
+        self.set_sounds(&engine.ctx);
 
         println!("Load resources {} ms", start.elapsed().as_millis());
         self.resources = Some(Resources { map, character });

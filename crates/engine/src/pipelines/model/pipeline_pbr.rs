@@ -1,6 +1,6 @@
 use crate::{config, model, pipelines::builders, texture, Context};
 
-pub struct PipelineDisplay {
+pub struct PipelinePbr {
     pub render_pipeline: builders::Pipeline,
     pub uniform_bind_group_layout: builders::MappedBindGroupLayout,
     pub environment_uniform_bind_group_layout: builders::MappedBindGroupLayout,
@@ -9,32 +9,32 @@ pub struct PipelineDisplay {
     pub sampler: wgpu::Sampler,
 }
 
-impl PipelineDisplay {
+impl PipelinePbr {
     pub fn new(ctx: &Context) -> Self {
-        let builder = builders::PipelineBuilder::new(ctx, "model");
+        let builder = builders::PipelineBuilder::new(ctx, "model_pbr");
         let sampler = texture::Texture::create_sampler(ctx, wgpu::AddressMode::Repeat, wgpu::FilterMode::Linear, None);
 
         let uniform_bind_group_layout = builder.create_bindgroup_layout(
             0,
-            "model_uniform_bind_group_layout",
+            "model_pbr_uniform_bind_group_layout",
             &[builder.create_uniform_entry(0, wgpu::ShaderStages::VERTEX)],
         );
 
         let environment_uniform_bind_group_layout = builder.create_bindgroup_layout(
             1,
-            "model_environment_uniform_bind_group_layout",
+            "model_pbr_environment_uniform_bind_group_layout",
             &[builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT)],
         );
 
         let primitive_uniform_bind_group_layout = builder.create_bindgroup_layout(
             2,
-            "model_primitive_uniform_bind_group_layout",
+            "model_pbr_primitive_uniform_bind_group_layout",
             &[builder.create_uniform_entry(0, wgpu::ShaderStages::FRAGMENT | wgpu::ShaderStages::VERTEX)],
         );
 
         let texture_bind_group_layout = builder.create_bindgroup_layout(
             3,
-            "texture_bind_group_layout",
+            "model_pbr_texture_bind_group_layout",
             &[
                 builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT, true),
                 builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT, true),
@@ -44,7 +44,7 @@ impl PipelineDisplay {
         );
 
         let render_pipeline = builder
-            .with_shader("shaders/model.wgsl")
+            .with_shader("shaders/model-pbr.wgsl")
             .with_color_targets(vec![ctx.color_format])
             .with_depth_target(config::DEPTH_FORMAT)
             .with_buffer_layouts(vec![model::Vertex::desc()])
@@ -71,7 +71,7 @@ impl PipelineDisplay {
         target: &wgpu::TextureView,
         depth_target: &wgpu::TextureView,
     ) {
-        builders::RenderTargetBuilder::new(ctx, "model")
+        builders::RenderTargetBuilder::new(ctx, "model_pbr")
             .with_color_attachment(target, wgpu::LoadOp::Clear(config::CLEAR_COLOR))
             .with_depth_attachment(depth_target, wgpu::LoadOp::Clear(1.0))
             .execute_bundles(bundles);
