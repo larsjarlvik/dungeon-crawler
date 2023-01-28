@@ -1,4 +1,4 @@
-use crate::{config, map};
+use crate::config;
 use std::time::Instant;
 pub mod components;
 pub mod resources;
@@ -50,7 +50,7 @@ impl World {
         post_schedule.add_stage(
             "post",
             SystemStage::parallel()
-                .with_system(systems::tile)
+                // .with_system(systems::tile)
                 .with_system(engine::ecs::systems::camera)
                 .with_system(engine::ecs::systems::animation.label("animation"))
                 .with_system(engine::ecs::systems::player.after("animation")),
@@ -98,12 +98,6 @@ impl World {
                 engine::ecs::components::Light::new(vec3(1.0, 0.94, 0.88), 0.5, 7.0, vec3(0.0, 3.0, 0.0), 0.0),
                 components::Target,
             ));
-
-            if let Some((tile_name, variant)) = map::edit_mode() {
-                resources.map.single_tile(engine, &mut self.components, &tile_name, variant);
-            } else {
-                resources.map.generate(&mut self.components, engine);
-            }
         }
     }
 
@@ -157,7 +151,7 @@ impl World {
     pub fn load_resources(&mut self, ctx: &engine::Context) {
         let start = Instant::now();
         let character = engine::load_model(ctx, "models/character.glb");
-        let map = map::Map::new(ctx, 42312, 3);
+        let map = map::load_map("dungeon", 42312);
 
         let mut sound_effects = self
             .components
@@ -165,7 +159,7 @@ impl World {
             .unwrap();
 
         sound_effects.load(&character.get_sound_effects());
-        sound_effects.load(&map.sound_effects);
+        // sound_effects.load(&map.sound_effects);
         sound_effects.volume = ctx.settings.audio_effects;
 
         self.set_sounds(ctx);

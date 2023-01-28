@@ -1666,11 +1666,13 @@ dependencies = [
 name = "map"
 version = "0.1.0"
 dependencies = [
+ "engine",
  "image 0.24.5",
  "itertools",
  "pathfinding",
  "rand",
  "rayon",
+ "serde_json",
 ]
 
 [[package]]

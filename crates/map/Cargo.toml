@@ -6,8 +6,10 @@ edition = "2021"
 resolver = "2"
 
 [dependencies]
+serde_json = { features = ["raw_value"], version = "1.0" }
 rand = "0.8.5"
 image = "0.24.5"
 rayon = "1.6.1"
 itertools = "0.10.5"
 pathfinding = "4.2.1"
+engine = { path = "../engine" }

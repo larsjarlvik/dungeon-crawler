@@ -8,7 +8,6 @@ mod movement;
 mod name;
 pub mod stats;
 mod target;
-mod tile;
 mod user_control;
 mod weapon;
 
@@ -23,6 +22,5 @@ pub use movement::Movement;
 pub use name::Name;
 pub use stats::*;
 pub use target::Target;
-pub use tile::*;
 pub use user_control::*;
 pub use weapon::Weapon;

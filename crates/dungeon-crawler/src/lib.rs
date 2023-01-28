@@ -14,7 +14,6 @@ use winit::{
 use world::GameState;
 
 mod config;
-mod map;
 mod state;
 mod ui;
 mod utils;

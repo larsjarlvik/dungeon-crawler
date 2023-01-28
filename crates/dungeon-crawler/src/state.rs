@@ -19,6 +19,7 @@ pub struct State {
 impl State {
     pub async fn new(window: &Window) -> Self {
         let start = Instant::now();
+        map::load_map("dungeon", 123);
 
         let mut engine = engine::Engine::new(
             &window,
