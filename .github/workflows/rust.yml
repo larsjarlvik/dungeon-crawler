@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Prepare
-      run: sudo apt-get install librust-alsa-sys-dev
+      run: sudo apt-get install alsa librust-alsa-sys-dev
     - name: Build
       run: cargo build --verbose
