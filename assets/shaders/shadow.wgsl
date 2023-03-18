@@ -32,8 +32,8 @@ fn world_pos_from_depth(tex_coord: vec2<f32>, depth: f32, inv_matrix: mat4x4<f32
     return p.xyz / p.w;
 }
 
-let min_shadow = 0.2;
-let disk_size = 6;
+const min_shadow = 0.2;
+const disk_size = 6;
 
 @fragment
 fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {

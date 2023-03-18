@@ -22,6 +22,7 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: config::DEPTH_FORMAT,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[config::DEPTH_FORMAT],
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -41,6 +42,7 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[format],
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -66,6 +68,7 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8Unorm,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[wgpu::TextureFormat::Rgba8Unorm],
             label: None,
         });
 

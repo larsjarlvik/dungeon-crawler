@@ -4,7 +4,7 @@ fn get_path(name: &str) -> String {
     #[cfg(target_os = "android")]
     {
         let native_activity = ndk_glue::native_activity();
-        return format!("{}/{name}", native_activity.internal_data_path().to_str().unwrap());
+        format!("{}/{name}", native_activity.internal_data_path().to_str().unwrap())
     }
 
     #[cfg(not(target_os = "android"))]

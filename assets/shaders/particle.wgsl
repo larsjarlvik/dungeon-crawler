@@ -1,5 +1,5 @@
 // Vertex shader
-let M_PI = 3.141592653589793;
+const M_PI: f32 = 3.141592653589793;
 
 struct Uniforms {
     view: mat4x4<f32>,

@@ -15,7 +15,7 @@ pub fn read_bytes(path: &str) -> Vec<u8> {
     let asset_manager = ndk_glue::native_activity().asset_manager();
     let mut opened_asset = asset_manager
         .open(&std::ffi::CString::new(path).unwrap())
-        .expect(format!("Could not find file: {}!", path).as_str());
+        .unwrap_or_else(|| panic!("Could not find file: {}!", path));
 
     opened_asset.get_buffer().unwrap().to_vec()
 }

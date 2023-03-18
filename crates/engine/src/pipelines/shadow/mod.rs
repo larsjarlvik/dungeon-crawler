@@ -53,7 +53,7 @@ impl ShadowPipeline {
             1,
             "shadow_texture_bind_group_layout",
             &[
-                pipeline_builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT, true),
+                pipeline_builder.create_texture_entry(0, wgpu::ShaderStages::FRAGMENT, false),
                 pipeline_builder.create_texture_entry(1, wgpu::ShaderStages::FRAGMENT, true),
                 pipeline_builder.create_shadow_texture_entry(2, wgpu::ShaderStages::FRAGMENT),
                 pipeline_builder.create_sampler_entry(3, wgpu::ShaderStages::FRAGMENT, true),

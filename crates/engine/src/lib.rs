@@ -58,8 +58,11 @@ impl Engine {
         scale_factor: f32,
         font_data: Vec<u8>,
     ) -> Self {
-        let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
-        let surface = unsafe { instance.create_surface(window) };
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::PRIMARY,
+            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
+        });
+        let surface = unsafe { instance.create_surface(window).expect("Failed to create surface!") };
         let settings = settings::Settings::load();
 
         let viewport = viewport::Viewport::new(size.x, size.y, scale_factor, settings.render_scale);
@@ -91,7 +94,8 @@ impl Engine {
             wgpu::TextureFormat::Bgra8Unorm,
         ];
 
-        let mut supported_formats = surface.get_supported_formats(&adapter);
+        let caps = surface.get_capabilities(&adapter);
+        let mut supported_formats = caps.formats;
         supported_formats.sort_by(|a, b| {
             preferred_formats
                 .iter()
@@ -178,7 +182,7 @@ impl Engine {
         self.scaling_pipeline.resize(&self.ctx);
 
         if self.ctx.surface.is_none() {
-            self.ctx.surface = Some(unsafe { self.ctx.instance.create_surface(window) });
+            self.ctx.surface = Some(unsafe { self.ctx.instance.create_surface(window).expect("Failed to create surface!") });
         }
 
         if let Some(surface) = &mut self.ctx.surface {
@@ -191,6 +195,7 @@ impl Engine {
                     height: self.ctx.viewport.height,
                     present_mode: wgpu::PresentMode::AutoNoVsync,
                     alpha_mode: wgpu::CompositeAlphaMode::Auto,
+                    view_formats: vec![self.ctx.color_format],
                 },
             );
         }
@@ -253,6 +258,7 @@ pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, color_f
             height: size.y,
             present_mode: wgpu::PresentMode::AutoNoVsync,
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
+            view_formats: vec![color_format],
         },
     );
 }

@@ -118,7 +118,14 @@ pub fn main() {
             Event::Resumed => {
                 if let Some(state) = &mut state {
                     if state.engine.ctx.surface.is_none() {
-                        let surface = unsafe { state.engine.ctx.instance.create_surface(&window) };
+                        let surface = unsafe {
+                            state
+                                .engine
+                                .ctx
+                                .instance
+                                .create_surface(&window)
+                                .expect("Failed to create surface!")
+                        };
                         engine::configure_surface(
                             &surface,
                             &state.engine.ctx.device,

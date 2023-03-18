@@ -58,7 +58,7 @@ fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let d_min_g = min_g;
     let d_max_g = 1.0 - max_g;
     var amp: f32;
-    let max_g = max(0.0 , max_g);
+    max_g = max(0.0 , max_g);
     if (d_max_g < d_min_g) {
         amp = d_max_g / max_g;
     } else {

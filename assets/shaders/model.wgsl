@@ -80,7 +80,7 @@ fn vert_main(model: VertexInput) -> VertexOutput {
 }
 
 // Fragment shader
-let M_PI = 3.141592653589793;
+const M_PI: f32 = 3.141592653589793;
 
 @group(3) @binding(0) var t_base_color: texture_2d<f32>;
 @group(3) @binding(1) var t_normal: texture_2d<f32>;
