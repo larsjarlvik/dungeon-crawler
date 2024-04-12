@@ -36,6 +36,3 @@ oboe = { version = "0.4", features = ["java-interface", "shared-stdcxx"] }
 ndk-glue = { version = "0.7.0", features = ["logger"] }
 ndk-context = "0.1.1"
 jni = "0.19.0"
-
-[patch."https://github.com/RustAudio/rodio"]
-coreaudio-sys = "=0.2.15"
