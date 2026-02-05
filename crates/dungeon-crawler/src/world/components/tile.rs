@@ -41,7 +41,6 @@ pub struct Decor {
 pub struct Hostile {
     pub model: engine::ecs::components::Model,
     pub collider: Vec<Polygon>,
-    pub health: f32,
     pub position: Vector3<f32>,
 }
 

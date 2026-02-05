@@ -208,8 +208,9 @@ impl<'a> PipelineBuilder<'a> {
         let fragment = if !self.color_targets.is_empty() {
             Some(wgpu::FragmentState {
                 module: &shader,
-                entry_point: "frag_main",
+                entry_point: Some("frag_main"),
                 targets: color_targets.as_slice(),
+                compilation_options: Default::default(),
             })
         } else {
             None
@@ -220,8 +221,9 @@ impl<'a> PipelineBuilder<'a> {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
-                entry_point: "vert_main",
+                entry_point: Some("vert_main"),
                 buffers: &self.buffer_layouts,
+                compilation_options: Default::default(),
             },
             fragment,
             primitive: wgpu::PrimitiveState {
@@ -236,6 +238,7 @@ impl<'a> PipelineBuilder<'a> {
             depth_stencil,
             multisample: wgpu::MultisampleState::default(),
             multiview: None,
+            cache: None,
         });
 
         Pipeline {

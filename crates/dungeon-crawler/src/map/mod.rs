@@ -249,12 +249,7 @@ impl Map {
             }
         }
 
-        components::Hostile {
-            model,
-            collider,
-            position,
-            health: 10.0,
-        }
+        components::Hostile { model, collider, position }
     }
 
     fn add_grid(&self, world: &mut World, center: Vector3<f32>) {

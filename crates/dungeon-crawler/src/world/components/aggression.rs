@@ -16,6 +16,3 @@ impl Agressor {
         }
     }
 }
-
-#[derive(Component)]
-pub struct Target;

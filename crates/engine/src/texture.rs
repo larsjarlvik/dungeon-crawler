@@ -75,19 +75,19 @@ impl Texture {
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
         let mut encoder = ctx.device.create_command_encoder(&Default::default());
         encoder.copy_buffer_to_texture(
-            wgpu::ImageCopyBuffer {
+            wgpu::TexelCopyBufferInfo {
                 buffer: &ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some("mipmap_buffer"),
                     contents: pixels,
                     usage: wgpu::BufferUsages::COPY_SRC,
                 }),
-                layout: wgpu::ImageDataLayout {
+                layout: wgpu::TexelCopyBufferLayout {
                     offset: 0,
-                    bytes_per_row: std::num::NonZeroU32::new(4 * width),
-                    rows_per_image: std::num::NonZeroU32::new(height),
+                    bytes_per_row: Some(4 * width),
+                    rows_per_image: Some(height),
                 },
             },
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 texture: &texture,
                 mip_level: 0,
                 aspect: wgpu::TextureAspect::All,

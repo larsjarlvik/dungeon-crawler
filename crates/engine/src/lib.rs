@@ -28,7 +28,7 @@ pub struct ModelInstance {
 pub struct Context {
     pub instance: wgpu::Instance,
     pub viewport: viewport::Viewport,
-    pub surface: Option<wgpu::Surface>,
+    pub surface: Option<wgpu::Surface<'static>>,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub settings: settings::Settings,
@@ -52,17 +52,17 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub async fn new<W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRawDisplayHandle>(
-        window: &W,
+    pub async fn new(
+        window: impl Into<wgpu::SurfaceTarget<'static>>,
         size: Point2<u32>,
         scale_factor: f32,
         font_data: Vec<u8>,
     ) -> Self {
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::PRIMARY,
-            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
+            ..Default::default()
         });
-        let surface = unsafe { instance.create_surface(window).expect("Failed to create surface!") };
+        let surface = instance.create_surface(window).expect("Failed to create surface!");
         let settings = settings::Settings::load();
 
         let viewport = viewport::Viewport::new(size.x, size.y, scale_factor, settings.render_scale);
@@ -79,11 +79,11 @@ impl Engine {
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
-                    features: wgpu::Features::empty(),
-                    limits: wgpu::Limits::default(),
+                    required_features: wgpu::Features::empty(),
+                    required_limits: wgpu::Limits::default(),
                     label: None,
+                    ..Default::default()
                 },
-                None,
             )
             .await
             .unwrap();
@@ -172,18 +172,13 @@ impl Engine {
         );
     }
 
-    pub fn set_viewport<W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRawDisplayHandle>(
+    pub fn set_viewport(
         &mut self,
-        window: &W,
         size: Point2<u32>,
         scale_factor: f32,
     ) {
         self.ctx.viewport = viewport::Viewport::new(size.x, size.y, scale_factor, self.ctx.settings.render_scale);
         self.scaling_pipeline.resize(&self.ctx);
-
-        if self.ctx.surface.is_none() {
-            self.ctx.surface = Some(unsafe { self.ctx.instance.create_surface(window).expect("Failed to create surface!") });
-        }
 
         if let Some(surface) = &mut self.ctx.surface {
             surface.configure(
@@ -196,6 +191,7 @@ impl Engine {
                     present_mode: wgpu::PresentMode::AutoNoVsync,
                     alpha_mode: wgpu::CompositeAlphaMode::Auto,
                     view_formats: vec![self.ctx.color_format],
+                    desired_maximum_frame_latency: 2,
                 },
             );
         }
@@ -259,6 +255,7 @@ pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, color_f
             present_mode: wgpu::PresentMode::AutoNoVsync,
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
             view_formats: vec![color_format],
+            desired_maximum_frame_latency: 2,
         },
     );
 }

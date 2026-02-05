@@ -21,7 +21,7 @@ impl<'a> RenderTargetBuilder<'a> {
         self.color_attachments.push(Some(wgpu::RenderPassColorAttachment {
             view,
             resolve_target: None,
-            ops: wgpu::Operations { load, store: true },
+            ops: wgpu::Operations { load, store: wgpu::StoreOp::Store },
         }));
         self
     }
@@ -29,7 +29,7 @@ impl<'a> RenderTargetBuilder<'a> {
     pub fn with_depth_attachment(mut self, view: &'a wgpu::TextureView, load: wgpu::LoadOp<f32>) -> Self {
         self.depth_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
             view,
-            depth_ops: Some(wgpu::Operations { load, store: true }),
+            depth_ops: Some(wgpu::Operations { load, store: wgpu::StoreOp::Store }),
             stencil_ops: None,
         });
         self
@@ -45,6 +45,8 @@ impl<'a> RenderTargetBuilder<'a> {
                 label: Some(format!("{}_render_pass", self.label).as_str()),
                 color_attachments: self.color_attachments.as_slice(),
                 depth_stencil_attachment: self.depth_attachment,
+                timestamp_writes: None,
+                occlusion_query_set: None,
             })
             .execute_bundles(bundles.into_iter());
 

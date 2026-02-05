@@ -7,8 +7,9 @@ use engine::{
     ecs::resources::{input::mouse::PressState, Input},
     file,
 };
+use std::sync::Arc;
 use std::time::Instant;
-use winit::{event::VirtualKeyCode, window::Window};
+use winit::{keyboard::KeyCode, window::Window};
 
 pub struct State {
     pub engine: engine::Engine,
@@ -17,11 +18,11 @@ pub struct State {
 }
 
 impl State {
-    pub async fn new(window: &Window) -> Self {
+    pub async fn new(window: Arc<Window>) -> Self {
         let start = Instant::now();
 
         let mut engine = engine::Engine::new(
-            &window,
+            window.clone(),
             Point2::new(window.inner_size().width, window.inner_size().height),
             window.scale_factor() as f32,
             file::read_bytes("exo2-medium.ttf"),
@@ -38,7 +39,6 @@ impl State {
     pub fn resize(&mut self, window: &Window) {
         if self.engine.ctx.surface.is_some() {
             self.engine.set_viewport(
-                window,
                 Point2::new(window.inner_size().width, window.inner_size().height),
                 window.scale_factor() as f32,
             );
@@ -62,11 +62,11 @@ impl State {
         }
     }
 
-    pub fn keyboard(&mut self, keyboard_input: &winit::event::KeyboardInput) {
+    pub fn keyboard(&mut self, event: &winit::event::KeyEvent) {
         let r = {
             let mut input = self.world.components.get_resource_mut::<Input>().unwrap();
-            input.keyboard(keyboard_input);
-            input.key_state(VirtualKeyCode::R)
+            input.keyboard(event);
+            input.key_state(KeyCode::KeyR)
         };
 
         if r == PressState::Pressed(false) {

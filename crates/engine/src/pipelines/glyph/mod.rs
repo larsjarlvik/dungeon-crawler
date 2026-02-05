@@ -1,15 +1,19 @@
 use crate::Context;
 use cgmath::{Point2, Vector2, Vector4};
 use fxhash::FxHashMap;
-use std::collections::hash_map::Entry;
-use wgpu_glyph::{
-    ab_glyph::{FontArc, Rect},
-    GlyphBrushBuilder, GlyphCruncher, Region, Section, Text,
+use glyphon::{
+    Attrs, Buffer, Cache, Color, Family, FontSystem, Metrics, Resolution, Shaping, SwashCache, TextArea, TextAtlas, TextBounds,
+    TextRenderer, Viewport,
 };
+use std::collections::hash_map::Entry;
 
 pub struct GlyphPipeline {
-    staging_belt: wgpu::util::StagingBelt,
-    brush: wgpu_glyph::GlyphBrush<()>,
+    font_system: FontSystem,
+    swash_cache: SwashCache,
+    atlas: TextAtlas,
+    cache: Cache,
+    viewport: Viewport,
+    text_renderer: TextRenderer,
     regions: FxHashMap<Option<[u32; 4]>, Vec<GlyphProps>>,
 }
 
@@ -33,16 +37,39 @@ impl Default for GlyphProps {
     }
 }
 
+pub struct GlyphBounds {
+    pub width: f32,
+    pub height: f32,
+}
+
+impl GlyphBounds {
+    pub fn width(&self) -> f32 {
+        self.width
+    }
+
+    pub fn height(&self) -> f32 {
+        self.height
+    }
+}
+
 impl GlyphPipeline {
-    pub fn new(ctx: &Context, font_data: Vec<u8>) -> Self {
-        let staging_belt = wgpu::util::StagingBelt::new(1024);
-        let font = FontArc::try_from_vec(font_data).expect("Failed to load font!");
-        let glyph_brush = GlyphBrushBuilder::using_font(font).build(&ctx.device, ctx.color_format);
+    pub fn new(ctx: &Context, _font_data: Vec<u8>) -> Self {
+        let mut font_system = FontSystem::new();
+        font_system.db_mut().load_font_data(_font_data);
+        let swash_cache = SwashCache::new();
+        let cache = Cache::new(&ctx.device);
+        let mut atlas = TextAtlas::new(&ctx.device, &ctx.queue, &cache, ctx.color_format);
+        let viewport = Viewport::new(&ctx.device, &cache);
+        let text_renderer = TextRenderer::new(&mut atlas, &ctx.device, wgpu::MultisampleState::default(), None);
 
         Self {
-            staging_belt,
+            font_system,
+            swash_cache,
+            atlas,
+            cache,
+            viewport,
+            text_renderer,
             regions: FxHashMap::<Option<[u32; 4]>, Vec<GlyphProps>>::default(),
-            brush: glyph_brush,
         }
     }
 
@@ -56,57 +83,127 @@ impl GlyphPipeline {
     }
 
     pub fn draw_queued(&mut self, ctx: &mut Context, target: &wgpu::TextureView) {
+        self.viewport.update(
+            &ctx.queue,
+            Resolution {
+                width: ctx.viewport.width,
+                height: ctx.viewport.height,
+            },
+        );
+
+        let mut text_areas: Vec<(Buffer, f32, f32, TextBounds)> = Vec::new();
+
+        for (region, props_list) in self.regions.drain() {
+            let bounds = if let Some(region) = region {
+                let right = (region[0] + region[2]).min(ctx.viewport.width) as i32;
+                let bottom = (region[1] + region[3]).min(ctx.viewport.height) as i32;
+                TextBounds {
+                    left: region[0] as i32,
+                    top: region[1] as i32,
+                    right,
+                    bottom,
+                }
+            } else {
+                TextBounds {
+                    left: 0,
+                    top: 0,
+                    right: ctx.viewport.width as i32,
+                    bottom: ctx.viewport.height as i32,
+                }
+            };
+
+            for props in props_list {
+                let mut buffer = Buffer::new(&mut self.font_system, Metrics::new(props.size, props.size * 1.2));
+                buffer.set_size(&mut self.font_system, Some(props.bounds.x), Some(props.bounds.y));
+                buffer.set_text(
+                    &mut self.font_system,
+                    &props.text,
+                    &Attrs::new().family(Family::SansSerif).color(Color::rgba(
+                        (props.color.x * 255.0) as u8,
+                        (props.color.y * 255.0) as u8,
+                        (props.color.z * 255.0) as u8,
+                        (props.color.w * 255.0) as u8,
+                    )),
+                    Shaping::Advanced,
+                );
+                buffer.shape_until_scroll(&mut self.font_system, false);
+
+                text_areas.push((buffer, props.position.x, props.position.y, bounds));
+            }
+        }
+
+        let areas: Vec<TextArea> = text_areas
+            .iter()
+            .map(|(buffer, left, top, bounds)| TextArea {
+                buffer,
+                left: *left,
+                top: *top,
+                scale: 1.0,
+                bounds: *bounds,
+                default_color: Color::rgb(255, 255, 255),
+                custom_glyphs: &[],
+            })
+            .collect();
+
+        self.text_renderer
+            .prepare(
+                &ctx.device,
+                &ctx.queue,
+                &mut self.font_system,
+                &mut self.atlas,
+                &self.viewport,
+                areas,
+                &mut self.swash_cache,
+            )
+            .expect("Failed to prepare text");
+
         let mut encoder = ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("glyph_encoder"),
         });
 
-        for (region, props) in self.regions.drain() {
-            for props in props {
-                self.brush.queue(Section {
-                    screen_position: props.position.into(),
-                    bounds: props.bounds.into(),
-                    text: vec![Text::new(props.text.as_str()).with_color(props.color).with_scale(props.size)],
-                    layout: wgpu_glyph::Layout::default_single_line()
-                        .h_align(wgpu_glyph::HorizontalAlign::Left)
-                        .v_align(wgpu_glyph::VerticalAlign::Top),
-                });
-            }
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("glyph_render_pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: target,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
 
-            let region = if let Some(region) = region {
-                Region {
-                    x: region[0],
-                    y: region[1],
-                    width: region[2].min(ctx.viewport.width - region[0]),
-                    height: region[3].min(ctx.viewport.height - region[1]),
-                }
-            } else {
-                Region {
-                    x: 0,
-                    y: 0,
-                    width: ctx.viewport.width,
-                    height: ctx.viewport.height,
-                }
-            };
-
-            let transform = wgpu_glyph::orthographic_projection(ctx.viewport.width, ctx.viewport.height);
-            self.brush
-                .draw_queued_with_transform_and_scissoring(&ctx.device, &mut self.staging_belt, &mut encoder, target, transform, region)
-                .expect("Draw queued");
+            self.text_renderer
+                .render(&self.atlas, &self.viewport, &mut pass)
+                .expect("Failed to render text");
         }
 
-        self.staging_belt.finish();
-        ctx.queue.submit(Some(encoder.finish()));
+        ctx.queue.submit(std::iter::once(encoder.finish()));
+        self.atlas.trim();
     }
 
-    pub fn get_bounds(&mut self, text: &str, scale: f32) -> Rect {
-        self.brush
-            .glyph_bounds(Section {
-                text: vec![Text::new(text).with_color([1.0, 1.0, 1.0, 1.0]).with_scale(scale)],
-                layout: wgpu_glyph::Layout::default_single_line()
-                    .h_align(wgpu_glyph::HorizontalAlign::Left)
-                    .v_align(wgpu_glyph::VerticalAlign::Top),
-                ..Default::default()
-            })
-            .unwrap()
+    pub fn get_bounds(&mut self, text: &str, scale: f32) -> GlyphBounds {
+        let mut buffer = Buffer::new(&mut self.font_system, Metrics::new(scale, scale * 1.2));
+        buffer.set_size(&mut self.font_system, None, None);
+        buffer.set_text(
+            &mut self.font_system,
+            text,
+            &Attrs::new().family(Family::SansSerif),
+            Shaping::Advanced,
+        );
+        buffer.shape_until_scroll(&mut self.font_system, false);
+
+        let mut width: f32 = 0.0;
+        let mut height: f32 = 0.0;
+        for run in buffer.layout_runs() {
+            width = width.max(run.line_w);
+            height += run.line_height;
+        }
+
+        GlyphBounds { width, height }
     }
 }

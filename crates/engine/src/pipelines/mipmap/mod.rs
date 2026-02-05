@@ -1,6 +1,5 @@
 use super::builders;
 use crate::Context;
-use std::num::NonZeroU32;
 
 pub fn generate_mipmaps(ctx: &Context, encoder: &mut wgpu::CommandEncoder, texture: &wgpu::Texture, mip_count: u32) {
     let builder = builders::PipelineBuilder::new(ctx, "mipmap");
@@ -37,7 +36,7 @@ pub fn generate_mipmaps(ctx: &Context, encoder: &mut wgpu::CommandEncoder, textu
             texture.create_view(&wgpu::TextureViewDescriptor {
                 label: Some("mipmap_view"),
                 base_mip_level: mip,
-                mip_level_count: NonZeroU32::new(1),
+                mip_level_count: Some(1),
                 ..Default::default()
             })
         })
@@ -60,10 +59,12 @@ pub fn generate_mipmaps(ctx: &Context, encoder: &mut wgpu::CommandEncoder, textu
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
         });
 
         rpass.set_pipeline(&pipeline.render_pipeline);

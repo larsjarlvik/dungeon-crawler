@@ -6,7 +6,6 @@ pub struct Decor {
     pub name: String,
     pub pos: [i32; 2],
     pub rotation: f32,
-    pub rotation_rng: f32,
     pub light_radius: Option<f32>,
 }
 

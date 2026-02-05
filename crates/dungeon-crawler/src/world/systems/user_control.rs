@@ -3,7 +3,7 @@ use bevy_ecs::prelude::*;
 use cgmath::*;
 use engine::ecs::resources::Input;
 use std::time::Duration;
-use winit::event::VirtualKeyCode;
+use winit::keyboard::KeyCode;
 
 struct Target {
     position: Vector3<f32>,
@@ -82,7 +82,7 @@ pub fn user_control(
             None
         };
 
-        if input.is_pressed(VirtualKeyCode::Space) || user_control.ui_actions.contains_key(&UiActionCode::Attack) {
+        if input.is_pressed(KeyCode::Space) || user_control.ui_actions.contains_key(&UiActionCode::Attack) {
             if let Some(target) = focus_target {
                 let direction = target.position - transform.translation.current;
                 let direction = direction.x.atan2(direction.z);
@@ -94,7 +94,7 @@ pub fn user_control(
             }
         }
 
-        if (input.is_pressed(VirtualKeyCode::H) || user_control.ui_actions.contains_key(&UiActionCode::Health))
+        if (input.is_pressed(KeyCode::KeyH) || user_control.ui_actions.contains_key(&UiActionCode::Health))
             && stats.health.changes.is_empty()
         {
             // TODO: Health value

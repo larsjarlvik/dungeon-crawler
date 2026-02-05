@@ -5,23 +5,23 @@ use self::{
 use bevy_ecs::system::Resource;
 use cgmath::*;
 use fxhash::FxHashMap;
-use winit::event::VirtualKeyCode;
+use winit::keyboard::KeyCode;
 pub mod joystick;
 pub mod mouse;
 
 // TODO: Should not be in engine!
 #[derive(Debug, Default, Resource)]
 pub struct Input {
-    pub keys: FxHashMap<VirtualKeyCode, PressState>,
+    pub keys: FxHashMap<KeyCode, PressState>,
     pub mouse: FxHashMap<u64, MouseButton>,
     pub joystick: Option<Joystick>,
     pub blocked: bool,
 }
 
 impl Input {
-    pub fn keyboard(&mut self, input: &winit::event::KeyboardInput) {
-        if let Some(key_code) = input.virtual_keycode {
-            match input.state {
+    pub fn keyboard(&mut self, event: &winit::event::KeyEvent) {
+        if let winit::keyboard::PhysicalKey::Code(key_code) = event.physical_key {
+            match event.state {
                 winit::event::ElementState::Pressed => self.keys.insert(key_code, PressState::Pressed(self.keys.contains_key(&key_code))),
                 winit::event::ElementState::Released => self.keys.remove(&key_code),
             };
@@ -32,14 +32,14 @@ impl Input {
         self.mouse.entry(id).or_default()
     }
 
-    pub fn key_state(&self, key: VirtualKeyCode) -> PressState {
+    pub fn key_state(&self, key: KeyCode) -> PressState {
         match self.keys.get(&key) {
             Some(state) => *state,
             None => PressState::Released(false),
         }
     }
 
-    pub fn is_pressed(&self, key: VirtualKeyCode) -> bool {
+    pub fn is_pressed(&self, key: KeyCode) -> bool {
         match self.keys.get(&key) {
             Some(state) => match state {
                 PressState::Released(_) => false,

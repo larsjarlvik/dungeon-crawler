@@ -8,8 +8,8 @@ resolver = "2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wgpu = "0.15.1"
-wgpu_glyph = { git = "https://github.com/larsjarlvik/wgpu_glyph" }
+wgpu = "25"
+glyphon = "0.9"
 cgmath = "0.18.0"
 bytemuck = { version = "1.4", features = ["derive"] }
 gltf = { version = "1.0.0", features = ["extras", "KHR_lights_punctual"] }
@@ -21,15 +21,14 @@ image = { version = "0.24", default-features = false, features = [
     "png",
 ] }
 rayon = "1.5.1"
-smaa = "0.9.0"
+smaa = "0.17"
 bevy_ecs = "0.9.0"
 bevy_tasks = "0.9.0"
 rand = "0.8.4"
-raw-window-handle = "0.5.0"
 uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
 rodio = "0.17.1"
 fxhash = "0.2.1"
-winit = "0.27.2"
+winit = "0.30"
 
 [target.'cfg(target_os = "android")'.dependencies]
 oboe = { version = "0.4", features = ["java-interface", "shared-stdcxx"] }
