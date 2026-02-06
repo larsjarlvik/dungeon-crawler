@@ -7,11 +7,14 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
     let mut rng = StdRng::seed_from_u64(54); // TODO: seed
     let flicker_speed = rng.gen::<f32>() * 0.05 + 0.02;
 
-    for (entity, mut tile) in query.iter_mut() {
+    for (_entity, mut tile) in query.iter_mut() {
         match tile.state {
             components::TileState::Active => {
                 if !camera.frustum.test_bounding_box(&tile.bounding_box) {
-                    commands.entity(entity).despawn();
+                    if let Some(spawned) = tile.spawned_entity.take() {
+                        commands.entity(spawned).despawn();
+                    }
+                    tile.state = components::TileState::Destroyed;
                 }
             }
 
@@ -76,29 +79,33 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                         }
                     }
 
-                    for hostile in tile.hostiles.iter() {
-                        commands.spawn((
-                            components::Name::new("Skeleton Warrior"),
-                            hostile.model.clone(),
-                            components::Collision::new(hostile.collider.clone()),
-                            engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationStatus::Repeat),
-                            engine::ecs::components::Transform::from_translation_scale(hostile.position, 0.8),
-                            engine::ecs::components::Render { cull_frustum: true },
-                            engine::ecs::components::SoundEffects::default(),
-                            components::Stats::new(10, 8, 10, components::stats::get_level_experience(3), config::TEAM_HOSTILE),
-                            components::Weapon {
-                                damage: 2.0..5.0,
-                                distance: 0.5,
-                                radius: 0.25,
-                                time: 1.0,
-                            },
-                            components::Agressor::new(6.0),
-                            components::Movement::new(10.0),
-                            engine::ecs::components::Shadow,
-                            components::ActionExecutor::new(),
-                        ));
+                    if !tile.hostiles_spawned {
+                        for hostile in tile.hostiles.iter() {
+                            commands.spawn((
+                                components::Name::new("Skeleton Warrior"),
+                                hostile.model.clone(),
+                                components::Collision::new(hostile.collider.clone()),
+                                engine::ecs::components::Animations::new("base", "idle", engine::ecs::components::AnimationStatus::Repeat),
+                                engine::ecs::components::Transform::from_translation_scale(hostile.position, 0.8),
+                                engine::ecs::components::Render { cull_frustum: true },
+                                engine::ecs::components::SoundEffects::default(),
+                                components::Stats::new(10, 8, 10, components::stats::get_level_experience(3), config::TEAM_HOSTILE),
+                                components::Weapon {
+                                    damage: 2.0..5.0,
+                                    distance: 0.5,
+                                    radius: 0.25,
+                                    time: 1.0,
+                                },
+                                components::Agressor::new(6.0),
+                                components::Movement::new(10.0),
+                                engine::ecs::components::Shadow,
+                                components::ActionExecutor::new(),
+                            ));
+                        }
+                        tile.hostiles_spawned = true;
                     }
 
+                    tile.spawned_entity = Some(tile_id);
                     tile.state = components::TileState::Active;
                 }
             }

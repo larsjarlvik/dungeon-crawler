@@ -1,9 +1,8 @@
 use crate::{pipelines::builders, texture, Engine};
 use cgmath::*;
 use fxhash::FxHashMap;
-use wgpu::util::DeviceExt;
 
-use super::uniforms::{Uniforms, UniformsTextured};
+use super::uniforms::Uniforms;
 
 #[derive(Debug)]
 pub enum AssetState {
@@ -28,15 +27,16 @@ pub struct Data {
     pub clip: Option<[u32; 4]>,
 }
 
-pub struct RenderBundle {
-    pub uniform_bind_group: wgpu::BindGroup,
+pub struct QueuedElement {
+    pub uniforms: Uniforms,
     pub clip: Option<[u32; 4]>,
+    pub texture_id: Option<String>,
 }
 
 #[derive(Default)]
 pub struct ImageContext {
     pub textures: FxHashMap<String, wgpu::BindGroup>,
-    pub queue: Vec<(Option<String>, RenderBundle)>,
+    pub queue: Vec<QueuedElement>,
 }
 
 impl ImageContext {
@@ -60,53 +60,25 @@ impl ImageContext {
         );
     }
 
-    pub fn create_item(engine: &mut Engine, data: Data, texture_id: Option<String>) -> RenderBundle {
-        let builder = builders::RenderBundleBuilder::new(&engine.ctx, "asset");
-
-        let uniform_bind_group = if texture_id.is_some() {
-            let uniform_buffer = engine.ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("image_context_texture_buffer"),
-                contents: bytemuck::cast_slice(&[UniformsTextured {
-                    position: data.position.into(),
-                    size: data.size.into(),
-                    viewport_size: [engine.ctx.viewport.width as f32, engine.ctx.viewport.height as f32],
-                    foreground: data.foreground.into(),
-                    opacity: data.opacity,
-                    pad: [0.0; 4],
-                }]),
-                usage: wgpu::BufferUsages::UNIFORM,
-            });
-            builder.create_uniform_bind_group(&engine.ui_pipeline.uniform_bind_group_layout, &uniform_buffer)
-        } else {
-            let uniform_buffer = engine.ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("image_context_texture_buffer"),
-                contents: bytemuck::cast_slice(&[Uniforms {
-                    position: data.position.into(),
-                    size: data.size.into(),
-                    viewport_size: [engine.ctx.viewport.width as f32, engine.ctx.viewport.height as f32],
-                    background: data.background.into(),
-                    background_end: data.background_end.into(),
-                    foreground: data.foreground.into(),
-                    opacity: data.opacity,
-                    border_radius: data.border_radius,
-                    shadow_radius: data.shadow_radius,
-                    shadow_color: data.shadow_color.into(),
-                    shadow_offset: data.shadow_offset.into(),
-                    gradient_angle: data.gradient_angle.to_radians(),
-                    pad: [0.0; 12],
-                }]),
-                usage: wgpu::BufferUsages::UNIFORM,
-            });
-            builder.create_uniform_bind_group(&engine.ui_pipeline.uniform_bind_group_layout, &uniform_buffer)
-        };
-
-        RenderBundle {
-            uniform_bind_group,
+    pub fn queue_item(&mut self, data: Data, viewport: [f32; 2], texture_id: Option<String>) {
+        self.queue.push(QueuedElement {
+            uniforms: Uniforms {
+                position: data.position.into(),
+                size: data.size.into(),
+                viewport_size: viewport,
+                background: data.background.into(),
+                background_end: data.background_end.into(),
+                foreground: data.foreground.into(),
+                opacity: data.opacity,
+                border_radius: data.border_radius,
+                shadow_radius: data.shadow_radius,
+                shadow_color: data.shadow_color.into(),
+                shadow_offset: data.shadow_offset.into(),
+                gradient_angle: data.gradient_angle.to_radians(),
+                _pad: [0.0; 36],
+            },
             clip: data.clip,
-        }
-    }
-
-    pub fn queue(&mut self, bundle: RenderBundle, texture_id: Option<String>) {
-        self.queue.push((texture_id, bundle));
+            texture_id,
+        });
     }
 }

@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::Component;
+use bevy_ecs::prelude::{Component, Entity};
 use cgmath::*;
 use engine::{bounding_box::BoundingBox, collision::Polygon};
 
@@ -54,6 +54,8 @@ pub struct Tile {
     pub bounding_box: BoundingBox,
     pub collisions: Vec<Polygon>,
     pub hostiles: Vec<Hostile>,
+    pub spawned_entity: Option<Entity>,
+    pub hostiles_spawned: bool,
 }
 
 impl Tile {
@@ -80,6 +82,8 @@ impl Tile {
             rotation,
             decor,
             hostiles,
+            spawned_entity: None,
+            hostiles_spawned: false,
         }
     }
 }

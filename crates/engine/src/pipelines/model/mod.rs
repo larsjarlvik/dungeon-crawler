@@ -53,6 +53,16 @@ impl ModelPipeline {
         let mut shadow_bundles = vec![];
 
         let (lights_count, lights) = self.get_lights(ctx, components);
+        let env_uniforms = EnvironmentUniforms {
+            eye_pos: eye.to_vec().extend(0.0).into(),
+            target: eye_target.extend(0.0).into(),
+            lights,
+            lights_count,
+            contrast: ctx.settings.contrast,
+            gamma: ctx.settings.gamma,
+        };
+        let env_uniforms_arr = [env_uniforms];
+        let env_bytes = bytemuck::cast_slice(&env_uniforms_arr);
 
         for (model_instance, animation, render, shadow, transform) in components
             .query::<(
@@ -74,8 +84,10 @@ impl ModelPipeline {
                 }
             }
 
-            let joint_transforms = get_joint_transforms(&model.nodes, &animation);
+            let joint_transforms: [[[f32; 4]; 4]; config::MAX_JOINT_COUNT] =
+                get_joint_transforms(&model.nodes, &animation).try_into().unwrap();
             let inv_model = model_matrix.invert().unwrap().transpose().into();
+            let is_animated = animation.is_some() as u32;
 
             ctx.queue.write_buffer(
                 &model.model.display_uniform_buffer,
@@ -84,22 +96,15 @@ impl ModelPipeline {
                     view_proj: view_proj.into(),
                     model: model_matrix.into(),
                     inv_model,
-                    joint_transforms: joint_transforms.clone().try_into().unwrap(),
-                    is_animated: animation.is_some() as u32,
+                    joint_transforms,
+                    is_animated,
                 }]),
             );
 
             ctx.queue.write_buffer(
                 &model.model.display_environment_uniform_buffer,
                 0,
-                bytemuck::cast_slice(&[EnvironmentUniforms {
-                    eye_pos: eye.to_vec().extend(0.0).into(),
-                    target: eye_target.extend(0.0).into(),
-                    lights,
-                    lights_count,
-                    contrast: ctx.settings.contrast,
-                    gamma: ctx.settings.gamma,
-                }]),
+                env_bytes,
             );
 
             bundles.push(&model.model.display_render_bundle);
@@ -112,8 +117,8 @@ impl ModelPipeline {
                         view_proj: shadow_matrix.into(),
                         model: model_matrix.into(),
                         inv_model,
-                        joint_transforms: joint_transforms.clone().try_into().unwrap(),
-                        is_animated: animation.is_some() as u32,
+                        joint_transforms,
+                        is_animated,
                     }]),
                 );
                 shadow_bundles.push(&model.model.shadow_render_bundle);
@@ -143,10 +148,9 @@ impl ModelPipeline {
             .collect();
 
         visible_lights.sort_by(|a, b| {
-            a.1.translation
-                .get(alpha)
+            (a.1.translation.get(alpha) + a.0.offset.get(alpha))
                 .distance(target)
-                .partial_cmp(&(b.1.translation.current + b.0.offset.current).distance(target))
+                .partial_cmp(&(b.1.translation.get(alpha) + b.0.offset.get(alpha)).distance(target))
                 .unwrap()
         });
 

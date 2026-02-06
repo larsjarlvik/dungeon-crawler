@@ -79,7 +79,31 @@ impl Camera {
     }
 
     pub fn get_shadow_matrix(&self) -> Matrix4<f32> {
-        let shadow_eye = point3(self.target.x - 7.0, self.target.y + 40.0, self.target.z + 9.0);
-        perspective(Deg(45.0), self.aspect, 5.0, 100.0) * Matrix4::look_at_rh(shadow_eye, Point3::from_vec(self.target), Vector3::unit_y())
+        let light_offset = vec3(-7.0, 40.0, 9.0);
+        let shadow_eye = Point3::from_vec(self.target + light_offset);
+        let light_view = Matrix4::look_at_rh(shadow_eye, Point3::from_vec(self.target), Vector3::unit_y());
+
+        let inv_vp = self.view_proj.invert().unwrap();
+        let mut min_ls = vec3(f32::MAX, f32::MAX, f32::MAX);
+        let mut max_ls = vec3(f32::MIN, f32::MIN, f32::MIN);
+        for &z in &[-1.0_f32, 1.0] {
+            for &y in &[-1.0_f32, 1.0] {
+                for &x in &[-1.0_f32, 1.0] {
+                    let w = inv_vp * vec4(x, y, z, 1.0);
+                    let p = Point3::new(w.x / w.w, (w.y / w.w).max(0.0), w.z / w.w);
+                    let ls = light_view.transform_point(p);
+                    min_ls = vec3(min_ls.x.min(ls.x), min_ls.y.min(ls.y), min_ls.z.min(ls.z));
+                    max_ls = vec3(max_ls.x.max(ls.x), max_ls.y.max(ls.y), max_ls.z.max(ls.z));
+                }
+            }
+        }
+
+        max_ls.z += 15.0;
+        let opengl_to_wgpu = Matrix4::new(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
+
+        let near = (-max_ls.z).max(0.1);
+        let far = -min_ls.z;
+
+        opengl_to_wgpu * ortho(min_ls.x, max_ls.x, min_ls.y, max_ls.y, near, far) * light_view
     }
 }

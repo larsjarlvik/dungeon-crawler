@@ -242,6 +242,11 @@ impl Engine {
     pub fn initialize_particle(&mut self, emitter: pipelines::ParticleEmitter, key: String) {
         self.ctx.emitter_instances.insert(key, emitter);
     }
+
+    pub fn clear_instances(&mut self) {
+        self.ctx.model_instances.clear();
+        self.ctx.emitter_instances.clear();
+    }
 }
 
 pub fn configure_surface(surface: &wgpu::Surface, device: &wgpu::Device, color_format: wgpu::TextureFormat, size: Point2<u32>) {

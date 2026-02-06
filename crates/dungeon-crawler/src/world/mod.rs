@@ -62,6 +62,7 @@ impl World {
     }
 
     pub fn init(&mut self, engine: &mut engine::Engine) {
+        engine.clear_instances();
         self.components.clear_entities();
 
         if let Some(resources) = &mut self.resources {

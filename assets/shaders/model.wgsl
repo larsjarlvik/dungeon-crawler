@@ -87,15 +87,8 @@ const M_PI: f32 = 3.141592653589793;
 @group(3) @binding(2) var t_occlusion_roughness_metallic: texture_2d<f32>;
 @group(3) @binding(3) var t_sampler: sampler;
 
-fn contrast_matrix(contrast: f32) -> mat4x4<f32> {
-    let t = (1.0 - contrast) * 0.5;
-
-    return mat4x4<f32>(
-        vec4(contrast, 0.0, 0.0, 0.0),
-        vec4(0.0, contrast, 0.0, 0.0),
-        vec4(0.0, 0.0, contrast, 0.0),
-        vec4(t, t, t, 1.0)
-    );
+fn apply_contrast(color: vec3<f32>, contrast: f32) -> vec3<f32> {
+    return color * contrast + (1.0 - contrast) * 0.5;
 }
 
 fn attenuation_strength_real(rpos: vec3<f32>) -> f32 {
@@ -106,10 +99,8 @@ fn attenuation_strength_real(rpos: vec3<f32>) -> f32 {
 fn apply_point_glow(wpos: vec3<f32>, dir: vec3<f32>, max_dist: f32, position: vec3<f32>, bloom: f32) -> f32 {
     let t = max(dot(position - wpos, dir), 0.0);
     let nearest = wpos + dir * min(t, max_dist);
-
     let difference = position - nearest;
-    let spread = 1.0;
-    let strength = pow(attenuation_strength_real(difference), spread); // TODO
+    let strength = attenuation_strength_real(difference);
     return strength * 0.005 * pow(bloom, 0.65);
 }
 
@@ -154,7 +145,7 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     let albedo = pow(textureSample(t_base_color, t_sampler, in.tex_coord), vec4(2.2)).rgb;
-    let orm = pow(textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord), vec4(2.2));
+    let orm = textureSample(t_occlusion_roughness_metallic, t_sampler, in.tex_coord);
     let occlusion = orm.r;
     let roughness = orm.g;
     let metalness = orm.b;
@@ -168,6 +159,9 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let view_dir = normalize(env_uniforms.eye_pos - position);
 
     let f0 = mix(vec3(0.04), albedo, metalness);
+    let n_dot_v = max(dot(normal, view_dir), 0.0);
+    let eye_dist = distance(position, env_uniforms.eye_pos.xyz);
+    let eye_dir = (position - env_uniforms.eye_pos.xyz) / eye_dist;
     var lo = vec3(0.0);
 
     for (var i: i32 = 0; i < env_uniforms.light_count; i += 1) {
@@ -175,12 +169,14 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
         let light_dist = distance(light.position, position);
         if (light_dist > light.radius) { continue; }
 
-        let attenuation = pow(clamp(pow(1.0 - (light_dist / light.radius), 2.0), 0.0, 1.0), 2.0) / light_dist * light_dist;
+        let ratio = light_dist / light.radius;
+        let w = clamp(1.0 - ratio * ratio, 0.0, 1.0);
+        let window = w * w;
+        let attenuation = window / (light_dist * light_dist + 1.0);
         let radiance = light.color * attenuation;
 
         let light_dir = normalize(light.position - position);
         let half_dir = normalize(view_dir + light_dir);
-        let n_dot_v = max(dot(normal, view_dir), 0.0);
         let n_dot_l = max(dot(normal, light_dir), 0.0);
 
         let ndf = distribution_ggx(normal, half_dir, roughness);
@@ -189,26 +185,19 @@ fn frag_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
         let kd = (vec3(1.0) - f) * (1.0 - metalness);
         let numerator = ndf * g * f;
-        let denominator = 4.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_dir), 0.0) + 0.0001;
+        let denominator = 4.0 * n_dot_v * n_dot_l + 0.0001;
         let specular = numerator / denominator;
 
         lo += (kd * albedo / M_PI + specular) * radiance * n_dot_l;
 
-        // Reflections
-        let reflect_dir = reflect(-light_dir, normal);
-        let reflection = pow(max(dot(view_dir, reflect_dir), 0.0), 48.0);
-        lo += metalness * (1.0 - roughness) * reflection * light.color * clamp(attenuation * 100.0, 0.0, 1.0);
-
         if (light.bloom > 0.1) {
-            let dist = distance(position, env_uniforms.eye_pos.xyz);
-            let dir = (position - env_uniforms.eye_pos.xyz) / dist;
-            let bloom = light.color * pow(apply_point_glow(env_uniforms.eye_pos, dir, dist, light.position, light.bloom), 2.2);
-            lo += bloom;
+            let glow = apply_point_glow(env_uniforms.eye_pos, eye_dir, eye_dist, light.position, light.bloom);
+            lo += light.color * glow * glow;
         }
     }
 
     var color: vec3<f32> = lo / (lo + vec3(1.0)) * occlusion;
     color = pow(color, vec3(1.0 / env_uniforms.gamma));
 
-    return contrast_matrix(env_uniforms.contrast) * vec4(color, 1.0);
+    return vec4(apply_contrast(color, env_uniforms.contrast), 1.0);
 }

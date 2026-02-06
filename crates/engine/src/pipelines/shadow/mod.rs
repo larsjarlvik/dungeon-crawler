@@ -104,11 +104,13 @@ impl ShadowPipeline {
             (camera.view_proj, camera.get_shadow_matrix())
         };
 
+        let inv_vp = view_proj.invert().unwrap();
         let uniforms = uniforms::Uniforms {
-            inv_view_proj: view_proj.invert().unwrap().into(),
-            shadow_matrix: shadow_matrix.into(),
+            shadow_inv_vp: (shadow_matrix * inv_vp).into(),
+            inv_vp_w: [inv_vp.x.w, inv_vp.y.w, inv_vp.z.w, inv_vp.w.w],
             viewport_size: [ctx.viewport.get_render_width(), ctx.viewport.get_render_height(), 0.0, 0.0],
             shadow_size: self.base_shadow_size * ctx.settings.shadow_map_scale,
+            _padding: [0.0; 3],
         };
 
         ctx.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniforms]));

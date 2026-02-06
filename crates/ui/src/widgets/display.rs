@@ -4,7 +4,7 @@ use super::{
 };
 use crate::WidgetState;
 use cgmath::*;
-use engine::pipelines::ui_element::context::{self, ImageContext};
+use engine::pipelines::ui_element::context;
 use taffy::prelude::*;
 use taffy::ResolveOrZero;
 
@@ -139,8 +139,8 @@ impl base::BaseWidget for DisplayWidget {
                 (self.data.background, 0.0)
             };
 
-            let bind_group = ImageContext::create_item(
-                engine,
+            let viewport = [engine.ctx.viewport.width as f32, engine.ctx.viewport.height as f32];
+            engine.ctx.images.queue_item(
                 context::Data {
                     position,
                     size,
@@ -158,10 +158,9 @@ impl base::BaseWidget for DisplayWidget {
                     opacity: params.opacity,
                     clip: layout.clip,
                 },
+                viewport,
                 self.data.asset_id.clone(),
             );
-
-            engine.ctx.images.queue(bind_group, self.data.asset_id.clone());
         }
 
         self.children

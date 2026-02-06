@@ -2,9 +2,16 @@
 struct Uniforms {
     position: vec2<f32>,
     size: vec2<f32>,
+    background: vec4<f32>,
+    background_end: vec4<f32>,
     foreground: vec4<f32>,
+    shadow_color: vec4<f32>,
     viewport_size: vec2<f32>,
+    shadow_offset: vec2<f32>,
+    border_radius: f32,
+    shadow_radius: f32,
     opacity: f32,
+    gradient_angle: f32,
 }
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
