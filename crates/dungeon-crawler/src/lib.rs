@@ -172,14 +172,43 @@ impl ApplicationHandler for App {
     }
 }
 
-#[cfg_attr(target_os = "android", ndk_glue::main(logger(level = "error", tag = "dungeon-crawler")))]
+#[cfg(not(target_os = "android"))]
 pub fn main() {
-    #[cfg(not(target_os = "android"))]
     env_logger::init();
+    run_app();
+}
 
-    #[cfg(target_os = "android")]
-    engine::utils::aquire_wakelock();
+#[cfg(target_os = "android")]
+#[no_mangle]
+fn android_main(app: android_activity::AndroidApp) {
+    use winit::platform::android::EventLoopBuilderExtAndroid;
 
+    android_logger::init_once(
+        android_logger::Config::default()
+            .with_max_level(log::LevelFilter::Error)
+            .with_tag("dungeon-crawler"),
+    );
+
+    // Store the AndroidApp for file/asset access
+    engine::file::set_android_app(app.clone());
+
+    engine::utils::aquire_wakelock(&app);
+
+    let settings = Settings::load();
+    let event_loop = EventLoop::builder()
+        .with_android_app(app)
+        .build()
+        .expect("Failed to create event loop!");
+    let mut app = App {
+        window: None,
+        state: None,
+        settings,
+    };
+    event_loop.run_app(&mut app).expect("Event loop error");
+}
+
+#[cfg(not(target_os = "android"))]
+fn run_app() {
     let settings = Settings::load();
     let event_loop = EventLoop::builder().build().expect("Failed to create event loop!");
     let mut app = App {

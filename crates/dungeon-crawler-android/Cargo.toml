@@ -11,6 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 dungeon-crawler = { path = "../dungeon-crawler" }
+android-activity = { version = "0.6", features = ["native-activity"] }
 
 [package.metadata.android]
 resources = "../../res"

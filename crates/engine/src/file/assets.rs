@@ -12,12 +12,13 @@ pub fn read_bytes(path: &str) -> Vec<u8> {
 
 #[cfg(target_os = "android")]
 pub fn read_bytes(path: &str) -> Vec<u8> {
-    let asset_manager = ndk_glue::native_activity().asset_manager();
-    let mut opened_asset = asset_manager
-        .open(&std::ffi::CString::new(path).unwrap())
-        .unwrap_or_else(|| panic!("Could not find file: {}!", path));
+    super::android::with_asset_manager(|asset_manager| {
+        let mut opened_asset = asset_manager
+            .open(&std::ffi::CString::new(path).unwrap())
+            .unwrap_or_else(|| panic!("Could not find file: {}!", path));
 
-    opened_asset.get_buffer().unwrap().to_vec()
+        opened_asset.buffer().unwrap().to_vec()
+    })
 }
 
 #[cfg(target_os = "android")]

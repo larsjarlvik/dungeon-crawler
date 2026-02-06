@@ -3,8 +3,8 @@ use std::{fs, io};
 fn get_path(name: &str) -> String {
     #[cfg(target_os = "android")]
     {
-        let native_activity = ndk_glue::native_activity();
-        format!("{}/{name}", native_activity.internal_data_path().to_str().unwrap())
+        let data_path = super::android::internal_data_path();
+        format!("{}/{name}", data_path.to_str().unwrap())
     }
 
     #[cfg(not(target_os = "android"))]
@@ -22,8 +22,9 @@ pub fn read_file(name: &str) -> Result<String, io::Error> {
 pub fn exists(path: &str) -> bool {
     #[cfg(target_os = "android")]
     {
-        let asset_manager = ndk_glue::native_activity().asset_manager();
-        asset_manager.open(&std::ffi::CString::new(path).unwrap()).is_some()
+        super::android::with_asset_manager(|asset_manager| {
+            asset_manager.open(&std::ffi::CString::new(path).unwrap()).is_some()
+        })
     }
 
     #[cfg(not(target_os = "android"))]
