@@ -51,18 +51,23 @@ impl MainMenu {
             DisplayWidgetProps { ..Default::default() },
             Style {
                 flex_direction: FlexDirection::Column,
-                padding: Rect::<Dimension>::from_points(style::SM, style::SL, 0.0, 0.0),
+                padding: Rect {
+                    left: length(style::SM),
+                    right: length(style::SL),
+                    top: length(0.0),
+                    bottom: length(0.0),
+                },
                 max_size: Size {
-                    width: Dimension::Points(800.0),
-                    height: Dimension::Undefined,
+                    width: length(800.0),
+                    height: auto(),
                 },
                 min_size: Size {
-                    width: Dimension::Points(500.0),
-                    height: Dimension::Undefined,
+                    width: length(500.0),
+                    height: auto(),
                 },
                 size: Size {
-                    width: Dimension::Percent(0.3),
-                    height: Dimension::Percent(1.0),
+                    width: percent(0.3),
+                    height: percent(1.0),
                 },
                 ..Default::default()
             },
@@ -73,8 +78,13 @@ impl MainMenu {
                     size: style::HEADING1,
                     text: "Dungeon Crawler".into(),
                 },
-                Rect::<Dimension>::from_points(0.0, 0.0, style::SS, style::SL),
-                AlignSelf::FlexStart,
+                Rect {
+                    left: length(0.0),
+                    right: length(0.0),
+                    top: length(style::SS),
+                    bottom: length(style::SL),
+                },
+                AlignItems::FlexStart,
             ),
             new_game_button.draw(menu_button_props("New Game")),
             settings_button.draw(menu_button_props("Settings")),
@@ -101,10 +111,15 @@ impl MainMenu {
                 ..Default::default()
             },
             Style {
-                padding: Rect::<Dimension>::from_points(style::SL, style::SL, style::SL, style::SM),
+                padding: Rect {
+                    left: length(style::SL),
+                    right: length(style::SL),
+                    top: length(style::SL),
+                    bottom: length(style::SM),
+                },
                 size: Size {
-                    width: Dimension::Percent(1.0),
-                    height: Dimension::Percent(1.0),
+                    width: percent(1.0),
+                    height: percent(1.0),
                 },
                 ..Default::default()
             },
@@ -122,11 +137,21 @@ fn menu_button_props(text: &str) -> ButtonProps {
             angle: 90.0,
         }),
         text: Some((text.into(), style::BODY1)),
-        margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SM),
-        padding: Rect::<Dimension>::from_points(style::SS, style::SS, style::SM, style::SM),
+        margin: Rect {
+            left: length(0.0),
+            right: length(0.0),
+            top: length(0.0),
+            bottom: length(style::SM),
+        },
+        padding: Rect {
+            left: length(style::SS),
+            right: length(style::SS),
+            top: length(style::SM),
+            bottom: length(style::SM),
+        },
         shadow_color: style::PALETTE_LIGHT_GOLD.extend(1.0),
-        shadow_radius: Dimension::Points(style::SHADOW_S),
-        border_radius: Dimension::Points(style::RADIUS_M),
+        shadow_radius: length(style::SHADOW_S),
+        border_radius: length(style::RADIUS_M),
         ..Default::default()
     }
 }

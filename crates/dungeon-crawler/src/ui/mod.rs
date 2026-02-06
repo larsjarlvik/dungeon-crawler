@@ -49,8 +49,8 @@ impl Views {
 
         let mut root = NodeWidget::new(Style {
             size: Size {
-                width: Dimension::Points(ui_scale.x),
-                height: Dimension::Percent(self.ui_scale),
+                width: length(ui_scale.x),
+                height: percent(self.ui_scale),
             },
             ..Default::default()
         })

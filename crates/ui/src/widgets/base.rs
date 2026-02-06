@@ -37,10 +37,10 @@ pub struct RenderParams {
 }
 
 pub trait BaseWidget {
-    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node;
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut TaffyTree) -> NodeId;
     fn render(
         &self,
-        taffy: &Taffy,
+        taffy: &TaffyTree,
         engine: &mut engine::Engine,
         input: &mut engine::ecs::resources::Input,
         state: &mut crate::state::State,

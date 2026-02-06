@@ -10,11 +10,11 @@ pub fn splash() -> Box<dyn BaseWidget> {
         },
         Style {
             flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
+            align_items: Some(AlignItems::Center),
+            justify_content: Some(JustifyContent::Center),
             size: Size {
-                width: Dimension::Percent(1.0),
-                height: Dimension::Percent(1.0),
+                width: percent(1.0),
+                height: percent(1.0),
             },
             ..Default::default()
         },
@@ -27,12 +27,12 @@ pub fn splash() -> Box<dyn BaseWidget> {
         Style {
             aspect_ratio: Some(1.0),
             size: Size {
-                width: Dimension::Percent(0.5),
-                height: Dimension::Percent(0.5),
+                width: percent(0.5),
+                height: percent(0.5),
             },
             max_size: Size {
-                width: Dimension::Points(250.0),
-                height: Dimension::Points(250.0),
+                width: length(250.0),
+                height: length(250.0),
             },
             ..Default::default()
         },

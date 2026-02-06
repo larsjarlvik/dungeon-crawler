@@ -15,11 +15,16 @@ fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> B
     Bar::default().draw(
         label,
         BarProps {
-            width: Dimension::Percent(1.0),
+            width: percent(1.0),
             value,
             max_value,
             border_color: style::PALETTE_LIGHT_GOLD.extend(1.0),
-            margin: Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SS),
+            margin: Rect {
+                left: length(0.0),
+                right: length(0.0),
+                top: length(0.0),
+                bottom: length(style::SS),
+            },
             color: (color * 0.6).extend(1.0),
             gradient: Some(Gradient {
                 background_end: color.extend(1.0),
@@ -32,11 +37,21 @@ fn status_bar(label: &str, value: f32, max_value: f32, color: Vector3<f32>) -> B
 fn action_button(button: &Button, icon: &str, foreground: Vector3<f32>, icon_size: f32, padding: f32) -> Box<DisplayWidget> {
     button.draw(ButtonProps {
         icon: Some((icon.into(), icon_size)),
-        border_radius: Dimension::Percent(0.5),
+        border_radius: percent(0.5),
         background: vec4(0.0, 0.0, 0.0, 0.7),
         foreground: foreground.extend(1.0),
-        margin: Rect::<Dimension>::from_points(style::SS, 0.0, 0.0, 0.0),
-        padding: Rect::<Dimension>::from_points(padding, padding, padding, padding),
+        margin: Rect {
+            left: length(style::SS),
+            right: length(0.0),
+            top: length(0.0),
+            bottom: length(0.0),
+        },
+        padding: Rect {
+            left: length(padding),
+            right: length(padding),
+            top: length(padding),
+            bottom: length(padding),
+        },
         ..Default::default()
     })
 }
@@ -76,8 +91,13 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
                 text: format!("FPS: {}", fps.fps),
                 size: style::BODY2,
             },
-            Default::default(),
-            AlignSelf::FlexStart,
+            Rect {
+                left: length(0.0),
+                right: length(0.0),
+                top: length(0.0),
+                bottom: length(0.0),
+            },
+            AlignItems::FlexStart,
         )]));
     }
 
@@ -98,10 +118,10 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
     }
 
     NodeWidget::new(Style {
-        justify_content: JustifyContent::SpaceBetween,
+        justify_content: Some(JustifyContent::SpaceBetween),
         size: Size {
-            width: Dimension::Percent(1.0),
-            height: Dimension::Auto,
+            width: percent(1.0),
+            height: auto(),
         },
         ..Default::default()
     })
@@ -109,12 +129,12 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
         NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
             size: Size {
-                width: Dimension::Percent(0.25),
-                height: Dimension::Auto,
+                width: percent(0.25),
+                height: auto(),
             },
             max_size: Size {
-                width: Dimension::Points(500.0),
-                height: Dimension::Auto,
+                width: length(500.0),
+                height: auto(),
             },
             ..Default::default()
         })
@@ -122,12 +142,12 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
         NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
             size: Size {
-                width: Dimension::Percent(0.25),
-                height: Dimension::Auto,
+                width: percent(0.25),
+                height: auto(),
             },
             max_size: Size {
-                width: Dimension::Points(500.0),
-                height: Dimension::Auto,
+                width: length(500.0),
+                height: auto(),
             },
             ..Default::default()
         })
@@ -151,22 +171,27 @@ pub fn game(ctx: &mut engine::Context, ui_state: &mut ui::State, world: &mut wor
 
     NodeWidget::new(Style {
         flex_direction: FlexDirection::Column,
-        justify_content: JustifyContent::SpaceBetween,
-        padding: Rect::<Dimension>::from_points(style::SM, style::SM, style::SM, style::SM),
+        justify_content: Some(JustifyContent::SpaceBetween),
+        padding: Rect {
+            left: length(style::SM),
+            right: length(style::SM),
+            top: length(style::SM),
+            bottom: length(style::SM),
+        },
         size: Size {
-            width: Dimension::Percent(1.0),
-            height: Dimension::Percent(1.0),
+            width: percent(1.0),
+            height: percent(1.0),
         },
         ..Default::default()
     })
     .with_children(vec![
         top_bar(ctx, world),
         NodeWidget::new(Style {
-            justify_content: JustifyContent::FlexEnd,
-            align_items: AlignItems::FlexEnd,
+            justify_content: Some(JustifyContent::FlexEnd),
+            align_items: Some(AlignItems::FlexEnd),
             size: Size {
-                width: Dimension::Percent(1.0),
-                height: Dimension::Auto,
+                width: percent(1.0),
+                height: auto(),
             },
             ..Default::default()
         })

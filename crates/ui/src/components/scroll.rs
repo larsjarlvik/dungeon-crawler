@@ -9,14 +9,14 @@ pub struct Scroll {
 }
 
 pub struct ScrollProps {
-    pub padding: Rect<Dimension>,
+    pub padding: Rect<LengthPercentage>,
     pub background: Vector4<f32>,
 }
 
 impl Default for ScrollProps {
     fn default() -> Self {
         Self {
-            padding: Default::default(),
+            padding: Rect { left: length(0.0), right: length(0.0), top: length(0.0), bottom: length(0.0) },
             background: Vector4::zero(),
         }
     }
@@ -65,8 +65,8 @@ impl Scroll {
                     flex_direction: FlexDirection::Row,
                     flex_grow: 1.0,
                     size: Size {
-                        width: Dimension::Auto,
-                        height: Dimension::Auto,
+                        width: auto(),
+                        height: auto(),
                     },
                     ..Default::default()
                 },
@@ -79,7 +79,7 @@ impl Scroll {
                 },
                 Style {
                     padding: props.padding,
-                    position_type: PositionType::Absolute,
+                    position: Position::Absolute,
                     flex_direction: FlexDirection::Column,
                     flex_shrink: 0.0,
                     ..Default::default()
@@ -93,8 +93,8 @@ impl Scroll {
                 },
                 Style {
                     size: Size {
-                        width: Dimension::Points(handle_width),
-                        height: Dimension::Auto,
+                        width: length(handle_width),
+                        height: auto(),
                     },
                     ..Default::default()
                 },
@@ -104,15 +104,15 @@ impl Scroll {
                     background: handle_color,
                     background_hover: Some(handle_color.lerp(vec4(1.0, 1.0, 1.0, 1.0), 0.5)),
                     background_pressed: Some(handle_color.lerp(vec4(1.0, 1.0, 1.0, 1.0), 1.0)),
-                    border_radius: Dimension::Points(8.0),
+                    border_radius: length(8.0),
                     offset: vec2(0.0, self.position),
                     ..Default::default()
                 },
                 Style {
-                    position_type: PositionType::Absolute,
+                    position: Position::Absolute,
                     size: Size {
-                        width: Dimension::Percent(1.0),
-                        height: Dimension::Percent(0.3),
+                        width: percent(1.0),
+                        height: percent(0.3),
                     },
                     ..Default::default()
                 },
@@ -121,17 +121,22 @@ impl Scroll {
             NodeWidget::new(Style {
                 flex_direction: FlexDirection::RowReverse,
                 size: Size {
-                    width: Dimension::Points(1.0),
-                    height: Dimension::Percent(1.0),
+                    width: length(1.0),
+                    height: percent(1.0),
                 },
                 ..Default::default()
             })
             .with_children(vec![NodeWidget::new(Style {
-                position_type: PositionType::Absolute,
-                position: Rect::<Dimension>::from_points(-(handle_width * handle_padding + handle_width) / 2.0, 0.0, 0.0, 0.0),
+                position: Position::Absolute,
+                inset: Rect {
+                    left: length(-(handle_width * handle_padding + handle_width) / 2.0),
+                    right: auto(),
+                    top: auto(),
+                    bottom: auto(),
+                },
                 size: Size {
-                    width: Dimension::Points(handle_width * handle_padding),
-                    height: Dimension::Percent(1.0),
+                    width: length(handle_width * handle_padding),
+                    height: percent(1.0),
                 },
                 ..Default::default()
             })

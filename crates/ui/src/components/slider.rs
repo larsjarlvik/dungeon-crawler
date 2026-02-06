@@ -11,11 +11,11 @@ pub struct Slider {
 impl Slider {
     pub fn draw(&self) -> Box<NodeWidget> {
         NodeWidget::new(Style {
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
+            align_items: Some(AlignItems::Center),
+            justify_content: Some(JustifyContent::Center),
             size: Size {
-                width: Dimension::Auto,
-                height: Dimension::Points(48.0),
+                width: auto(),
+                height: length(48.0),
             },
             ..Default::default()
         })
@@ -27,8 +27,8 @@ impl Slider {
             },
             Style {
                 size: Size {
-                    width: Dimension::Points(520.0),
-                    height: Dimension::Points(6.0),
+                    width: length(520.0),
+                    height: length(6.0),
                 },
                 ..Default::default()
             },
@@ -41,8 +41,8 @@ impl Slider {
                 },
                 Style {
                     size: Size {
-                        width: Dimension::Percent(self.value / self.max_value),
-                        height: Dimension::Points(6.0),
+                        width: percent(self.value / self.max_value),
+                        height: length(6.0),
                     },
                     ..Default::default()
                 },
@@ -50,16 +50,26 @@ impl Slider {
             DisplayWidget::new(
                 DisplayWidgetProps {
                     background: Vector4::new(1.0, 1.0, 1.0, 1.0),
-                    border_radius: Dimension::Percent(0.5),
+                    border_radius: percent(0.5),
                     ..Default::default()
                 },
                 Style {
-                    position_type: PositionType::Absolute,
-                    position: Rect::<Dimension>::from_percent(self.value / self.max_value, 0.0, 0.0, 0.0),
-                    margin: Rect::<Dimension>::from_points(-8.0, 0.0, -10.0, 0.0),
+                    position: Position::Absolute,
+                    inset: Rect {
+                        left: percent(self.value / self.max_value),
+                        right: auto(),
+                        top: auto(),
+                        bottom: auto(),
+                    },
+                    margin: Rect {
+                        left: length(-8.0),
+                        right: length(0.0),
+                        top: length(-10.0),
+                        bottom: length(0.0),
+                    },
                     size: Size {
-                        width: Dimension::Points(24.0),
-                        height: Dimension::Points(24.0),
+                        width: length(24.0),
+                        height: length(24.0),
                     },
                     ..Default::default()
                 },

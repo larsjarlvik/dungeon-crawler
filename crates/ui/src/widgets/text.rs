@@ -14,13 +14,13 @@ pub struct TextData {
 
 pub struct TextWidget {
     pub data: TextData,
-    pub margin: Rect<Dimension>,
-    pub align: AlignSelf,
-    node: Option<Node>,
+    pub margin: Rect<LengthPercentageAuto>,
+    pub align: AlignItems,
+    node: Option<NodeId>,
 }
 
 impl TextWidget {
-    pub fn new(data: TextData, margin: Rect<Dimension>, align: AlignSelf) -> Box<Self> {
+    pub fn new(data: TextData, margin: Rect<LengthPercentageAuto>, align: AlignItems) -> Box<Self> {
         Box::new(Self {
             data,
             margin,
@@ -31,17 +31,17 @@ impl TextWidget {
 }
 
 impl base::BaseWidget for TextWidget {
-    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node {
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut TaffyTree) -> NodeId {
         let size = engine.glyph_pipeline.get_bounds(&self.data.text, self.data.size);
 
         let node = taffy
             .new_leaf(Style {
                 size: Size {
-                    width: Dimension::Points(size.width()),
-                    height: Dimension::Points(size.height()),
+                    width: length(size.width()),
+                    height: length(size.height()),
                 },
-                margin: self.margin,
-                align_self: self.align,
+                margin: self.margin.clone(),
+                align_self: Some(self.align),
                 ..Default::default()
             })
             .unwrap();
@@ -51,7 +51,7 @@ impl base::BaseWidget for TextWidget {
 
     fn render(
         &self,
-        taffy: &Taffy,
+        taffy: &TaffyTree,
         engine: &mut engine::Engine,
         _input: &mut engine::ecs::resources::Input,
         _state: &mut crate::state::State,

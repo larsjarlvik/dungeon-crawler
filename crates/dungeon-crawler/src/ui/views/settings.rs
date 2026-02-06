@@ -77,10 +77,15 @@ impl Settings {
 
         NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
-            margin: Rect::from_points(0.0, 0.0, style::SM, 0.0),
+            margin: Rect {
+                left: length(0.0),
+                right: length(0.0),
+                top: length(style::SM),
+                bottom: length(0.0),
+            },
             size: Size {
-                width: Dimension::Percent(1.0),
-                height: Dimension::Percent(1.0),
+                width: percent(1.0),
+                height: percent(1.0),
             },
             ..Default::default()
         })
@@ -93,8 +98,13 @@ impl Settings {
                             size: style::HEADING2,
                             text: "Graphics".into(),
                         },
-                        Rect::from_points(0.0, 0.0, 0.0, style::SM),
-                        AlignSelf::FlexStart,
+                        Rect {
+                            left: length(0.0),
+                            right: length(0.0),
+                            top: length(0.0),
+                            bottom: length(style::SM),
+                        },
+                        AlignItems::FlexStart,
                     ),
                     setting("Gamma:", gamma.draw(), Some(format!("{:.2}", gamma.value))),
                     setting("Contrast:", contrast.draw(), Some(format!("{:.2}", contrast.value))),
@@ -118,8 +128,13 @@ impl Settings {
                             size: style::HEADING2,
                             text: "Sound".into(),
                         },
-                        Rect::from_points(0.0, 0.0, style::SL, style::SM),
-                        AlignSelf::FlexStart,
+                        Rect {
+                            left: length(0.0),
+                            right: length(0.0),
+                            top: length(style::SL),
+                            bottom: length(style::SM),
+                        },
+                        AlignItems::FlexStart,
                     ),
                     setting(
                         "Effects:",
@@ -134,23 +149,43 @@ impl Settings {
                 ],
             ),
             NodeWidget::new(Style {
-                margin: Rect::from_points(0.0, 0.0, style::SL, style::SL),
+                margin: Rect {
+                    left: length(0.0),
+                    right: length(0.0),
+                    top: length(style::SL),
+                    bottom: length(style::SL),
+                },
                 ..Default::default()
             })
             .with_children(vec![
                 reset_settings.draw(ButtonProps {
                     text: Some(("Reset".into(), style::BODY2)),
-                    padding: Rect::from_points(style::SM, style::SM, style::SS, style::SS),
-                    margin: Rect::from_points(0.0, style::SM, 0.0, 0.0),
+                    padding: Rect {
+                        left: length(style::SM),
+                        right: length(style::SM),
+                        top: length(style::SS),
+                        bottom: length(style::SS),
+                    },
+                    margin: Rect {
+                        left: length(0.0),
+                        right: length(style::SM),
+                        top: length(0.0),
+                        bottom: length(0.0),
+                    },
                     background: style::PALETTE_LIGHT_GRAY.extend(0.6),
-                    border_radius: Dimension::Points(style::RADIUS_M),
+                    border_radius: length(style::RADIUS_M),
                     ..Default::default()
                 }),
                 apply_settings.draw(ButtonProps {
                     text: Some(("Apply".into(), style::BODY2)),
-                    padding: Rect::from_points(style::SM, style::SM, style::SS, style::SS),
+                    padding: Rect {
+                        left: length(style::SM),
+                        right: length(style::SM),
+                        top: length(style::SS),
+                        bottom: length(style::SS),
+                    },
                     background: style::PALETTE_LIGHT_GOLD.extend(0.6),
-                    border_radius: Dimension::Points(style::RADIUS_M),
+                    border_radius: length(style::RADIUS_M),
                     ..Default::default()
                 }),
             ]),
@@ -160,16 +195,21 @@ impl Settings {
 
 fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> Box<NodeWidget> {
     NodeWidget::new(Style {
-        align_items: AlignItems::Center,
-        margin: Rect::from_points(0.0, 0.0, 0.0, style::SM),
+        align_items: Some(AlignItems::Center),
+        margin: Rect {
+            left: length(0.0),
+            right: length(0.0),
+            top: length(0.0),
+            bottom: length(style::SM),
+        },
         ..Default::default()
     })
     .with_children(vec![
         NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
             size: Size {
-                width: Dimension::Points(300.0),
-                height: Dimension::Auto,
+                width: length(300.0),
+                height: auto(),
             },
             ..Default::default()
         })
@@ -178,13 +218,23 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> 
                 size: style::BODY1,
                 text: label.into(),
             },
-            Default::default(),
-            AlignSelf::FlexStart,
+            Rect {
+                left: length(0.0),
+                right: length(0.0),
+                top: length(0.0),
+                bottom: length(0.0),
+            },
+            AlignItems::FlexStart,
         )]),
         control,
         NodeWidget::new(Style {
             flex_direction: FlexDirection::Column,
-            margin: Rect::from_points(style::SL, 0.0, 0.0, 0.0),
+            margin: Rect {
+                left: length(style::SL),
+                right: length(0.0),
+                top: length(0.0),
+                bottom: length(0.0),
+            },
             ..Default::default()
         })
         .with_children(if let Some(value) = value {
@@ -193,8 +243,13 @@ fn setting(label: &str, control: Box<dyn BaseWidget>, value: Option<String>) -> 
                     size: style::BODY2,
                     text: value,
                 },
-                Default::default(),
-                AlignSelf::FlexStart,
+                Rect {
+                    left: length(0.0),
+                    right: length(0.0),
+                    top: length(0.0),
+                    bottom: length(0.0),
+                },
+                AlignItems::FlexStart,
             )]
         } else {
             vec![]

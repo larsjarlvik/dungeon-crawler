@@ -11,7 +11,7 @@ pub struct BarProps {
     pub color: Vector4<f32>,
     pub gradient: Option<Gradient>,
     pub border_color: Vector4<f32>,
-    pub margin: Rect<Dimension>,
+    pub margin: Rect<LengthPercentageAuto>,
     pub width: Dimension,
 }
 
@@ -23,8 +23,8 @@ impl Default for BarProps {
             color: Vector4::new(1.0, 1.0, 1.0, 1.0),
             gradient: Default::default(),
             border_color: Vector4::new(0.0, 0.0, 0.0, 1.0),
-            width: Default::default(),
-            margin: Default::default(),
+            width: auto(),
+            margin: Rect { left: auto(), right: auto(), top: auto(), bottom: auto() },
         }
     }
 }
@@ -34,18 +34,18 @@ impl Bar {
         DisplayWidget::new(
             DisplayWidgetProps {
                 background: Vector4::new(0.0, 0.0, 0.0, 0.6),
-                shadow_radius: Dimension::Points(2.0),
+                shadow_radius: length(2.0),
                 shadow_color: Vector4::new(1.0, 0.8, 0.0, 1.0),
                 ..Default::default()
             },
             Style {
                 flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Stretch,
-                justify_content: JustifyContent::FlexStart,
+                align_items: Some(AlignItems::Stretch),
+                justify_content: Some(JustifyContent::FlexStart),
                 margin: props.margin,
                 min_size: Size {
                     width: props.width,
-                    height: Dimension::Auto,
+                    height: auto(),
                 },
                 ..Default::default()
             },
@@ -58,11 +58,11 @@ impl Bar {
                     ..Default::default()
                 },
                 Style {
-                    position_type: taffy::style::PositionType::Absolute,
-                    justify_content: JustifyContent::Center,
+                    position: Position::Absolute,
+                    justify_content: Some(JustifyContent::Center),
                     size: Size {
-                        width: Dimension::Percent(props.value / props.max_value),
-                        height: Dimension::Percent(1.0),
+                        width: percent(props.value / props.max_value),
+                        height: percent(1.0),
                     },
                     ..Default::default()
                 },
@@ -72,8 +72,13 @@ impl Bar {
                     text: label.into(),
                     size: 28.0,
                 },
-                Rect::<Dimension>::from_points(4.0, 4.0, 2.0, 4.0),
-                AlignSelf::Center,
+                Rect {
+                    left: length(4.0),
+                    right: length(4.0),
+                    top: length(2.0),
+                    bottom: length(4.0),
+                },
+                AlignItems::Center,
             ),
         ])
     }

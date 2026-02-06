@@ -5,8 +5,8 @@ use taffy::prelude::*;
 pub struct ButtonProps {
     pub icon: Option<(String, f32)>,
     pub text: Option<(String, f32)>,
-    pub margin: Rect<Dimension>,
-    pub padding: Rect<Dimension>,
+    pub margin: Rect<LengthPercentageAuto>,
+    pub padding: Rect<LengthPercentage>,
     pub foreground: Vector4<f32>,
     pub background: Vector4<f32>,
     pub gradient: Option<Gradient>,
@@ -20,12 +20,12 @@ impl Default for ButtonProps {
         Self {
             icon: Default::default(),
             text: Default::default(),
-            margin: Default::default(),
-            padding: Default::default(),
+            margin: Rect { left: auto(), right: auto(), top: auto(), bottom: auto() },
+            padding: Rect { left: length(0.0), right: length(0.0), top: length(0.0), bottom: length(0.0) },
             foreground: Vector4::new(1.0, 1.0, 1.0, 1.0),
             background: Vector4::new(0.0, 0.0, 0.0, 0.8),
-            border_radius: Dimension::default(),
-            shadow_radius: Dimension::default(),
+            border_radius: auto(),
+            shadow_radius: auto(),
             gradient: None,
             shadow_color: Vector4::new(0.0, 0.0, 0.0, 0.0),
         }
@@ -53,8 +53,8 @@ impl Button {
                 },
                 Style {
                     size: Size {
-                        width: Dimension::Points(size),
-                        height: Dimension::Points(size),
+                        width: length(size),
+                        height: length(size),
                     },
                     ..Default::default()
                 },
@@ -64,8 +64,13 @@ impl Button {
         if let Some((text, size)) = props.text.clone() {
             children.push(TextWidget::new(
                 TextData { size, text },
-                Rect::<Dimension>::from_points(10.0, 10.0, 0.0, 0.0),
-                AlignSelf::FlexStart,
+                Rect {
+                    left: length(10.0),
+                    right: length(10.0),
+                    top: length(0.0),
+                    bottom: length(0.0),
+                },
+                AlignItems::FlexStart,
             ));
         }
 
@@ -81,10 +86,10 @@ impl Button {
                 ..Default::default()
             },
             Style {
-                align_items: AlignItems::Center,
+                align_items: Some(AlignItems::Center),
                 size: Size {
-                    width: Dimension::Auto,
-                    height: Dimension::Auto,
+                    width: auto(),
+                    height: auto(),
                 },
                 margin: props.margin,
                 padding: props.padding,

@@ -15,12 +15,17 @@ impl Checkbox {
                 background_hover: Some(Vector4::new(0.3, 0.3, 0.3, 0.5)),
                 background_pressed: Some(Vector4::new(0.5, 0.5, 0.5, 0.5)),
                 shadow_color: Vector4::new(1.0, 1.0, 1.0, 1.0),
-                shadow_radius: Dimension::Points(2.0),
-                border_radius: Dimension::Points(4.0),
+                shadow_radius: length(2.0),
+                border_radius: length(4.0),
                 ..Default::default()
             },
             Style {
-                padding: Rect::from_points(4.0, 4.0, 4.0, 4.0),
+                padding: Rect {
+                    left: length(4.0),
+                    right: length(4.0),
+                    top: length(4.0),
+                    bottom: length(4.0),
+                },
                 ..Default::default()
             },
         )
@@ -33,8 +38,8 @@ impl Checkbox {
             },
             Style {
                 size: Size {
-                    width: Dimension::Points(32.0),
-                    height: Dimension::Points(32.0),
+                    width: length(32.0),
+                    height: length(32.0),
                 },
                 ..Default::default()
             },

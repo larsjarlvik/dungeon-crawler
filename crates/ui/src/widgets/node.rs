@@ -5,7 +5,7 @@ pub struct NodeWidget {
     pub key: Option<String>,
     style: Style,
     pub children: Vec<Box<dyn base::BaseWidget>>,
-    pub node: Option<Node>,
+    pub node: Option<NodeId>,
 }
 
 impl NodeWidget {
@@ -30,16 +30,16 @@ impl NodeWidget {
 }
 
 impl base::BaseWidget for NodeWidget {
-    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut Taffy) -> Node {
-        let children: Vec<Node> = self.children.iter_mut().map(|c| c.calculate_layout(engine, taffy)).collect();
-        let node = taffy.new_with_children(self.style, &children).unwrap();
+    fn calculate_layout(&mut self, engine: &mut engine::Engine, taffy: &mut TaffyTree) -> NodeId {
+        let children: Vec<NodeId> = self.children.iter_mut().map(|c| c.calculate_layout(engine, taffy)).collect();
+        let node = taffy.new_with_children(self.style.clone(), &children).unwrap();
         self.node = Some(node);
         node
     }
 
     fn render(
         &self,
-        taffy: &Taffy,
+        taffy: &TaffyTree,
         engine: &mut engine::Engine,
         input: &mut engine::ecs::resources::Input,
         state: &mut crate::state::State,

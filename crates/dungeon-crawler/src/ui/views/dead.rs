@@ -14,11 +14,11 @@ pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseW
         },
         Style {
             flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
+            align_items: Some(AlignItems::Center),
+            justify_content: Some(JustifyContent::Center),
             size: Size {
-                width: Dimension::Percent(1.0),
-                height: Dimension::Percent(1.0),
+                width: percent(1.0),
+                height: percent(1.0),
             },
             ..Default::default()
         },
@@ -30,16 +30,26 @@ pub fn dead(ui_state: &mut ui::State, world: &mut world::World) -> Box<dyn BaseW
                 size: style::DISPLAY1,
                 text: "You Died!".into(),
             },
-            Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SL),
-            AlignSelf::Center,
+            Rect {
+                left: length(0.0),
+                right: length(0.0),
+                top: length(0.0),
+                bottom: length(style::SL),
+            },
+            AlignItems::Center,
         ),
         TextWidget::new(
             TextData {
                 size: style::BODY1,
                 text: "Tap screen to return to main menu...".into(),
             },
-            Rect::<Dimension>::from_points(0.0, 0.0, 0.0, style::SL),
-            AlignSelf::Center,
+            Rect {
+                left: length(0.0),
+                right: length(0.0),
+                top: length(0.0),
+                bottom: length(style::SL),
+            },
+            AlignItems::Center,
         ),
     ]);
 

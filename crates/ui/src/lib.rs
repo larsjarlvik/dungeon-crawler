@@ -20,7 +20,7 @@ impl Ui {
         ui_scale: Point2<f32>,
         params: &mut RenderParams,
     ) {
-        let mut taffy = Taffy::new();
+        let mut taffy = TaffyTree::new();
         let root_node = root.calculate_layout(engine, &mut taffy);
         let root_layout = NodeLayout {
             x: 0.0,
@@ -35,8 +35,8 @@ impl Ui {
                 root_node,
                 Style {
                     size: Size {
-                        width: Dimension::Points(ui_scale.x),
-                        height: Dimension::Points(ui_scale.y),
+                        width: length(ui_scale.x),
+                        height: length(ui_scale.y),
                     },
                     ..Default::default()
                 },
