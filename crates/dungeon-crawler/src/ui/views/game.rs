@@ -47,7 +47,7 @@ fn top_bar(ctx: &mut engine::Context, world: &mut world::World) -> Box<NodeWidge
     let stats = world
         .components
         .query_filtered::<&components::Stats, With<components::UserControl>>()
-        .get_single(&world.components)
+        .single(&world.components)
         .expect("No character stats found!");
 
     let max = stats.get_base_health();

@@ -10,7 +10,7 @@ pub fn collision(
     )>,
     collision_query: Query<(&components::Collision, &engine::ecs::components::Transform)>,
 ) {
-    movement_query.par_for_each_mut(1, |(mut movement, collider, transform)| {
+    movement_query.par_iter_mut().for_each(|(mut movement, collider, transform)| {
         if movement.velocity == 0.0 {
             return;
         }

@@ -2,7 +2,7 @@ use self::{
     joystick::{Joystick, JoystickOrigin},
     mouse::{MouseButton, PressState},
 };
-use bevy_ecs::system::Resource;
+use bevy_ecs::resource::Resource;
 use cgmath::*;
 use fxhash::FxHashMap;
 use winit::keyboard::KeyCode;

@@ -33,28 +33,24 @@ impl World {
         let components = setup_world(&engine.ctx);
 
         let mut schedule = Schedule::default();
-        schedule.add_stage(
-            "update",
-            SystemStage::parallel()
-                .with_system(systems::flicker)
-                .with_system(systems::user_control)
-                .with_system(systems::actions.label("actions"))
-                .with_system(systems::collision.label("collision").after("actions"))
-                .with_system(systems::damage.after("actions"))
-                .with_system(systems::movement.after("collision"))
-                .with_system(systems::aggression)
-                .with_system(systems::health),
-        );
+        schedule.add_systems((
+            systems::flicker,
+            systems::user_control,
+            systems::aggression,
+            systems::health,
+            systems::actions,
+            systems::collision.after(systems::actions),
+            systems::damage.after(systems::actions),
+            systems::movement.after(systems::collision),
+        ));
 
         let mut post_schedule = Schedule::default();
-        post_schedule.add_stage(
-            "post",
-            SystemStage::parallel()
-                .with_system(systems::tile)
-                .with_system(engine::ecs::systems::camera)
-                .with_system(engine::ecs::systems::animation.label("animation"))
-                .with_system(engine::ecs::systems::player.after("animation")),
-        );
+        post_schedule.add_systems((
+            systems::tile,
+            engine::ecs::systems::camera,
+            engine::ecs::systems::animation,
+            engine::ecs::systems::player.after(engine::ecs::systems::animation),
+        ));
 
         Self {
             components,
@@ -148,7 +144,7 @@ impl World {
         let stats = self
             .components
             .query_filtered::<&components::Stats, With<components::UserControl>>()
-            .get_single(&self.components)
+            .single(&self.components)
             .expect("No character stats found!");
 
         stats.health.get() <= 0.0 && stats.health.last_change.elapsed().as_secs_f32() > 3.0

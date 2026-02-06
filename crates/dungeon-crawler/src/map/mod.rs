@@ -2,7 +2,7 @@ use crate::{
     config,
     world::components::{self},
 };
-use bevy_ecs::{prelude::World, world::EntityMut};
+use bevy_ecs::{prelude::World, world::EntityWorldMut};
 use cgmath::*;
 use engine::{
     collision::{Polygon, PolygonMethods},
@@ -91,12 +91,12 @@ impl Map {
         self.add_grid(world, Vector3::zero());
     }
 
-    fn empty_tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, pos: Vector3<f32>) {
+    fn empty_tile(&self, engine: &mut engine::Engine, entity: &mut EntityWorldMut, pos: Vector3<f32>) {
         let model = engine.initialize_model(&self.tiles, "tile-empty");
         entity.insert(components::Tile::new(model, vec![], pos, self.tile_size, 0.0, vec![], vec![]));
     }
 
-    fn tile(&self, engine: &mut engine::Engine, entity: &mut EntityMut, rng: &mut StdRng, tile: &mut generator::Tile, pos: Vector3<f32>) {
+    fn tile(&self, engine: &mut engine::Engine, entity: &mut EntityWorldMut, rng: &mut StdRng, tile: &mut generator::Tile, pos: Vector3<f32>) {
         let entrances = tile.entrances;
         let (t, rot) = determine_tile(&entrances);
         let name = t.split('-').last().expect("Could not get map name!");

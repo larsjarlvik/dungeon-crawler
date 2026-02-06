@@ -1,5 +1,4 @@
 use bevy_ecs::prelude::*;
-use bevy_hierarchy::*;
 use rand::{prelude::StdRng, Rng, SeedableRng};
 
 use crate::world::*;
@@ -12,7 +11,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
         match tile.state {
             components::TileState::Active => {
                 if !camera.frustum.test_bounding_box(&tile.bounding_box) {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
             }
 
@@ -42,7 +41,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                         }
 
                         let decor_id = decor_entity.id();
-                        commands.entity(tile_id).push_children(&[decor_id]);
+                        commands.entity(tile_id).add_children(&[decor_id]);
 
                         for l in decor.lights.iter() {
                             let offset = Quaternion::from_angle_y(Deg(decor.rotation)).rotate_vector(l.offset);
@@ -57,7 +56,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                             }
 
                             let light_entity_id = light_entity.id();
-                            commands.entity(decor_id).push_children(&[light_entity_id]);
+                            commands.entity(decor_id).add_children(&[light_entity_id]);
                         }
 
                         for e in decor.emitters.iter() {
@@ -73,7 +72,7 @@ pub fn tile(mut commands: Commands, camera: Res<engine::ecs::resources::Camera>,
                             }
 
                             let emitter_entity_id = emitter_entity.id();
-                            commands.entity(decor_id).push_children(&[emitter_entity_id]);
+                            commands.entity(decor_id).add_children(&[emitter_entity_id]);
                         }
                     }
 

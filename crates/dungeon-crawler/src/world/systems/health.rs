@@ -1,6 +1,5 @@
 use crate::{config, world::components};
 use bevy_ecs::prelude::*;
-use bevy_hierarchy::*;
 
 pub fn health(
     mut commands: Commands,
@@ -60,7 +59,7 @@ pub fn health(
                     action.set_action(components::Action::Hit, stats.get_recovery_time(), 0.0);
                 }
             } else if stats.health.get() <= 0.0 {
-                commands.entity(entity).despawn_recursive();
+                commands.entity(entity).despawn();
             }
         }
     }

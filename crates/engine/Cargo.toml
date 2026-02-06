@@ -22,8 +22,8 @@ image = { version = "0.25", default-features = false, features = [
 ] }
 rayon = "1.11"
 smaa = "0.17"
-bevy_ecs = "0.9.0"
-bevy_tasks = "0.9.0"
+bevy_ecs = "0.18"
+bevy_tasks = "0.18"
 rand = "0.8"
 uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
 fxhash = "0.2.1"
