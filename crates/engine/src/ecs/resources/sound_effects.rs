@@ -1,154 +1,114 @@
-#[cfg(not(target_os = "android"))]
-mod desktop {
-    use crate::file;
-    use crate::{config, ecs::resources};
-    use cgmath::*;
-    use fxhash::FxHashMap;
-    use rand::seq::SliceRandom;
-    use std::io::Cursor;
+use crate::file;
+use crate::{config, ecs::resources};
+use cgmath::*;
+use fxhash::FxHashMap;
+use rand::seq::SliceRandom;
+use std::io::Cursor;
 
-    pub struct SoundEffects {
-        sounds: FxHashMap<String, Vec<Vec<u8>>>,
-        sinks: FxHashMap<String, rodio::SpatialSink>,
-        handle: rodio::OutputStreamHandle,
-        pub volume: f32,
-        _stream: rodio::OutputStream,
-    }
+pub struct SoundEffects {
+    sounds: FxHashMap<String, Vec<Vec<u8>>>,
+    sinks: FxHashMap<String, rodio::SpatialSink>,
+    stream: rodio::OutputStream,
+    pub volume: f32,
+}
 
-    struct Positions {
-        left: [f32; 3],
-        right: [f32; 3],
-        emitter: [f32; 3],
-    }
+struct Positions {
+    left: [f32; 3],
+    right: [f32; 3],
+    emitter: [f32; 3],
+}
 
-    impl Default for SoundEffects {
-        fn default() -> Self {
-            let sounds = FxHashMap::default();
-            let (stream, handle) = rodio::OutputStream::try_default().unwrap();
+impl Default for SoundEffects {
+    fn default() -> Self {
+        let sounds = FxHashMap::default();
+        let stream = rodio::OutputStreamBuilder::open_default_stream().expect("Failed to open audio stream");
 
-            Self {
-                sounds,
-                sinks: FxHashMap::default(),
-                handle,
-                volume: 1.0,
-                _stream: stream,
-            }
+        Self {
+            sounds,
+            sinks: FxHashMap::default(),
+            stream,
+            volume: 1.0,
         }
     }
+}
 
-    impl SoundEffects {
-        pub fn load(&mut self, sounds: &[String]) {
-            for key in sounds.iter() {
-                let mut sounds = vec![];
+impl SoundEffects {
+    pub fn load(&mut self, sounds: &[String]) {
+        for key in sounds.iter() {
+            let mut sounds = vec![];
 
-                loop {
-                    let path = format!("sounds/{}-{}.ogg", key, sounds.len() + 1);
-                    if !file::exists(path.as_str()) {
-                        break;
-                    }
-
-                    sounds.push(file::read_bytes(path.as_str()));
+            loop {
+                let path = format!("sounds/{}-{}.ogg", key, sounds.len() + 1);
+                if !file::exists(path.as_str()) {
+                    break;
                 }
 
-                self.sounds.insert(key.clone(), sounds);
+                sounds.push(file::read_bytes(path.as_str()));
             }
+
+            self.sounds.insert(key.clone(), sounds);
         }
+    }
 
-        fn get_left_right_emit(&self, camera: &resources::Camera, position: Option<Vector3<f32>>) -> Positions {
-            let position = match position {
-                Some(position) => (position * config::SOUND_DISTANCE_SCALE).into(),
-                None => [0.0, 0.0, 0.0],
-            };
+    fn get_left_right_emit(&self, camera: &resources::Camera, position: Option<Vector3<f32>>) -> Positions {
+        let position = match position {
+            Some(position) => (position * config::SOUND_DISTANCE_SCALE).into(),
+            None => [0.0, 0.0, 0.0],
+        };
 
-            let left = camera.target * config::SOUND_DISTANCE_SCALE
-                + camera
-                    .rotation
-                    .rotate_vector(Vector3::new(-config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0));
-            let right = camera.target * config::SOUND_DISTANCE_SCALE
-                + camera
-                    .rotation
-                    .rotate_vector(Vector3::new(config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0));
+        let left = camera.target * config::SOUND_DISTANCE_SCALE
+            + camera
+                .rotation
+                .rotate_vector(Vector3::new(-config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0));
+        let right = camera.target * config::SOUND_DISTANCE_SCALE
+            + camera
+                .rotation
+                .rotate_vector(Vector3::new(config::EAR_DISTANCE, config::EAR_HEIGHT, 0.0));
 
-            Positions {
-                left: left.into(),
-                right: right.into(),
-                emitter: position,
-            }
+        Positions {
+            left: left.into(),
+            right: right.into(),
+            emitter: position,
         }
+    }
 
-        pub fn play(&mut self, sink: &str, sound: &String, camera: &resources::Camera, position: Option<Vector3<f32>>) {
-            let positions = self.get_left_right_emit(camera, position);
+    pub fn play(&mut self, sink: &str, sound: &String, camera: &resources::Camera, position: Option<Vector3<f32>>) {
+        let positions = self.get_left_right_emit(camera, position);
 
-            let sink = self
-                .sinks
-                .entry(sink.into())
-                .or_insert_with(|| rodio::SpatialSink::try_new(&self.handle, positions.emitter, positions.left, positions.right).unwrap());
+        let mixer = self.stream.mixer();
+        let sink = self
+            .sinks
+            .entry(sink.into())
+            .or_insert_with(|| rodio::SpatialSink::connect_new(&mixer, positions.emitter, positions.left, positions.right));
 
-            let sound = self.sounds.get(sound).unwrap_or_else(|| panic!("Could not find sound {}!", sound));
+        let sound = self.sounds.get(sound).unwrap_or_else(|| panic!("Could not find sound {}!", sound));
 
-            let file = Cursor::new(sound.choose(&mut rand::thread_rng()).unwrap().clone());
-            sink.append(rodio::Decoder::new(file).unwrap());
-            sink.set_volume(self.volume);
+        let file = Cursor::new(sound.choose(&mut rand::thread_rng()).unwrap().clone());
+        sink.append(rodio::Decoder::new(file).unwrap());
+        sink.set_volume(self.volume);
+    }
+
+    pub fn set_position(&mut self, sink: &String, camera: &resources::Camera, position: Vector3<f32>) {
+        if let Some(sink) = &mut self.sinks.get(sink) {
+            let positions = self.get_left_right_emit(camera, Some(position));
+
+            sink.set_left_ear_position(positions.left);
+            sink.set_right_ear_position(positions.right);
+            sink.set_emitter_position(positions.emitter);
         }
+    }
 
-        pub fn set_position(&mut self, sink: &String, camera: &resources::Camera, position: Vector3<f32>) {
-            if let Some(sink) = &mut self.sinks.get(sink) {
-                let positions = self.get_left_right_emit(camera, Some(position));
-
-                sink.set_left_ear_position(positions.left);
-                sink.set_right_ear_position(positions.right);
-                sink.set_emitter_position(positions.emitter);
-            }
+    pub fn set_speed(&mut self, sink: &String, speed: f32) {
+        if let Some(sink) = &mut self.sinks.get(sink) {
+            sink.set_speed(speed)
         }
+    }
 
-        pub fn set_speed(&mut self, sink: &String, speed: f32) {
-            if let Some(sink) = &mut self.sinks.get(sink) {
-                sink.set_speed(speed)
-            }
-        }
-
-        pub fn is_playing(&self, sink: &String) -> bool {
-            let sink = self.sinks.get(sink);
-            match sink {
-                Some(sink) => sink.is_paused() || !sink.empty(),
-                None => false,
-            }
+    pub fn is_playing(&self, sink: &String) -> bool {
+        let sink = self.sinks.get(sink);
+        match sink {
+            Some(sink) => sink.is_paused() || !sink.empty(),
+            None => false,
         }
     }
 }
-
-#[cfg(target_os = "android")]
-mod android {
-    use crate::ecs::resources;
-    use cgmath::*;
-
-    pub struct SoundEffects {
-        pub volume: f32,
-    }
-
-    impl Default for SoundEffects {
-        fn default() -> Self {
-            Self { volume: 1.0 }
-        }
-    }
-
-    impl SoundEffects {
-        pub fn load(&mut self, _sounds: &[String]) {}
-
-        pub fn play(&mut self, _sink: &str, _sound: &String, _camera: &resources::Camera, _position: Option<Vector3<f32>>) {}
-
-        pub fn set_position(&mut self, _sink: &String, _camera: &resources::Camera, _position: Vector3<f32>) {}
-
-        pub fn set_speed(&mut self, _sink: &String, _speed: f32) {}
-
-        pub fn is_playing(&self, _sink: &String) -> bool {
-            false
-        }
-    }
-}
-
-#[cfg(not(target_os = "android"))]
-pub use desktop::SoundEffects;
-
-#[cfg(target_os = "android")]
-pub use android::SoundEffects;

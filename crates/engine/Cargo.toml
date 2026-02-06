@@ -28,9 +28,7 @@ rand = "0.8.4"
 uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
 fxhash = "0.2.1"
 winit = "0.30"
-
-[target.'cfg(not(target_os = "android"))'.dependencies]
-rodio = "0.17.1"
+rodio = "0.21"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android-activity = { version = "0.6", features = ["native-activity"] }
