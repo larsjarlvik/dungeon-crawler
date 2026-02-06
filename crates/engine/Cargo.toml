@@ -16,15 +16,15 @@ gltf = { version = "1.0.0", features = ["extras", "KHR_lights_punctual"] }
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = { features = ["raw_value"], version = "1.0" }
-image = { version = "0.24", default-features = false, features = [
+image = { version = "0.25", default-features = false, features = [
     "jpeg",
     "png",
 ] }
-rayon = "1.5.1"
+rayon = "1.11"
 smaa = "0.17"
 bevy_ecs = "0.9.0"
 bevy_tasks = "0.9.0"
-rand = "0.8.4"
+rand = "0.8"
 uuid = { version = "1.1.2", features = ["v4", "fast-rng"] }
 fxhash = "0.2.1"
 winit = "0.30"
