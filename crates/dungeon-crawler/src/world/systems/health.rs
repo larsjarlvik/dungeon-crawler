@@ -13,10 +13,8 @@ pub fn health(
     for (entity, mut stats, mut action) in query.p0().iter_mut() {
         let previous = stats.health.get();
         if previous >= 0.0 {
-            stats.health.changes = stats
-                .health
-                .changes
-                .clone()
+            let changes = std::mem::take(&mut stats.health.changes);
+            stats.health.changes = changes
                 .into_iter()
                 .filter(|change| match change.change_type {
                     components::HealthChangeType::Once => {

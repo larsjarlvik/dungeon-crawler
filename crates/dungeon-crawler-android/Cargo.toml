@@ -16,7 +16,7 @@ android-activity = { version = "0.6", features = ["native-activity"] }
 [package.metadata.android]
 resources = "../../res"
 assets = "../../assets"
-build_targets = ["aarch64-linux-android", "armv7-linux-androideabi"]
+build_targets = ["aarch64-linux-android"]
 
 [package.metadata.android.application]
 label = "Dungeon Crawler"

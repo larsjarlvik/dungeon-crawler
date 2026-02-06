@@ -88,7 +88,7 @@ impl<'a> RenderBundleBuilder<'a> {
         self
     }
 
-    pub fn create_entry(binding: u32, resource: wgpu::BindingResource<'a>) -> wgpu::BindGroupEntry {
+    pub fn create_entry(binding: u32, resource: wgpu::BindingResource<'a>) -> wgpu::BindGroupEntry<'a> {
         wgpu::BindGroupEntry { binding, resource }
     }
 
